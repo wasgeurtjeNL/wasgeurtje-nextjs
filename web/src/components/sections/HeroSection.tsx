@@ -133,17 +133,23 @@ export default function HeroSection() {
                   isDesktop ? "max-w-[480px]" : "w-full px-4"
                 }`}
                 style={{
-                  minHeight: isDesktop ? '60px' : '50px' // Reserve space to prevent CLS
+                  minHeight: isDesktop ? '85px' : '75px', // Increased for longer texts to prevent CLS
+                  position: 'relative'
                 }}>
-                <div className="relative">
+                <div className="relative" style={{ height: '100%' }}>
                   {/* Elegante onderstreping */}
                   <div className="absolute -top-2 left-0 w-12 h-[1px] bg-gradient-to-r from-[#B8860B] to-transparent opacity-60"></div>
                   
+                  {/* Absolute positioned text to prevent CLS during animation */}
                   <p 
                     className={`font-[var(--font-eb-garamond)] font-light italic tracking-wide transition-all duration-1000 ease-in-out text-[#2a2a2a] ${
                       isDesktop ? "text-[20px] leading-[1.5]" : "text-[18px] leading-[1.4]"
                     }`}
                     style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: 0,
+                      right: 0,
                       opacity: isTransitioning ? 0 : 1,
                       transform: isTransitioning ? 'translateY(10px)' : 'translateY(0)',
                     }}>
