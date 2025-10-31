@@ -100,20 +100,30 @@ export default function FancyProductSection({
             <li
               key={`fancy-product-${product.id || index}`}
               className="product type-product text-center relative border border-[#e9c356] bg-[#0e1528] mt-[100px]  pb-10">
-              {/* Product Image */}
+              {/* Product Image - Fixed CLS with explicit dimensions */}
               <Link
                 href={product.permalink || `/product/${product.slug}` || "#"}
                 className="woocommerce-LoopProduct-link block">
-                <div className="relative mt-[-100px] overflow-hidden  rounded text-center">
+                <div className="relative mt-[-100px] overflow-hidden rounded text-center">
                   {product.images && product.images[0] && (
-                    <div>
-                      <img src={fancyShape} alt="" className="mx-auto" />
+                    <div className="relative w-full" style={{ aspectRatio: "1 / 1", minHeight: "300px" }}>
+                      {/* Background fancy shape with explicit dimensions */}
+                      <Image 
+                        src={fancyShape} 
+                        alt="" 
+                        width={300} 
+                        height={300} 
+                        className="mx-auto" 
+                        priority
+                      />
+                      {/* Product image overlay */}
                       <Image
                         src={product.images[0].src}
                         alt={product.images[0].alt || product.name}
                         fill
                         className="object-contain p-3 !w-[90%] mx-auto"
-                        // sizes="(max-width: 768px) 33vw, 16vw"
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                        priority
                       />
                     </div>
                   )}

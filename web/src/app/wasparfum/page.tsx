@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { WordPressService } from "@/services/wordpress-service";
 import PageBuilder from "@/components/page-builder/PageBuilder";
 import Footer from "@/components/sections/Footer";
+import { BASE_URL } from "@/config/site";
 
-// SEO Metadata (exacte match met WordPress Yoast)
+// SEO Metadata (exacte match met WordPress Yoast) - Met absolute URLs voor SEO
 export const metadata: Metadata = {
   title: "Ontdek Topkwaliteit Wasparfum | Wasgeurtje.nl - Gratis Bezorging",
   description:
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
     description:
       "✓ Gratis verzending bij Wasgeurtje.nl ✓ Langdurig geurende wasparfum voor elke wasbeurt. Vind jouw favoriet uit onze exclusieve collectie en geniet van onweerstaanbare frisheid!",
     type: "website",
-    url: "/wasparfum",
+    url: `${BASE_URL}/wasparfum`, // Absolute URL voor SEO
   },
   twitter: {
     card: "summary_large_image",
@@ -31,25 +32,25 @@ export const metadata: Metadata = {
       "Langdurig geurende wasparfum voor elke wasbeurt. Gratis bezorging en exclusieve collectie.",
   },
   alternates: {
-    canonical: "/wasparfum",
+    canonical: `${BASE_URL}/wasparfum`, // Absolute canonical URL (SEO vereist)
   },
 };
 
-// JSON-LD Structured Data
+// JSON-LD Structured Data with absolute URLs for proper SEO
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "@id": "/wasparfum",
-  url: "/wasparfum",
+  "@id": `${BASE_URL}/wasparfum`,
+  url: `${BASE_URL}/wasparfum`,
   name: "Wasparfum - Luxe Wasparfums voor Heerlijk Geurende Was",
   description:
     "Ontdek onze exclusieve wasparfum collectie. Gratis verzending, langdurig geurend en geschikt voor alle soorten was.",
   inLanguage: "nl-NL",
   isPartOf: {
     "@type": "WebSite",
-    "@id": "/",
+    "@id": BASE_URL,
     name: "Wasgeurtje.nl",
-    url: "/",
+    url: BASE_URL,
   },
   breadcrumb: {
     "@type": "BreadcrumbList",
@@ -58,13 +59,13 @@ const jsonLd = {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "/",
+        item: BASE_URL,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Wasparfum",
-        item: "/wasparfum",
+        item: `${BASE_URL}/wasparfum`,
       },
     ],
   },
