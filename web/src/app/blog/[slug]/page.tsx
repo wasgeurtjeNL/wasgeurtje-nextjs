@@ -290,6 +290,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   className="object-cover"
                   priority
                   sizes="100vw"
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute inset-0 flex items-end">
