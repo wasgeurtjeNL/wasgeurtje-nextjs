@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Hero Desktop",
+    "path": "../public/figma/hero-image-287.png",
+    "component": "HeroSection",
+    "variable": "imgImage287",
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAYAAAB8ZH1oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAq0lEQVR4nF3MOw7BcACA8f9RHKCX6GBxBJ2ZRCyMJCImFvFIujiBBXEAEZpIMFikngmRepRKVdKqz2AQhm/75RP4FnjXT67JyzHYLycUEhECQlAvFeH1QODfvtAz8Z09x9UUrZymGpJQk1Genv0H3Qv+44C5GNFX83RSCo1YiPW4h/jePrnWhvtpwXnYpBYOkpUlupXML/TsHYf5gK2u4Rgz9JZKRZFp5+K8AdnhqdylpmZGAAAAAElFTkSuQmCC"
+  },
+  {
+    "name": "Hero Mobile",
+    "path": "../public/figma/Mobile-Background-2.webp",
+    "component": "HeroSection",
+    "variable": "imgImage288",
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAJCAYAAAALpr0TAAAACXBIWXMAAAPoAAAD6AG1e1JrAAABYElEQVR4nEXPzSvDcQDH8W9tDrvsX1AukqfLoh0cxEHSKIkdOLgRasQJES3KYxG1g7T083RYmsIywpqIKA8lbTZLHn+/PVO/5a1xcP30qk9vIYQQer1eW1CYm2U0Fufl5mRn6nQ6rUajSe8ZxiJD/oh1sE9sOteXEkooFn33obzc4dmUaDLVpUwV1ZGB7s7U7ck2kTc/gu8Y6qdMXA7idTs4lBaoLa+iobSMIkMpO9IcUTmA+E5FUJNvxD4CuFZtXDsXuRmq57CnhsYSI/bx4X+YSsoklBDR5yBXDhvutipOe6vZainDbjETfr3/u+ZT+YUP3h3OV+a5WJrm/dKFs6uW45kO7t0SApLwFeYr+kTg2MWLa4GzyR4ORlvZHmzGM2XhYMyCUFUFNf78C9NBj26JO8cse+MW1jrq2O1vxjvSgkgXJ8JB4rKfmBwi7LskeLTB/kQnY+ZKltvNeKyt/ABWNQIul6byXQAAAABJRU5ErkJggg=="
+  },
+  {
+    "name": "Category - Premium Wasparfums",
+    "path": "../public/figma/categories-image-283.png",
+    "component": "Categories",
+    "variable": "imgImage283",
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAACXBIWXMAAAsTAAALEwEAmpwYAAABG0lEQVR4nBXKzSuDARzA8R9/hIOz5iAndsOSjCxa1hxmWZk2pKd22PJSa7YpDVveJpv2xLQhL1mxLaOVrYlcXaxc7EwpN77yOX8kkRyiVFqkVsvx8Z3n7HyC4EILylg9Fr3Q1yRoRZDdhIGDPSPlwjyv7yrpIxs+t4aZ0TrMnUJ3o9D+H7fj/YSW2rh/cHFyZiW82oPL0YBtUDBqhRGd0NssSLbg5/EpSS4bIHsZ5DYf4TA6yUlcITyrp5jbwKu0IpsRM/uxGdL5ENfPKaadJsYtekKeNQKKE36iqJEuJJNyU325oFiJUX27I3O6TjLqo3x1wc3xCvxWUJcNiNfdQWzLwU7SQ6akYrcNYDXp8CsB5uzDfH368U1p+AM+Ya/NqezEiAAAAABJRU5ErkJggg=="
+  },
+  {
+    "name": "Category - Proefpakket",
+    "path": "../public/figma/categories-trial.png",
+    "component": "Categories",
+    "variable": "imgImage",
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAACXBIWXMAAAsTAAALEwEAmpwYAAABGElEQVR4nB3DPUsCcQDA4X9DH6KvUOBeBGIQUUiDU0OOETZELQUWBBY09YJQQxcJaWeFbXYgLpXXWR6SEgmFh5p6SYmUluAZ/IIeeES7dE8zr/KSkKk/KXRrKaxamqah8pwIYmajdMw0ol1Qqeohwt5hXI5+PO4xtpem0OMyxdsTkmEfLeMKYZU1DC3IqzKKcjyCw9aLrU8gegShvXXe0hHaJQ3RLatUMpfcSHbgkPrDGv7FcWYmBgisOincnUIzj/jMnvNlqPimbUhLLmLSCpHdBc423MQ3J8kq+1i1LKJdVOmYKSI78/hnhwh4BpHm7ASWnVwfecnHtvjQZYRlpmjlonw/XtDQg/9/KxpYVX5yURoZmffkAX81xdN+ehuIRAAAAABJRU5ErkJggg=="
+  },
+  {
+    "name": "Category - Cadeauset",
+    "path": "../public/figma/categories-gift.png",
+    "component": "Categories",
+    "variable": "imgImage1",
+    "blurDataURL": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJUlEQVR4nB3KzytDAQDA8efg5CCHlXbgQqGdZDU5OdhFu9CSVvsHTFJa8+MgDjtsCr2T/Fis1kJbk2VSllotoU3bG3vYzJv2w152IKS+yuf8EeR8ke9fsFisNDYI9PZoadc2YzAMkFPKKKUKiVQGIZtT+Pz6YWTUTKumCX13C12dGnQ6HY/5V4pllcRtBqGq1qmpdSZsNpxLc/T3dSCKKwwZjcgPz/8xpxQRohcxbjIKUvyM0Po0h95N/N4NTiPHPBXKhCPnxK4khMV5O+5ZE+Kyg2z6kv1gkG2Pl70tJ/YpM9axYe7CkwjvaomPQoRCTualUiMaj7Pr87HqcuBeGGdQ30ZANCEkUxL+gyNkWSaRvCZ8EqL6VkZVVe6lNAGPi521Gf4AhKPLAYegsHMAAAAASUVORK5CYII="
+  }
+]
