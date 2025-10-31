@@ -131,7 +131,10 @@ export default function HeroSection() {
               <div
                 className={`relative shrink-0 mt-2 ${
                   isDesktop ? "max-w-[480px]" : "w-full px-4"
-                }`}>
+                }`}
+                style={{
+                  minHeight: isDesktop ? '60px' : '50px' // Reserve space to prevent CLS
+                }}>
                 <div className="relative">
                   {/* Elegante onderstreping */}
                   <div className="absolute -top-2 left-0 w-12 h-[1px] bg-gradient-to-r from-[#B8860B] to-transparent opacity-60"></div>

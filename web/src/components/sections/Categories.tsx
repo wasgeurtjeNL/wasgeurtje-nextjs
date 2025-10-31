@@ -51,12 +51,15 @@ export default function Categories() {
       url: "/wasparfum/#fancy_product--section",
       imageComponent: (
         <div className="h-full w-full overflow-clip relative rounded-[8px]">
-          <div
-            className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+          <Image
+            src={imgImage283}
+            alt="Premium Wasparfums"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={85}
             style={{
-              backgroundImage: `url('${imgImage283}')`,
-              backgroundSize: "cover",
-              backgroundPosition: "center top",
+              objectFit: "cover",
+              objectPosition: "center top",
             }}
           />
         </div>
@@ -67,12 +70,15 @@ export default function Categories() {
       url: "/wasparfum/proefpakket/",
       imageComponent: (
         <div className="h-full w-full overflow-clip relative rounded-[8px]">
-          <div
-            className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+          <Image
+            src={imgImage}
+            alt="Proefpakket"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={85}
             style={{
-              backgroundImage: `url('${imgImage}')`,
-              backgroundSize: "cover",
-              backgroundPosition: "center top",
+              objectFit: "cover",
+              objectPosition: "center top",
             }}
           />
         </div>
@@ -83,12 +89,15 @@ export default function Categories() {
       url: "/wasparfum/cadeauset-wasparfum/",
       imageComponent: (
         <div className="h-full w-full overflow-clip relative rounded-[8px]">
-          <div
-            className="absolute inset-0 bg-center bg-cover bg-no-repeat"
+          <Image
+            src={imgImage1}
+            alt="Cadeauset"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={85}
             style={{
-              backgroundImage: `url('${imgImage1}')`,
-              backgroundSize: "cover",
-              backgroundPosition: "center top",
+              objectFit: "cover",
+              objectPosition: "center top",
             }}
           />
         </div>

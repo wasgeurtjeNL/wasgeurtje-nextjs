@@ -33,8 +33,7 @@
   }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-
+/* Font is loaded via next/font/google in layout.tsx - no need for @import */
 
 /* Custom font face voor Wasgeurtje */
 @font-face {
