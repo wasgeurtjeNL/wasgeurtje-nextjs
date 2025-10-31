@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { cache } from "react";
 import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
 import FloatingShareButtons from "@/components/blog/FloatingShareButtons";
 
@@ -65,30 +66,40 @@ interface BlogPostPageProps {
   };
 }
 
-// Generate complete SEO metadata from Yoast
-export async function generateMetadata({
-  params,
-}: BlogPostPageProps): Promise<Metadata> {
+// Cached fetch function to prevent duplicate requests
+// This function is shared between generateMetadata() and BlogPostPage()
+// React automatically caches the result per request
+const getPost = cache(async (slug: string): Promise<BlogPost | null> => {
   try {
-    const { slug } = await params;
     const response = await fetch(
       `${
         process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
       }/api/wordpress/posts?slug=${slug}`,
       {
         next: { revalidate: 3600 },
-        cache: 'force-cache', // Fix for Next.js 15 streaming error
+        cache: 'force-cache',
       }
     );
 
     if (!response.ok) {
-      return {
-        title: "Blog Post Not Found",
-        description: "The requested blog post could not be found.",
-      };
+      return null;
     }
 
-    const post: BlogPost = await response.json();
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    return null;
+  }
+});
+
+// Generate complete SEO metadata from Yoast
+export async function generateMetadata({
+  params,
+}: BlogPostPageProps): Promise<Metadata> {
+  try {
+    const { slug } = await params;
+    // Use cached getPost function - prevents duplicate fetch!
+    const post = await getPost(slug);
 
     if (!post) {
       return {
@@ -192,22 +203,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   try {
     const { slug } = await params;
 
-    // Fetch post from API
-    const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-      }/api/wordpress/posts?slug=${slug}`,
-      {
-        next: { revalidate: 3600 },
-        cache: 'force-cache', // Fix for Next.js 15 streaming error
-      }
-    );
-
-    if (!response.ok) {
-      notFound();
-    }
-
-    const post: BlogPost = await response.json();
+    // Use cached getPost function - reuses data from generateMetadata!
+    // This prevents a duplicate WordPress API call
+    const post = await getPost(slug);
 
     if (!post) {
       notFound();
@@ -289,9 +287,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   fill
                   className="object-cover"
                   priority
-                  sizes="100vw"
                   placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                  sizes="100vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute inset-0 flex items-end">
