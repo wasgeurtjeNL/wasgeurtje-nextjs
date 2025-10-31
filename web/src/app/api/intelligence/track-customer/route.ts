@@ -57,6 +57,27 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+    
+    // STEP 1.5: If still not recognized, try IP-only recognition (for multi-device scenarios)
+    if (!recognizedEmail && ipHash && ipHash !== 'unknown') {
+      console.log(`[Tracking] 🔍 Fingerprint not found, trying IP-only recognition...`);
+      
+      // Find any device with this IP
+      const { data: devicesWithIP } = await supabase
+        .from('device_tracking')
+        .select('customer_email, customer_id')
+        .eq('ip_hash', ipHash)
+        .order('last_seen', { ascending: false })
+        .limit(1);
+      
+      if (devicesWithIP && devicesWithIP.length > 0) {
+        recognizedEmail = devicesWithIP[0].customer_email;
+        recognizedCustomerId = devicesWithIP[0].customer_id;
+        console.log(`[Tracking] ✅ IP recognized! Customer: ${recognizedEmail} (multi-device)`);
+      } else {
+        console.log(`[Tracking] ❌ IP not recognized: ${ipHash.substring(0, 20)}...`);
+      }
+    }
 
     // STEP 2: If we have an email, track the device
     // This will now create SEPARATE records for each unique IP/fingerprint combo
