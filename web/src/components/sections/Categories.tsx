@@ -131,6 +131,7 @@ export default function Categories() {
             <a
               href={category.url}
               className={`overflow-hidden relative rounded-[8px] cursor-pointer block w-full`}
+              aria-label={`Bekijk ${category.name}`}
               data-name="Product images"
               data-node-id={`71:${5068 + index * 4}`}
             >
