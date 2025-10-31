@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { getPersonalizedGreeting, getDaySpecificGreeting } from '@/utils/greeting';
 import { useState, useEffect } from 'react';
+import blurData from '@/data/blur-placeholders.json';
 
 const imgImage287 = "/figma/hero-image-287.png";
 const imgImage288 = "/figma/Mobile-Background-2.webp";
@@ -170,7 +171,7 @@ export default function HeroSection() {
               ? "flex-1"
               : "w-full min-h-[400px] sm:min-h-[550px] md:min-h-[750px] mt-[-200px]"
           }`}>
-          {/* Desktop hero image with priority loading */}
+          {/* Desktop hero image with priority loading + blur placeholder */}
           <div className="absolute inset-0 lg:block hidden">
             <Image
               src={imgImage287}
@@ -180,6 +181,8 @@ export default function HeroSection() {
               fetchPriority="high"
               quality={90}
               sizes="(min-width: 1024px) 53vw, 0vw"
+              placeholder="blur"
+              blurDataURL={blurData["hero-desktop"]}
               style={{
                 objectFit: "cover",
                 objectPosition: "right bottom",
@@ -187,7 +190,7 @@ export default function HeroSection() {
             />
           </div>
           
-          {/* Mobile hero image with priority loading */}
+          {/* Mobile hero image with priority loading + blur placeholder */}
           <div className="absolute inset-0 lg:hidden flex items-end justify-center">
             <Image
               src={imgImage288}
@@ -197,6 +200,8 @@ export default function HeroSection() {
               fetchPriority="high"
               quality={90}
               sizes="(max-width: 1023px) 100vw, 0vw"
+              placeholder="blur"
+              blurDataURL={blurData["hero-mobile"]}
               style={{
                 objectFit: "cover",
                 objectPosition: "top",
