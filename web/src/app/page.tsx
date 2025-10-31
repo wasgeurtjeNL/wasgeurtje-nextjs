@@ -7,14 +7,33 @@ import RunningUSPStrip from "@/components/sections/RunningUSPStrip";
 import type { Metadata } from "next";
 import { fetchWpBySlug, yoastToNextMetadata } from "@/utils/wordpress-yoastseo";
 
-// Lazy load below-the-fold components for better LCP
-const Testimonials = dynamic(() => import('@/components/sections/Testimonials'));
-const HowItWorks = dynamic(() => import('@/components/sections/HowItWorks'));
-const PerfumeFinder = dynamic(() => import('@/components/sections/PerfumeFinder'));
-const Sustainability = dynamic(() => import('@/components/sections/Sustainability'));
-const TrialPackFeature = dynamic(() => import('@/components/sections/TrialPackFeature'));
-const RewardProgram = dynamic(() => import('@/components/sections/RewardProgram'));
-const OurStory = dynamic(() => import('@/components/sections/OurStory'));
+// Skeleton loader components to prevent CLS
+const SectionSkeleton = ({ height = '400px', bgColor = 'rgba(245,245,245,0.8)' }: { height?: string; bgColor?: string }) => (
+  <div style={{ minHeight: height, backgroundColor: bgColor }} className="w-full" />
+);
+
+// Lazy load below-the-fold components with skeleton loaders to prevent CLS
+const Testimonials = dynamic(() => import('@/components/sections/Testimonials'), {
+  loading: () => <SectionSkeleton height="400px" bgColor="rgba(252,206,78,0.3)" />
+});
+const HowItWorks = dynamic(() => import('@/components/sections/HowItWorks'), {
+  loading: () => <SectionSkeleton height="600px" />
+});
+const PerfumeFinder = dynamic(() => import('@/components/sections/PerfumeFinder'), {
+  loading: () => <SectionSkeleton height="500px" bgColor="rgba(255,255,255,1)" />
+});
+const Sustainability = dynamic(() => import('@/components/sections/Sustainability'), {
+  loading: () => <SectionSkeleton height="500px" />
+});
+const TrialPackFeature = dynamic(() => import('@/components/sections/TrialPackFeature'), {
+  loading: () => <SectionSkeleton height="450px" bgColor="rgba(248,248,248,1)" />
+});
+const RewardProgram = dynamic(() => import('@/components/sections/RewardProgram'), {
+  loading: () => <SectionSkeleton height="500px" />
+});
+const OurStory = dynamic(() => import('@/components/sections/OurStory'), {
+  loading: () => <SectionSkeleton height="700px" bgColor="rgba(252,252,252,1)" />
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   try {

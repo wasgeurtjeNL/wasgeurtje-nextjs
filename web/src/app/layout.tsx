@@ -22,9 +22,10 @@ import GlobalBundleOfferManager from "@/components/GlobalBundleOfferManager";
 
 const ebGaramond = EB_Garamond({
   subsets: ["latin"],
-  display: "swap",
+  display: "optional", // Use 'optional' instead of 'swap' to prevent CLS
   weight: ["400", "500", "600", "700"],
   variable: "--font-eb-garamond",
+  preload: true, // Ensure font is preloaded for critical text
 });
 
 export const metadata: Metadata = {

@@ -80,18 +80,49 @@ export default function Testimonials() {
             }}
           />
         ) : (
+          // Realistic skeleton loader that matches TrustIndex widget dimensions
           <div 
             style={{
               width: "100%",
-              height: isTablet ? "320px" : "350px",
+              minHeight: isTablet ? "320px" : "350px",
               backgroundColor: "rgba(252,206,78,0.1)",
               borderRadius: "8px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              padding: "20px",
+              gap: "16px",
             }}
           >
-            <span style={{ color: "#666", fontSize: "14px" }}>Reviews laden...</span>
+            {/* Skeleton review cards */}
+            <div style={{ 
+              width: "100%", 
+              maxWidth: "300px",
+              height: "200px",
+              backgroundColor: "rgba(255,255,255,0.6)",
+              borderRadius: "8px",
+              animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+            }} />
+            {isDesktop && (
+              <>
+                <div style={{ 
+                  width: "100%", 
+                  maxWidth: "300px",
+                  height: "200px",
+                  backgroundColor: "rgba(255,255,255,0.6)",
+                  borderRadius: "8px",
+                  animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+                }} />
+                <div style={{ 
+                  width: "100%", 
+                  maxWidth: "300px",
+                  height: "200px",
+                  backgroundColor: "rgba(255,255,255,0.6)",
+                  borderRadius: "8px",
+                  animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+                }} />
+              </>
+            )}
           </div>
         )}
       </div>
