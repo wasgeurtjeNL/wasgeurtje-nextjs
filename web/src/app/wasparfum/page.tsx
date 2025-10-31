@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { WordPressService } from "services/wordpress-service";
+import { WordPressService } from "@/services/wordpress-service";
 import PageBuilder from "@/components/page-builder/PageBuilder";
 import Footer from "@/components/sections/Footer";
 
