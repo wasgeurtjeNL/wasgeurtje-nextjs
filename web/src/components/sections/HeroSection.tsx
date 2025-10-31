@@ -1,0 +1,158 @@
+"use client";
+
+import { useMediaQuery, breakpoints } from '@/hooks/useMediaQuery';
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { getPersonalizedGreeting, getDaySpecificGreeting } from '@/utils/greeting';
+
+const imgImage287 = "/figma/hero-image-287.png";
+const imgImage288 = "/figma/Mobile-Background-2.webp";
+const imgStar = "/figma/star.svg";
+
+export default function HeroSection() {
+  const isDesktop = useMediaQuery(breakpoints.lg);
+  const { user, isLoggedIn, orders } = useAuth();
+  
+  const greeting = user ? getPersonalizedGreeting(user.firstName || user.displayName, { includeEmoji: true }) : "";
+  const isSpecialDay = getDaySpecificGreeting() !== null;
+
+  return (
+    <section
+      className="relative overflow-hidden"
+      style={{ height: isDesktop ? "772px" : "auto" }}
+      data-name="Hero section"
+      data-node-id="71:4862">
+      {/* Main container with columns (flex on desktop, stack on mobile) */}
+      <div className={`${isDesktop ? "flex" : "flex flex-col"} h-full`}>
+        {/* Column with gold gradient background */}
+        <div
+          className={`relative ${isDesktop ? "w-[47%]" : "w-full"} ${
+            isDesktop ? "h-full" : "h-[450px]"
+          }`}>
+          {/* Gold gradient background */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(252,206,78,0.95) 0%, rgba(214,173,97,0.92) 45%, rgba(198,153,74,0.9) 100%)",
+            }}
+          />
+
+          {/* Content column aligned to left */}
+          <div
+            className={`absolute left-0 top-0 w-full h-full box-border flex flex-col gap-3 items-start justify-start ${
+              isDesktop ? "pt-12 px-[72px]" : "pt-10 px-6"
+            } pb-0 z-10`}>
+            
+            {/* Personalized Welcome Message */}
+            {isLoggedIn && user && (
+              <div className="mx-auto md:mx-0 animate-fadeIn">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2.5 shadow-md border border-white/60">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{isSpecialDay ? '🎉' : '✨'}</span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-[#1a1a1a]">
+                        {greeting}!
+                      </span>
+                      {user.loyalty && user.loyalty.points > 0 && (
+                        <span className="text-xs text-[#B8860B] font-medium">
+                          {user.loyalty.points} punten 🌟
+                          {user.loyalty.points >= 60 && " · Klaar om in te wisselen!"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="mx-auto md:mx-[unset] relative shrink-0 bg-white/95 backdrop-blur-sm rounded-full px-5 py-2 box-border flex items-center gap-3 shadow-lg border border-white/50">
+              <div className="relative shrink-0 flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="relative shrink-0 size-[16px]">
+                    <img
+                      alt=""
+                      className="block max-w-none size-full drop-shadow-sm"
+                      src={imgStar}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="relative shrink-0 text-[#212529] font-medium text-[15px] tracking-tight">
+                <p className="leading-none">1400+ reviews</p>
+              </div>
+            </div>
+
+            <div
+              className={`relative shrink-0 text-[#1a1a1a] ${
+                isDesktop ? "" : "text-center"
+              }`}>
+              <h1 className={`font-[var(--font-eb-garamond)] leading-[1.12] ${
+                isDesktop ? "text-[58px]" : "text-[34px]"
+              }`}>
+                <span className="block font-light tracking-wide">Luxe wasparfums</span>
+                <span className="block font-bold tracking-tight mt-1">
+                  die <span className="italic font-semibold text-[#B8860B] relative">uitzonderlijk</span> lang
+                </span>
+                <span className="block font-bold tracking-tight">blijven hangen</span>
+              </h1>
+            </div>
+
+            {!isLoggedIn && (
+              <div
+                className={`relative shrink-0 text-[#212529] ${
+                  isDesktop ? "max-w-[440px]" : "text-center px-4"
+                }`}>
+                <p className={`leading-[1.35] font-light ${
+                  isDesktop ? "text-[18px]" : "text-[16px]"
+                }`}>
+                  Luxe wasparfums met <span className="font-medium">Italiaans geïnspireerde geuren</span> gemaakt met premium essentiële oliën.
+                </p>
+              </div>
+            )}
+
+            <Link
+              href={isLoggedIn && orders && orders.length > 0 ? "/shop" : "/wasparfum"}
+              className="relative hidden lg:inline-flex  flex-shrink-0 bg-black text-white uppercase rounded-[4px] h-11  items-center justify-center px-14 hover:bg-[#1a1a1a] transition-colors">
+              <span className="text-[16px] leading-[1.5]">
+                {isLoggedIn && orders && orders.length > 0 ? "Shop favorieten" : "Ontdek nu"}
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Column with image */}
+        <div
+          className={`relative ${
+            isDesktop
+              ? "flex-1"
+              : "w-full min-h-[400px] sm:min-h-[550px] md:min-h-[750px] mt-[-200px]"
+          }`}>
+          <div
+            className="absolute inset-0 bg-no-repeat lg:block hidden"
+            style={{
+              backgroundImage: `url('${imgImage287}')`,
+              backgroundSize: "cover",
+              backgroundPosition: "right bottom",
+            }}
+          />
+          <div
+            className="absolute inset-0 bg-no-repeat  lg:hidden flex items-end justify-center"
+            style={{
+              backgroundImage: `url('${imgImage288}')`,
+              backgroundSize: "cover",
+              backgroundPosition: "top",
+            }}>
+            <Link
+              href={isLoggedIn && orders && orders.length > 0 ? "/shop" : "/wasparfum"}
+              className="inline-flex flex-shrink-0 bg-black text-white uppercase rounded-[4px] h-11 items-center justify-center px-14 mb-10 hover:bg-[#1a1a1a] transition-colors">
+              <span className="text-[16px] leading-[1.5]">
+                {isLoggedIn && orders && orders.length > 0 ? "Shop favorieten" : "Ontdek nu"}
+              </span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

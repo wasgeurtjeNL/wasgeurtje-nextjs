@@ -1,0 +1,30 @@
+{
+  "name": "wasgeurtje-clone-v2",
+  "private": true,
+  "workspaces": [
+    "web"
+  ],
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix web run start",
+    "lint": "npm --prefix web run lint"
+  },
+  "dependencies": {
+    "@playwright/mcp": "^0.0.40",
+    "@splidejs/react-splide": "^0.7.12",
+    "@splidejs/splide": "^4.1.4",
+    "@stripe/react-stripe-js": "^4.0.2",
+    "@stripe/stripe-js": "^7.9.0",
+    "@types/swiper": "^5.4.3",
+    "react-slick": "^0.31.0",
+    "sanitize-html": "^2.17.0",
+    "slick-carousel": "^1.8.1",
+    "stripe": "^18.5.0",
+    "swiper": "^12.0.3"
+  },
+  "devDependencies": {
+    "@types/react-slick": "^0.23.13",
+    "@types/sanitize-html": "^2.16.0"
+  }
+}
