@@ -1,17 +1,20 @@
+import dynamic from 'next/dynamic';
 import HeroSection from "@/components/sections/HeroSection";
 import USPs from "@/components/sections/USPs";
 import Categories from "@/components/sections/Categories";
 import PersonalizedRecommendations from "@/components/sections/PersonalizedRecommendations";
 import RunningUSPStrip from "@/components/sections/RunningUSPStrip";
-import Testimonials from "@/components/sections/Testimonials";
-import HowItWorks from "@/components/sections/HowItWorks";
-import PerfumeFinder from "@/components/sections/PerfumeFinder";
-import Sustainability from "@/components/sections/Sustainability";
-import TrialPackFeature from "@/components/sections/TrialPackFeature";
-import RewardProgram from "@/components/sections/RewardProgram";
-import OurStory from "@/components/sections/OurStory";
 import type { Metadata } from "next";
 import { fetchWpBySlug, yoastToNextMetadata } from "@/utils/wordpress-yoastseo";
+
+// Lazy load below-the-fold components for better LCP
+const Testimonials = dynamic(() => import('@/components/sections/Testimonials'));
+const HowItWorks = dynamic(() => import('@/components/sections/HowItWorks'));
+const PerfumeFinder = dynamic(() => import('@/components/sections/PerfumeFinder'));
+const Sustainability = dynamic(() => import('@/components/sections/Sustainability'));
+const TrialPackFeature = dynamic(() => import('@/components/sections/TrialPackFeature'));
+const RewardProgram = dynamic(() => import('@/components/sections/RewardProgram'));
+const OurStory = dynamic(() => import('@/components/sections/OurStory'));
 
 export async function generateMetadata(): Promise<Metadata> {
   try {

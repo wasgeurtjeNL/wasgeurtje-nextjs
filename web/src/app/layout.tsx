@@ -45,6 +45,20 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="nl" className={`${ebGaramond.variable}`}>
+      <head>
+        {/* Preconnect to important domains for faster resource loading */}
+        <link rel="preconnect" href="https://wasgeurtje-nextjs.vercel.app" />
+        <link rel="dns-prefetch" href="https://wasgeurtje-nextjs.vercel.app" />
+        
+        {/* Preload critical font for LCP improvement */}
+        <link
+          rel="preload"
+          href="/_next/static/media/23081e227a96aa1a-s.p.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="antialiased overflow-x-hidden">
         <AuthProvider>
           <CartProvider>

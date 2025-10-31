@@ -12,6 +12,9 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Disable source maps in production for security and performance
+  productionBrowserSourceMaps: false,
+  
   // Output modern JavaScript (ES2020+) to reduce bundle size
   // Removes unnecessary polyfills for modern browsers
   compiler: {
@@ -22,6 +25,7 @@ const nextConfig = {
   },
   // Use modern build output
   swcMinify: true,
+  
   images: {
     remotePatterns: [
       {
