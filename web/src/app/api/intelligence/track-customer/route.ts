@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/supabase';
+import { db, supabaseServer } from '@/lib/supabase';
 import crypto from 'crypto';
 
 const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       console.log(`[Tracking] 🔍 Fingerprint not found, trying IP-only recognition...`);
       
       // Find any device with this IP
-      const { data: devicesWithIP } = await supabase
+      const { data: devicesWithIP } = await supabaseServer
         .from('device_tracking')
         .select('customer_email, customer_id')
         .eq('ip_hash', ipHash)
@@ -265,8 +265,17 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[Tracking] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('[Tracking] Error details:', { message: errorMessage, stack: errorStack });
+    
     return NextResponse.json(
-      { success: false, message: 'Failed to track customer' },
+      { 
+        success: false, 
+        message: 'Failed to track customer',
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
       { status: 500 }
     );
   }
