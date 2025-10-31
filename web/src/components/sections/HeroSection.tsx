@@ -5,12 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { getPersonalizedGreeting, getDaySpecificGreeting } from '@/utils/greeting';
+import { useState, useEffect } from 'react';
 
 const imgImage287 = "/figma/hero-image-287.png";
 const imgImage288 = "/figma/Mobile-Background-2.webp";
 const imgStar = "/figma/star.svg";
 
-// CRO-geoptimaliseerde voordelen - Pure CSS carousel animation (Zero CLS)
+// CRO-geoptimaliseerde voordelen die dynamisch wisselen
 const benefits = [
   "Voor handdoeken die wekenlang fris blijven ruiken",
   "Je beddengoed ruikt als een 5-sterren hotel",
@@ -25,9 +26,24 @@ const benefits = [
 export default function HeroSection() {
   const isDesktop = useMediaQuery(breakpoints.lg);
   const { user, isLoggedIn, orders } = useAuth();
+  const [currentBenefitIndex, setCurrentBenefitIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   const greeting = user ? getPersonalizedGreeting(user.firstName || user.displayName, { includeEmoji: true }) : "";
   const isSpecialDay = getDaySpecificGreeting() !== null;
+
+  // Wissel voordelen elke 4.5 seconden voor een premium gevoel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentBenefitIndex((prev) => (prev + 1) % benefits.length);
+        setIsTransitioning(false);
+      }, 500);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section
@@ -117,26 +133,23 @@ export default function HeroSection() {
                   isDesktop ? "max-w-[480px]" : "w-full px-4"
                 }`}
                 style={{
-                  height: isDesktop ? '60px' : '76px', // Fixed height prevents CLS
-                  overflow: 'hidden', // Hide overflow for smooth transitions
-                  position: 'relative'
+                  minHeight: isDesktop ? '60px' : '50px' // Reserve space to prevent CLS
                 }}>
-                {/* Elegante onderstreping */}
-                <div className="absolute -top-2 left-0 w-12 h-[1px] bg-gradient-to-r from-[#B8860B] to-transparent opacity-60 z-10"></div>
-                
-                {/* All benefit texts pre-rendered with CSS-only carousel animation */}
-                {benefits.map((benefit, index) => (
+                <div className="relative">
+                  {/* Elegante onderstreping */}
+                  <div className="absolute -top-2 left-0 w-12 h-[1px] bg-gradient-to-r from-[#B8860B] to-transparent opacity-60"></div>
+                  
                   <p 
-                    key={index}
-                    className={`hero-benefit-text font-[var(--font-eb-garamond)] font-light italic tracking-wide text-[#2a2a2a] ${
+                    className={`font-[var(--font-eb-garamond)] font-light italic tracking-wide transition-all duration-1000 ease-in-out text-[#2a2a2a] ${
                       isDesktop ? "text-[20px] leading-[1.5]" : "text-[18px] leading-[1.4]"
                     }`}
                     style={{
-                      animationDelay: `${index * 4.5}s` // 4.5s per item (matching original interval)
+                      opacity: isTransitioning ? 0 : 1,
+                      transform: isTransitioning ? 'translateY(10px)' : 'translateY(0)',
                     }}>
-                    {benefit}
+                    {benefits[currentBenefitIndex]}
                   </p>
-                ))}
+                </div>
               </div>
             )}
 
