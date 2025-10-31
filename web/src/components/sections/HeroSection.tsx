@@ -170,7 +170,7 @@ export default function HeroSection() {
               ? "flex-1"
               : "w-full min-h-[400px] sm:min-h-[550px] md:min-h-[750px] mt-[-200px]"
           }`}>
-          {/* Desktop hero image with priority loading */}
+          {/* Desktop hero image with priority loading + blur placeholder for smooth UX */}
           <div className="absolute inset-0 lg:block hidden">
             <Image
               src={imgImage287}
@@ -178,6 +178,8 @@ export default function HeroSection() {
               fill
               priority
               fetchPriority="high"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
               quality={90}
               sizes="(min-width: 1024px) 53vw, 0vw"
               style={{
@@ -187,7 +189,7 @@ export default function HeroSection() {
             />
           </div>
           
-          {/* Mobile hero image with priority loading */}
+          {/* Mobile hero image with priority loading + blur placeholder for smooth UX */}
           <div className="absolute inset-0 lg:hidden flex items-end justify-center">
             <Image
               src={imgImage288}
@@ -195,6 +197,8 @@ export default function HeroSection() {
               fill
               priority
               fetchPriority="high"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
               quality={90}
               sizes="(max-width: 1023px) 100vw, 0vw"
               style={{
