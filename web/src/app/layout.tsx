@@ -3,8 +3,7 @@ import { EB_Garamond } from "next/font/google";
 import "./globals.css";
 import "./product-typography.css";
 import "./blog/blog-styling.css";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+// Slick carousel CSS is now lazy-loaded only on product pages
 // import FigmaHeader from "@/components/sections/FigmaHeader";
 // import ResponsiveInit from "@/components/ResponsiveInit";
 // import { CartProvider } from "@/context/CartContext";
