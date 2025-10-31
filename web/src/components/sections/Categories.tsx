@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useMediaQuery,
   breakpoints,
@@ -31,9 +32,11 @@ export default function Categories() {
           />
           {/* Bottle PNG centered without rectangular card; uses drop-shadow on alpha */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <img
+            <Image
               src={imgMorningVapor}
-              alt=""
+              alt="Morning Vapor Wasparfum"
+              width={100}
+              height={220}
               className={`w-auto ${
                 isTablet ? "h-[200px]" : isDesktop ? "h-[220px]" : "h-[100px]"
               }`}

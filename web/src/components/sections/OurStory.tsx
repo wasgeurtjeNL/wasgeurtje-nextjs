@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import {
   useMediaQuery,
   breakpoints,
@@ -51,7 +52,13 @@ export default function OurStory() {
 
               {/* Vector line 1 */}
               <div className="absolute top-[80px] left-0 right-0">
-                <img src="/figma/vector1.svg" alt="" className="w-full" />
+                <Image 
+                  src="/figma/vector1.svg" 
+                  alt="" 
+                  width={1200} 
+                  height={8}
+                  className="w-full h-auto" 
+                />
               </div>
 
               {/* Mobile heading */}
@@ -78,7 +85,13 @@ export default function OurStory() {
 
               {/* Vector line 2 */}
               <div className="absolute bottom-0 left-0 right-0">
-                <img src="/figma/vector2.svg" alt="" className="w-full" />
+                <Image 
+                  src="/figma/vector2.svg" 
+                  alt="" 
+                  width={1200} 
+                  height={8}
+                  className="w-full h-auto" 
+                />
               </div>
             </div>
           ) : isTablet ? (
@@ -100,7 +113,13 @@ export default function OurStory() {
 
               {/* Vector line 1 */}
               <div className="absolute top-[90px] left-0 right-0">
-                <img src="/figma/vector1.svg" alt="" className="w-full" />
+                <Image 
+                  src="/figma/vector1.svg" 
+                  alt="" 
+                  width={1200} 
+                  height={8}
+                  className="w-full h-auto" 
+                />
               </div>
 
               {/* Tablet heading */}
@@ -127,7 +146,13 @@ export default function OurStory() {
 
               {/* Vector line 2 */}
               <div className="absolute bottom-0 left-0 right-0">
-                <img src="/figma/vector2.svg" alt="" className="w-full" />
+                <Image 
+                  src="/figma/vector2.svg" 
+                  alt="" 
+                  width={1200} 
+                  height={8}
+                  className="w-full h-auto" 
+                />
               </div>
             </div>
           ) : (
