@@ -887,6 +887,15 @@ const SuccessPageWrapper = () => {
                             </span>
                           </div>
                         )}
+                        {orderDetails.orderData.totals.bundleDiscount > 0 && (
+                          <div className="flex justify-between text-lg text-green-600">
+                            <span className="font-medium">Bundle korting:</span>
+                            <span className="font-bold">
+                              -€
+                              {orderDetails.orderData.totals.bundleDiscount.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
                         {orderDetails.orderData.totals.volumeDiscount > 0 && (
                           <div className="flex justify-between text-lg text-green-600">
                             <span className="font-medium">Volume korting:</span>

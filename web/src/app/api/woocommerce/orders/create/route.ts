@@ -51,6 +51,7 @@ interface OrderTotals {
   subtotal: number;
   discountAmount: number;
   volumeDiscount: number;
+  bundleDiscount?: number;
   shippingCost: number;
   finalTotal: number;
 }
@@ -253,6 +254,14 @@ export async function POST(request: NextRequest) {
       feeLines.push({
         name: "Volume korting (10%)",
         amount: (-totals.volumeDiscount).toString(),
+      });
+    }
+
+    // Add bundle discount (from bundle offer)
+    if (totals.bundleDiscount && totals.bundleDiscount > 0) {
+      feeLines.push({
+        name: "Bundle korting",
+        amount: (-totals.bundleDiscount).toString(),
       });
     }
 

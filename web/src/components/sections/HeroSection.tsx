@@ -4,17 +4,45 @@ import { useMediaQuery, breakpoints } from '@/hooks/useMediaQuery';
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { getPersonalizedGreeting, getDaySpecificGreeting } from '@/utils/greeting';
+import { useState, useEffect } from 'react';
 
 const imgImage287 = "/figma/hero-image-287.png";
 const imgImage288 = "/figma/Mobile-Background-2.webp";
 const imgStar = "/figma/star.svg";
 
+// CRO-geoptimaliseerde voordelen die dynamisch wisselen
+const benefits = [
+  "Voor handdoeken die wekenlang fris blijven ruiken",
+  "Je beddengoed ruikt als een 5-sterren hotel",
+  "Elke wasbeurt wordt een luxe ervaring",
+  "Die net-gewassen geur blijft wekenlang hangen",
+  "Je garderobe ruikt als een Italiaanse parfumerie",
+  "Stap elke ochtend in heerlijk geurende kleding",
+  "Lakens met de geur van pure luxe",
+  "Geniet van een subtiele spa-geur door heel je huis",
+];
+
 export default function HeroSection() {
   const isDesktop = useMediaQuery(breakpoints.lg);
   const { user, isLoggedIn, orders } = useAuth();
+  const [currentBenefitIndex, setCurrentBenefitIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   const greeting = user ? getPersonalizedGreeting(user.firstName || user.displayName, { includeEmoji: true }) : "";
   const isSpecialDay = getDaySpecificGreeting() !== null;
+
+  // Wissel voordelen elke 4.5 seconden voor een premium gevoel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentBenefitIndex((prev) => (prev + 1) % benefits.length);
+        setIsTransitioning(false);
+      }, 500);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section
@@ -100,14 +128,24 @@ export default function HeroSection() {
 
             {!isLoggedIn && (
               <div
-                className={`relative shrink-0 text-[#212529] ${
-                  isDesktop ? "max-w-[440px]" : "text-center px-4"
+                className={`relative shrink-0 mt-2 ${
+                  isDesktop ? "max-w-[480px]" : "w-full px-4"
                 }`}>
-                <p className={`leading-[1.35] font-light ${
-                  isDesktop ? "text-[18px]" : "text-[16px]"
-                }`}>
-                  Luxe wasparfums met <span className="font-medium">Italiaans geïnspireerde geuren</span> gemaakt met premium essentiële oliën.
-                </p>
+                <div className="relative">
+                  {/* Elegante onderstreping */}
+                  <div className="absolute -top-2 left-0 w-12 h-[1px] bg-gradient-to-r from-[#B8860B] to-transparent opacity-60"></div>
+                  
+                  <p 
+                    className={`font-[var(--font-eb-garamond)] font-light italic tracking-wide transition-all duration-1000 ease-in-out text-[#2a2a2a] ${
+                      isDesktop ? "text-[20px] leading-[1.5]" : "text-[18px] leading-[1.4]"
+                    }`}
+                    style={{
+                      opacity: isTransitioning ? 0 : 1,
+                      transform: isTransitioning ? 'translateY(10px)' : 'translateY(0)',
+                    }}>
+                    {benefits[currentBenefitIndex]}
+                  </p>
+                </div>
               </div>
             )}
 

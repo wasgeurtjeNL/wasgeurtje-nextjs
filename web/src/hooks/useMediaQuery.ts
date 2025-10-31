@@ -2,20 +2,34 @@
 import { useState, useEffect } from 'react';
 
 export function useMediaQuery(query: string): boolean {
+  // Always start with false to match SSR
+  // This prevents hydration mismatch
   const [matches, setMatches] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Mark as mounted
+    setMounted(true);
+    
+    // Create media query list
     const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
+    
+    // Set initial state based on current match
+    setMatches(media.matches);
 
-    const listener = () => setMatches(media.matches);
+    // Define listener for future changes
+    const listener = (event: MediaQueryListEvent) => setMatches(event.matches);
+    
+    // Add listener only once per query change
     media.addEventListener('change', listener);
+    
+    // Cleanup: remove listener when component unmounts or query changes
     return () => media.removeEventListener('change', listener);
-  }, [matches, query]);
+  }, [query]); // Only re-run when query changes, NOT when matches changes
 
-  return matches;
+  // Return false during SSR and initial client render to prevent hydration mismatch
+  // After mount, return actual matches value
+  return mounted ? matches : false;
 }
 
 // Predefined breakpoints matching tailwind defaults

@@ -242,10 +242,40 @@ export default function CheckoutPage() {
     type: "fixed" | "percentage";
   } | null>(null);
   const [discountError, setDiscountError] = useState("");
+  // Bundle discount persisted by BundleOfferPopup
+  const [bundleDiscount, setBundleDiscount] = useState<number>(0);
+  const [bundleDiscountMeta, setBundleDiscountMeta] = useState<{ code?: string; offerId?: number } | null>(null);
 
   // Address refresh state to trigger re-render after deletion
   const [addressRefresh, setAddressRefresh] = useState(0);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+
+  // Load bundle discount from localStorage
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('wg-bundle-discount') : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const now = Date.now();
+        if (!parsed.expiresAt || parsed.expiresAt > now) {
+          const amount = Number(parsed.amount) || 0;
+          setBundleDiscount(amount);
+          setBundleDiscountMeta({ code: parsed.code, offerId: parsed.offerId });
+        } else {
+          localStorage.removeItem('wg-bundle-discount');
+          setBundleDiscount(0);
+          setBundleDiscountMeta(null);
+        }
+      } else {
+        setBundleDiscount(0);
+        setBundleDiscountMeta(null);
+      }
+    } catch (e) {
+      console.warn('Failed to read bundle discount from storage', e);
+      setBundleDiscount(0);
+      setBundleDiscountMeta(null);
+    }
+  }, []);
 
   // Email validation state
   const [emailError, setEmailError] = useState("");
@@ -2022,6 +2052,10 @@ export default function CheckoutPage() {
     return 0;
   };
 
+  const calculateBundleDiscount = () => {
+    return Math.max(0, bundleDiscount || 0);
+  };
+
   const calculateDiscount = () => {
     if (!appliedDiscount) return 0;
 
@@ -2036,7 +2070,8 @@ export default function CheckoutPage() {
     const shipping = calculateShipping();
     const discount = calculateDiscount();
     const volumeDiscount = calculateVolumeDiscount();
-    return Math.max(0, subtotal + shipping - discount - volumeDiscount);
+    const bundle = calculateBundleDiscount();
+    return Math.max(0, subtotal + shipping - discount - volumeDiscount - bundle);
   };
 
   // Memoize orderData to prevent infinite re-renders in PaymentPage
@@ -2050,12 +2085,13 @@ export default function CheckoutPage() {
 
     // Calculate volume discount inline
     const volumeDiscount = subtotal >= 150 ? subtotal * 0.1 : 0;
+    const bundle = calculateBundleDiscount();
 
     // Calculate shipping inline
     const shippingCost = subtotal >= 40 ? 0 : 4.95;
 
     // Calculate final total inline
-    const finalTotal = Math.max(0, subtotal + shippingCost - discountAmount - volumeDiscount);
+    const finalTotal = Math.max(0, subtotal + shippingCost - discountAmount - volumeDiscount - bundle);
 
     // Convert appliedDiscount to API format
     const apiDiscount = appliedDiscount
@@ -2103,8 +2139,9 @@ export default function CheckoutPage() {
       appliedDiscount: apiDiscount,
       totals: {
         subtotal: subtotal,
-        discountAmount: discountAmount,
-        volumeDiscount: volumeDiscount,
+      discountAmount: discountAmount,
+      volumeDiscount: volumeDiscount,
+      bundleDiscount: bundle,
         shippingCost: shippingCost,
         finalTotal: finalTotal,
       },
@@ -2246,6 +2283,7 @@ export default function CheckoutPage() {
         subtotal: subtotal,
         discountAmount: calculateDiscount(),
         volumeDiscount: calculateVolumeDiscount(),
+        bundleDiscount: calculateBundleDiscount(),
         shippingCost: subtotal >= 40 ? 0 : 4.95,
         finalTotal: finalTotal,
       };
@@ -4870,6 +4908,12 @@ export default function CheckoutPage() {
                               <span>-€{calculateDiscount().toFixed(2)}</span>
                             </div>
                           )}
+                          {calculateBundleDiscount() > 0 && (
+                            <div className="flex flex-wrap justify-between text-sm text-green-600">
+                              <span>Bundle korting</span>
+                              <span>-€{calculateBundleDiscount().toFixed(2)}</span>
+                            </div>
+                          )}
                           {FeatureFlags.ENABLE_VOLUME_DISCOUNT && subtotal >= 75 && (
                             <div className="flex flex-wrap justify-between text-sm text-purple-600">
                               <span>Volume korting (10%)</span>
@@ -6929,6 +6973,12 @@ export default function CheckoutPage() {
                           <span>Korting ({appliedDiscount.code})</span>
                         </div>
                         <span>-€{calculateDiscount().toFixed(2)}</span>
+                      </div>
+                    )}
+                    {calculateBundleDiscount() > 0 && (
+                      <div className="flex flex-wrap justify-between text-sm text-green-600">
+                        <span>Bundle korting</span>
+                        <span>-€{calculateBundleDiscount().toFixed(2)}</span>
                       </div>
                     )}
                     {FeatureFlags.ENABLE_VOLUME_DISCOUNT && subtotal >= 75 && (

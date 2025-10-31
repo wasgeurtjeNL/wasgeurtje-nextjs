@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { getStoredFingerprint } from '@/utils/fingerprint';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 
 interface BundleProduct {
   product_id: number;
   name: string;
   slug: string;
   quantity: number;
+  image?: string; // Product image URL
+  unit_price?: number | string; // Optional unit price per item
 }
 
 interface BundleOffer {
@@ -42,6 +46,28 @@ interface BundleOfferPopupProps {
   onClose?: () => void;
 }
 
+// Hook to detect if sidecart/cart is open
+const useCartOpen = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  useEffect(() => {
+    const checkCart = () => {
+      // Check if sidecart overlay exists
+      const sidecartOverlay = document.querySelector('[data-sidecart-overlay]');
+      setIsCartOpen(!!sidecartOverlay);
+    };
+    
+    // Check initially and on DOM changes
+    checkCart();
+    const observer = new MutationObserver(checkCart);
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    return () => observer.disconnect();
+  }, []);
+  
+  return isCartOpen;
+};
+
 export default function BundleOfferPopup({ 
   customerEmail, 
   onAccept, 
@@ -49,11 +75,21 @@ export default function BundleOfferPopup({
   onClose 
 }: BundleOfferPopupProps) {
   const { user } = useAuth();
+  const { addToCart } = useCart();
+  const pathname = usePathname();
+  const isCartOpen = useCartOpen();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false); // Widget state
   const [offer, setOffer] = useState<BundleOffer | null>(null);
   const [loading, setLoading] = useState(true);
   const [countdown, setCountdown] = useState(300); // 5 minutes
   const [viewerCount, setViewerCount] = useState(0); // Simulated social proof
+  
+  // Hide widget on checkout/cart pages or when sidecart is open
+  const isExcludedPage = pathname?.startsWith('/checkout') || 
+                         pathname?.startsWith('/payment') ||
+                         pathname?.startsWith('/cart');
+  const shouldHideWidget = isExcludedPage || isCartOpen;
 
   useEffect(() => {
     if (!customerEmail) return;
@@ -97,16 +133,23 @@ export default function BundleOfferPopup({
     return () => clearTimeout(timer);
   }, [customerEmail]);
 
-  // Countdown timer
+  // Countdown timer - runs when popup is open OR widget is minimized
   useEffect(() => {
-    if (!isOpen || countdown <= 0) return;
+    if ((!isOpen && !isMinimized) || countdown <= 0) return;
 
     const timer = setInterval(() => {
-      setCountdown(prev => prev - 1);
+      setCountdown(prev => {
+        const newCount = prev - 1;
+        // Auto-close widget when timer expires
+        if (newCount <= 0 && isMinimized) {
+          setIsMinimized(false);
+        }
+        return newCount;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isOpen, countdown]);
+  }, [isOpen, isMinimized, countdown]);
 
   // Simulated viewer count for social proof (random between 8-24)
   useEffect(() => {
@@ -122,6 +165,49 @@ export default function BundleOfferPopup({
       return () => clearInterval(interval);
     }
   }, [isOpen]);
+
+  // Helper: parse price strings like "€14,95" or "14.95" into numbers
+  const parsePriceToNumber = (price: any): number => {
+    if (price == null) return 0;
+    if (typeof price === 'number') return price;
+    if (typeof price !== 'string') return 0;
+    let str = price.trim();
+    str = str.replace(/[^0-9,\.]/g, '');
+    const commaCount = (str.match(/,/g) || []).length;
+    const dotCount = (str.match(/\./g) || []).length;
+    if (commaCount > 0 && dotCount === 0) {
+      str = str.replace(',', '.');
+    } else if (commaCount > 0 && dotCount > 0) {
+      if (str.indexOf(',') > str.indexOf('.')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+      } else {
+        str = str.replace(/,/g, '');
+      }
+    }
+    const n = parseFloat(str);
+    return isNaN(n) ? 0 : n;
+  };
+
+  // Add all bundle products to the local cart
+  const addBundleToCartLocal = () => {
+    if (!offer) return;
+    try {
+      offer.bundle.forEach((product) => {
+        const priceRaw = (product as any).unit_price ?? 0;
+        const price = parsePriceToNumber(priceRaw);
+
+        addToCart({
+          id: String(product.product_id),
+          title: product.name,
+          price: isNaN(price) ? 0 : price,
+          quantity: product.quantity,
+          image: product.image || '/figma/product-flower-rain.png',
+        });
+      });
+    } catch (cartErr) {
+      console.error('Error adding bundle products to cart:', cartErr);
+    }
+  };
 
   const handleAccept = async () => {
     if (!offer) return;
@@ -139,6 +225,22 @@ export default function BundleOfferPopup({
       });
 
       // Add products to cart here (you'll need to implement this)
+      addBundleToCartLocal();
+      // Persist bundle discount so checkout/cart can apply it
+      try {
+        const discountRaw = offer.pricing?.discount_amount ?? 0 as any;
+        const discountAmount = parsePriceToNumber(discountRaw);
+        const payload = {
+          offerId: offer.offer_id,
+          code: `BUNDLE-${offer.offer_id}`,
+          amount: discountAmount,
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+        };
+        localStorage.setItem('wg-bundle-discount', JSON.stringify(payload));
+      } catch (persistErr) {
+        console.error('Failed to persist bundle discount:', persistErr);
+      }
       console.log('✅ Bundle offer accepted!');
       
       onAccept?.();
@@ -163,14 +265,29 @@ export default function BundleOfferPopup({
       });
 
       onReject?.();
+      // Minimize to widget instead of closing completely
       setIsOpen(false);
+      setIsMinimized(true);
     } catch (error) {
       console.error('Error rejecting offer:', error);
     }
   };
 
   const handleClose = () => {
+    // Minimize to widget instead of closing completely
     setIsOpen(false);
+    setIsMinimized(true);
+  };
+
+  const handleReopenPopup = () => {
+    setIsMinimized(false);
+    setIsOpen(true);
+  };
+
+  const handleFinalClose = () => {
+    // Completely close both popup and widget
+    setIsOpen(false);
+    setIsMinimized(false);
     onClose?.();
   };
 
@@ -236,7 +353,74 @@ export default function BundleOfferPopup({
       : "Gebaseerd op je favoriete producten, speciaal voor jou!";
   };
 
-  if (loading || !isOpen || !offer) return null;
+  if (loading || !offer) return null;
+
+  // Show compact widget icon when minimized (hide on excluded pages/cart)
+  if (isMinimized && countdown > 0 && !shouldHideWidget) {
+    return (
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-40 animate-slide-in-left">
+        {/* Compact Chat-Widget Style Icon */}
+        <div className="relative group">
+          {/* Close button (appears on hover) */}
+          <button
+            onClick={handleFinalClose}
+            className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center hover:bg-red-600 z-10"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Main Widget Button */}
+          <button
+            onClick={handleReopenPopup}
+            className="relative bg-gradient-to-br from-[#d7aa43] to-[#c29635] text-white rounded-l-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden"
+            style={{ width: '80px', height: '80px' }}
+          >
+            {/* Animated pulse ring */}
+            <div className="absolute inset-0 rounded-l-2xl animate-ping-slow opacity-20">
+              <div className="absolute inset-0 bg-[#d7aa43] rounded-l-2xl"></div>
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 flex flex-col items-center justify-center h-full px-2">
+              {/* Icon */}
+              <div className="mb-1">
+                <svg className="w-6 h-6 animate-bounce-subtle" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                </svg>
+              </div>
+              
+              {/* Timer - Prominent */}
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2 py-0.5 mb-0.5">
+                <div className="flex items-center gap-0.5">
+                  <svg className="w-3 h-3 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-white font-bold text-xs">
+                    {formatTime(countdown)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Discount badge */}
+              <div className="text-[10px] font-bold text-white/90 leading-tight">
+                -{getSavingsPercentage()}%
+              </div>
+            </div>
+
+            {/* Shine effect on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000"></div>
+          </button>
+
+          {/* Notification dot (urgency indicator) */}
+          <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse border-2 border-white shadow-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isOpen) return null;
 
   return (
     <>
@@ -316,9 +500,31 @@ export default function BundleOfferPopup({
             {offer.bundle.map((product, index) => (
               <div key={index} className="flex items-center justify-between mb-2 last:mb-0 bg-white rounded-lg p-2 sm:p-2.5 shadow-sm">
                 <div className="flex items-center gap-2">
+                  {/* Product Image */}
+                  {product.image ? (
+                    <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        sizes="28px"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Quantity Badge */}
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-[#d7aa43] to-[#c29635] flex items-center justify-center flex-shrink-0">
                     <span className="text-xs sm:text-sm font-bold text-white">{product.quantity}x</span>
                   </div>
+                  
+                  {/* Product Name */}
                   <span className="text-xs sm:text-sm font-medium text-gray-900">
                     {product.name}
                   </span>
@@ -471,8 +677,44 @@ export default function BundleOfferPopup({
         .animate-scale-in {
           animation: scale-in 0.3s ease-out;
         }
+        @keyframes slide-in-left {
+          from {
+            transform: translateX(100%) translateY(-50%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0) translateY(-50%);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in-left {
+          animation: slide-in-left 0.5s ease-out;
+        }
+        @keyframes ping-slow {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.2;
+          }
+          50% {
+            transform: scale(1.1);
+            opacity: 0.4;
+          }
+        }
+        .animate-ping-slow {
+          animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes bounce-subtle {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-4px);
+          }
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 2s ease-in-out infinite;
+        }
       `}</style>
     </>
   );
 }
-

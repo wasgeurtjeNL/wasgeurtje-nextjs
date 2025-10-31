@@ -295,3 +295,4 @@ Als er problemen zijn, check:
 2. Browser console voor API errors
 3. Database direct via phpMyAdmin
 
+

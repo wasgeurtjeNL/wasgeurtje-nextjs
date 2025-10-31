@@ -49,6 +49,13 @@ export default function GlobalBundleOfferManager() {
           })
         });
 
+        // Check if response is ok before parsing JSON
+        if (!ipCheckResponse.ok) {
+          console.warn('[Bundle] IP check failed:', ipCheckResponse.status, ipCheckResponse.statusText);
+          setHasChecked(true);
+          return;
+        }
+
         const ipCheckData = await ipCheckResponse.json();
         console.log('[Bundle] Track response:', ipCheckData);
         
@@ -64,6 +71,14 @@ export default function GlobalBundleOfferManager() {
           const bundleResponse = await fetch(
             `/api/intelligence/bundle?customer_email=${encodeURIComponent(email)}`
           );
+
+          // Check if response is ok before parsing JSON
+          if (!bundleResponse.ok) {
+            console.warn('[Bundle] Bundle check failed:', bundleResponse.status, bundleResponse.statusText);
+            setHasChecked(true);
+            return;
+          }
+
           const bundleData = await bundleResponse.json();
           
           if (bundleData.success && bundleData.bundle) {
@@ -94,11 +109,21 @@ export default function GlobalBundleOfferManager() {
       setCustomerEmail(user.email);
       
       fetch(`/api/intelligence/bundle?customer_email=${encodeURIComponent(user.email)}`)
-        .then(r => r.json())
+        .then(response => {
+          // Check if response is ok before parsing JSON
+          if (!response.ok) {
+            console.warn('[Bundle] Bundle check for logged-in user failed:', response.status);
+            return null;
+          }
+          return response.json();
+        })
         .then(data => {
-          if (data.success && data.bundle) {
+          if (data && data.success && data.bundle) {
             setTimeout(() => setShowOffer(true), 5000);
           }
+        })
+        .catch(error => {
+          console.error('[Bundle] Error fetching bundle for logged-in user:', error);
         });
       
       setHasChecked(true);

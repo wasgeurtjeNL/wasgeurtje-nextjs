@@ -219,11 +219,15 @@ class WG_Bundle_Generator {
         if (count($top_favorites) < 2) {
             // If only 1 favorite, use it for entire bundle
             $product_id = $top_favorites[0]['product_id'];
+            $product = wc_get_product($product_id);
+            $image_url = $product ? wp_get_attachment_image_url($product->get_image_id(), 'thumbnail') : '';
+            
             $bundle[] = [
                 'product_id' => $product_id,
                 'name' => $top_favorites[0]['name'],
                 'slug' => $top_favorites[0]['slug'],
-                'quantity' => $target_quantity
+                'quantity' => $target_quantity,
+                'image' => $image_url ?: ''
             ];
             return $bundle;
         }
@@ -233,18 +237,27 @@ class WG_Bundle_Generator {
         $primary_qty = ceil($target_quantity * 0.6);
         $secondary_qty = $target_quantity - $primary_qty;
         
+        // Get product images
+        $product_1 = wc_get_product($top_favorites[0]['product_id']);
+        $image_1 = $product_1 ? wp_get_attachment_image_url($product_1->get_image_id(), 'thumbnail') : '';
+        
+        $product_2 = wc_get_product($top_favorites[1]['product_id']);
+        $image_2 = $product_2 ? wp_get_attachment_image_url($product_2->get_image_id(), 'thumbnail') : '';
+        
         $bundle[] = [
             'product_id' => $top_favorites[0]['product_id'],
             'name' => $top_favorites[0]['name'],
             'slug' => $top_favorites[0]['slug'],
-            'quantity' => $primary_qty
+            'quantity' => $primary_qty,
+            'image' => $image_1 ?: ''
         ];
         
         $bundle[] = [
             'product_id' => $top_favorites[1]['product_id'],
             'name' => $top_favorites[1]['name'],
             'slug' => $top_favorites[1]['slug'],
-            'quantity' => $secondary_qty
+            'quantity' => $secondary_qty,
+            'image' => $image_2 ?: ''
         ];
         
         return $bundle;

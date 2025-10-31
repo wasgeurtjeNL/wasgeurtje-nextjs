@@ -10,7 +10,6 @@ import Sustainability from "@/components/sections/Sustainability";
 import TrialPackFeature from "@/components/sections/TrialPackFeature";
 import RewardProgram from "@/components/sections/RewardProgram";
 import OurStory from "@/components/sections/OurStory";
-import ResponsiveInit from "@/components/ResponsiveInit";
 import type { Metadata } from "next";
 import { fetchWpBySlug, yoastToNextMetadata } from "@/utils/wordpress-yoastseo";
 
@@ -31,7 +30,6 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function Home() {
   return (
     <>
-      <ResponsiveInit />
       <main>
         <HeroSection />
         <USPs />

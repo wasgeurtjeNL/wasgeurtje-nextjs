@@ -124,9 +124,12 @@ export default function FigmaHeader() {
               href="/"
               className="flex flex-col items-center"
               onClick={handleLinkClick}>
-              <img
+              <Image
                 src="/figma/header/logo.png"
                 alt="Wasgeurtje Logo"
+                width={isMobile ? 180 : 200}
+                height={isMobile ? 50 : 56}
+                priority
                 className={`w-auto ${
                   isMobile ? "!w-[180px] md:h-[50px]" : "h-14"
                 }`}
@@ -170,9 +173,11 @@ export default function FigmaHeader() {
                   className="text-white flex items-center space-x-2">
                   {isLoggedIn && user?.avatar ? (
                     <div className="relative flex-shrink-0">
-                      <img
+                      <Image
                         src={user.avatar}
                         alt="Profile"
+                        width={isMobile ? 29 : 24}
+                        height={isMobile ? 29 : 24}
                         className={`${
                           isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"
                         } rounded-full object-cover border-2 border-[#D6AD61]`}

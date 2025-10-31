@@ -36,7 +36,7 @@ export default function TestContentPage() {
     setTimeout(() => {
       try {
         // Import transform function
-        import("@/utils/wordpress-api").then(({ transformFlexibleContent }) => {
+          import("@/utils/wordpress-api").then(({ transformFlexibleContent }) => {
           const transformedComponents = transformFlexibleContent(
             testData.acf.flexible_content
           );
