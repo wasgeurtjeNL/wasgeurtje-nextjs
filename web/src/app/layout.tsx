@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { EB_Garamond } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "./product-typography.css";
 import "./blog/blog-styling.css";
@@ -74,6 +75,8 @@ export default function RootLayout({
             </LoyalityProvider>
           </CartProvider>
         </AuthProvider>
+        {/* Vercel Speed Insights - Real User Monitoring for Core Web Vitals */}
+        <SpeedInsights />
       </body>
     </html>
   );
