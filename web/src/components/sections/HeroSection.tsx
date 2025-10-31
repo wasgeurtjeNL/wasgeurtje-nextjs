@@ -2,6 +2,7 @@
 
 import { useMediaQuery, breakpoints } from '@/hooks/useMediaQuery';
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { getPersonalizedGreeting, getDaySpecificGreeting } from '@/utils/greeting';
 import { useState, useEffect } from 'react';
@@ -166,24 +167,39 @@ export default function HeroSection() {
               ? "flex-1"
               : "w-full min-h-[400px] sm:min-h-[550px] md:min-h-[750px] mt-[-200px]"
           }`}>
-          <div
-            className="absolute inset-0 bg-no-repeat lg:block hidden"
-            style={{
-              backgroundImage: `url('${imgImage287}')`,
-              backgroundSize: "cover",
-              backgroundPosition: "right bottom",
-            }}
-          />
-          <div
-            className="absolute inset-0 bg-no-repeat  lg:hidden flex items-end justify-center"
-            style={{
-              backgroundImage: `url('${imgImage288}')`,
-              backgroundSize: "cover",
-              backgroundPosition: "top",
-            }}>
+          {/* Desktop hero image with priority loading */}
+          <div className="absolute inset-0 lg:block hidden">
+            <Image
+              src={imgImage287}
+              alt="Luxe wasparfum hero"
+              fill
+              priority
+              quality={90}
+              sizes="(min-width: 1024px) 53vw, 0vw"
+              style={{
+                objectFit: "cover",
+                objectPosition: "right bottom",
+              }}
+            />
+          </div>
+          
+          {/* Mobile hero image with priority loading */}
+          <div className="absolute inset-0 lg:hidden flex items-end justify-center">
+            <Image
+              src={imgImage288}
+              alt="Luxe wasparfum hero mobiel"
+              fill
+              priority
+              quality={90}
+              sizes="(max-width: 1023px) 100vw, 0vw"
+              style={{
+                objectFit: "cover",
+                objectPosition: "top",
+              }}
+            />
             <Link
               href={isLoggedIn && orders && orders.length > 0 ? "/shop" : "/wasparfum"}
-              className="inline-flex flex-shrink-0 bg-black text-white uppercase rounded-[4px] h-11 items-center justify-center px-14 mb-10 hover:bg-[#1a1a1a] transition-colors">
+              className="relative z-10 inline-flex flex-shrink-0 bg-black text-white uppercase rounded-[4px] h-11 items-center justify-center px-14 mb-10 hover:bg-[#1a1a1a] transition-colors">
               <span className="text-[16px] leading-[1.5]">
                 {isLoggedIn && orders && orders.length > 0 ? "Shop favorieten" : "Ontdek nu"}
               </span>
