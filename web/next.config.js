@@ -12,6 +12,16 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Output modern JavaScript (ES2020+) to reduce bundle size
+  // Removes unnecessary polyfills for modern browsers
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  // Use modern build output
+  swcMinify: true,
   images: {
     remotePatterns: [
       {
