@@ -174,6 +174,7 @@ export default function HeroSection() {
               alt="Luxe wasparfum hero"
               fill
               priority
+              fetchPriority="high"
               quality={90}
               sizes="(min-width: 1024px) 53vw, 0vw"
               style={{
@@ -190,6 +191,7 @@ export default function HeroSection() {
               alt="Luxe wasparfum hero mobiel"
               fill
               priority
+              fetchPriority="high"
               quality={90}
               sizes="(max-width: 1023px) 100vw, 0vw"
               style={{
