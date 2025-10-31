@@ -55,8 +55,6 @@ export default function Categories() {
             src={imgImage283}
             alt="Premium Wasparfums"
             fill
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAACXBIWXMAAAsTAAALEwEAmpwYAAABG0lEQVR4nBXKzSuDARzA8R9/hIOz5iAndsOSjCxa1hxmWZk2pKd22PJSa7YpDVveJpv2xLQhL1mxLaOVrYlcXaxc7EwpN77yOX8kkRyiVFqkVsvx8Z3n7HyC4EILylg9Fr3Q1yRoRZDdhIGDPSPlwjyv7yrpIxs+t4aZ0TrMnUJ3o9D+H7fj/YSW2rh/cHFyZiW82oPL0YBtUDBqhRGd0NssSLbg5/EpSS4bIHsZ5DYf4TA6yUlcITyrp5jbwKu0IpsRM/uxGdL5ENfPKaadJsYtekKeNQKKE36iqJEuJJNyU325oFiJUX27I3O6TjLqo3x1wc3xCvxWUJcNiNfdQWzLwU7SQ6akYrcNYDXp8CsB5uzDfH368U1p+AM+Ya/NqezEiAAAAABJRU5ErkJggg=="
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             quality={85}
             style={{
@@ -76,8 +74,6 @@ export default function Categories() {
             src={imgImage}
             alt="Proefpakket"
             fill
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAACXBIWXMAAAsTAAALEwEAmpwYAAABGElEQVR4nB3DPUsCcQDA4X9DH6KvUOBeBGIQUUiDU0OOETZELQUWBBY09YJQQxcJaWeFbXYgLpXXWR6SEgmFh5p6SYmUluAZ/IIeeES7dE8zr/KSkKk/KXRrKaxamqah8pwIYmajdMw0ol1Qqeohwt5hXI5+PO4xtpem0OMyxdsTkmEfLeMKYZU1DC3IqzKKcjyCw9aLrU8gegShvXXe0hHaJQ3RLatUMpfcSHbgkPrDGv7FcWYmBgisOincnUIzj/jMnvNlqPimbUhLLmLSCpHdBc423MQ3J8kq+1i1LKJdVOmYKSI78/hnhwh4BpHm7ASWnVwfecnHtvjQZYRlpmjlonw/XtDQg/9/KxpYVX5yURoZmffkAX81xdN+ehuIRAAAAABJRU5ErkJggg=="
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             quality={85}
             style={{
@@ -97,8 +93,6 @@ export default function Categories() {
             src={imgImage1}
             alt="Cadeauset"
             fill
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAHCAYAAAAxrNxjAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJUlEQVR4nB3KzytDAQDA8efg5CCHlXbgQqGdZDU5OdhFu9CSVvsHTFJa8+MgDjtsCr2T/Fis1kJbk2VSllotoU3bG3vYzJv2w152IKS+yuf8EeR8ke9fsFisNDYI9PZoadc2YzAMkFPKKKUKiVQGIZtT+Pz6YWTUTKumCX13C12dGnQ6HY/5V4pllcRtBqGq1qmpdSZsNpxLc/T3dSCKKwwZjcgPz/8xpxQRohcxbjIKUvyM0Po0h95N/N4NTiPHPBXKhCPnxK4khMV5O+5ZE+Kyg2z6kv1gkG2Pl70tJ/YpM9axYe7CkwjvaomPQoRCTualUiMaj7Pr87HqcuBeGGdQ30ZANCEkUxL+gyNkWSaRvCZ8EqL6VkZVVe6lNAGPi521Gf4AhKPLAYegsHMAAAAASUVORK5CYII="
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             quality={85}
             style={{

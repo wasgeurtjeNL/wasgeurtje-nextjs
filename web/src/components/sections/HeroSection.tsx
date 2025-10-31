@@ -170,7 +170,7 @@ export default function HeroSection() {
               ? "flex-1"
               : "w-full min-h-[400px] sm:min-h-[550px] md:min-h-[750px] mt-[-200px]"
           }`}>
-          {/* Desktop hero image with priority loading + real blur placeholder (generated via plaiceholder) */}
+          {/* Desktop hero image with priority loading */}
           <div className="absolute inset-0 lg:block hidden">
             <Image
               src={imgImage287}
@@ -178,8 +178,6 @@ export default function HeroSection() {
               fill
               priority
               fetchPriority="high"
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAFCAYAAAB8ZH1oAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAq0lEQVR4nF3MOw7BcACA8f9RHKCX6GBxBJ2ZRCyMJCImFvFIujiBBXEAEZpIMFikngmRepRKVdKqz2AQhm/75RP4FnjXT67JyzHYLycUEhECQlAvFeH1QODfvtAz8Z09x9UUrZymGpJQk1Genv0H3Qv+44C5GNFX83RSCo1YiPW4h/jePrnWhvtpwXnYpBYOkpUlupXML/TsHYf5gK2u4Rgz9JZKRZFp5+K8AdnhqdylpmZGAAAAAElFTkSuQmCC"
               quality={90}
               sizes="(min-width: 1024px) 53vw, 0vw"
               style={{
@@ -189,7 +187,7 @@ export default function HeroSection() {
             />
           </div>
           
-          {/* Mobile hero image with priority loading + real blur placeholder (generated via plaiceholder) */}
+          {/* Mobile hero image with priority loading */}
           <div className="absolute inset-0 lg:hidden flex items-end justify-center">
             <Image
               src={imgImage288}
@@ -197,8 +195,6 @@ export default function HeroSection() {
               fill
               priority
               fetchPriority="high"
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAJCAYAAAALpr0TAAAACXBIWXMAAAPoAAAD6AG1e1JrAAABYElEQVR4nEXPzSvDcQDH8W9tDrvsX1AukqfLoh0cxEHSKIkdOLgRasQJES3KYxG1g7T083RYmsIywpqIKA8lbTZLHn+/PVO/5a1xcP30qk9vIYQQer1eW1CYm2U0Fufl5mRn6nQ6rUajSe8ZxiJD/oh1sE9sOteXEkooFn33obzc4dmUaDLVpUwV1ZGB7s7U7ck2kTc/gu8Y6qdMXA7idTs4lBaoLa+iobSMIkMpO9IcUTmA+E5FUJNvxD4CuFZtXDsXuRmq57CnhsYSI/bx4X+YSsoklBDR5yBXDhvutipOe6vZainDbjETfr3/u+ZT+YUP3h3OV+a5WJrm/dKFs6uW45kO7t0SApLwFeYr+kTg2MWLa4GzyR4ORlvZHmzGM2XhYMyCUFUFNf78C9NBj26JO8cse+MW1jrq2O1vxjvSgkgXJ8JB4rKfmBwi7LskeLTB/kQnY+ZKltvNeKyt/ABWNQIul6byXQAAAABJRU5ErkJggg=="
               quality={90}
               sizes="(max-width: 1023px) 100vw, 0vw"
               style={{
