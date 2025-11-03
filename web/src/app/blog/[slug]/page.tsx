@@ -3,8 +3,20 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { cache } from "react";
-import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
-import FloatingShareButtons from "@/components/blog/FloatingShareButtons";
+import dynamic from "next/dynamic";
+// Import blog CSS only on blog pages to prevent render-blocking on other pages
+import "../blog-styling.css";
+
+// Lazy load interactive components for better performance
+// These are client components, so Next.js 15 handles code-splitting automatically
+const ReadingProgressBar = dynamic(
+  () => import("@/components/blog/ReadingProgressBar"),
+  { loading: () => null }
+);
+const FloatingShareButtons = dynamic(
+  () => import("@/components/blog/FloatingShareButtons"),
+  { loading: () => null }
+);
 
 interface BlogPost {
   id: number;

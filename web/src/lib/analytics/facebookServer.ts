@@ -64,9 +64,9 @@ async function sendServerEvent(
       fbp: fbp,
     };
 
-    // Get test event code from URL (for testing in Facebook Events Manager)
-    const urlParams = new URLSearchParams(window.location.search);
-    const testEventCode = urlParams.get('test_event_code') || undefined;
+    // Get test event code from environment variable (for testing in Facebook Events Manager)
+    // This is set in the environment variables for testing purposes
+    const testEventCode = process.env.NEXT_PUBLIC_FB_TEST_EVENT_CODE || undefined;
 
     const payload = {
       eventName,

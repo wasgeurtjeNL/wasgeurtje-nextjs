@@ -2,8 +2,6 @@ import dynamic from 'next/dynamic';
 import HeroSection from "@/components/sections/HeroSection";
 import USPs from "@/components/sections/USPs";
 import Categories from "@/components/sections/Categories";
-import PersonalizedRecommendations from "@/components/sections/PersonalizedRecommendations";
-import RunningUSPStrip from "@/components/sections/RunningUSPStrip";
 import type { Metadata } from "next";
 import { fetchWpBySlug, yoastToNextMetadata } from "@/utils/wordpress-yoastseo";
 
@@ -12,7 +10,14 @@ const SectionSkeleton = ({ height = '400px', bgColor = 'rgba(245,245,245,0.8)' }
   <div style={{ minHeight: height, backgroundColor: bgColor }} className="w-full" />
 );
 
-// Lazy load below-the-fold components with skeleton loaders to prevent CLS
+// Lazy load components that are below-the-fold or do heavy API calls
+// These will be loaded after the initial page render for better FCP/LCP
+const PersonalizedRecommendations = dynamic(() => import('@/components/sections/PersonalizedRecommendations'), {
+  loading: () => <SectionSkeleton height="300px" />
+});
+const RunningUSPStrip = dynamic(() => import('@/components/sections/RunningUSPStrip'), {
+  loading: () => <SectionSkeleton height="60px" bgColor="rgba(214,173,97,0.3)" />
+});
 const Testimonials = dynamic(() => import('@/components/sections/Testimonials'), {
   loading: () => <SectionSkeleton height="400px" bgColor="rgba(252,206,78,0.3)" />
 });

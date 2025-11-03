@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+
+// Bundle Analyzer Configuration
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const nextConfig = {
   typescript: {
     // !! WARN !!
@@ -23,8 +29,15 @@ const nextConfig = {
       exclude: ['error', 'warn'],
     } : false,
   },
-  // Use modern build output
-  swcMinify: true,
+  // swcMinify is now default in Next.js 15 - removed deprecated option
+  
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['@/components', '@/utils', '@/lib'],
+    // Reduce memory usage during builds
+    workerThreads: false,
+    cpus: 1,
+  },
   
   images: {
     remotePatterns: [
@@ -62,4 +75,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)

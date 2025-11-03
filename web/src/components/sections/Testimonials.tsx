@@ -7,7 +7,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   useMediaQuery,
-  breakpoints,
   deviceBreakpoints,
 } from '@/hooks/useMediaQuery';
 
@@ -21,14 +20,25 @@ export default function Testimonials() {
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    // Only create observer on client-side
+    if (typeof window === 'undefined') return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setShouldLoad(true);
+          // Use requestIdleCallback for better performance
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => setShouldLoad(true));
+          } else {
+            setTimeout(() => setShouldLoad(true), 0);
+          }
           observer.disconnect();
         }
       },
-      { rootMargin: '200px' } // Start loading 200px before visible
+      { 
+        rootMargin: '300px', // Start loading 300px before visible
+        threshold: 0.01 // Trigger when even 1% is visible
+      }
     );
 
     if (sectionRef.current) {

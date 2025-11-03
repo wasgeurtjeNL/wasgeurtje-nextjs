@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+// Import blog CSS only on this page to prevent render-blocking on other pages
 import "./blog-styling.css";
 
 interface BlogPost {
