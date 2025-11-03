@@ -86,7 +86,7 @@ export default function MobileSearch({ onClose }: MobileSearchProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Zoek naar producten..."
-          className="w-full px-4 py-3 pr-10 text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d7aa43] focus:border-transparent text-white placeholder-gray-400"
+          className="w-full px-4 py-3 pr-10 text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d7aa43] focus:border-transparent text-white placeholder-gray-300"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -98,11 +98,11 @@ export default function MobileSearch({ onClose }: MobileSearchProps) {
       {/* Search Results */}
       <div className="max-h-96 overflow-y-auto space-y-2">
         {searchQuery.length < 2 ? (
-          <div className="py-8 text-center text-gray-400 text-sm">
+          <div className="py-8 text-center text-gray-300 text-sm">
             Typ minimaal 2 karakters om te zoeken...
           </div>
         ) : results.length === 0 && !isLoading ? (
-          <div className="py-8 text-center text-gray-400 text-sm">
+          <div className="py-8 text-center text-gray-300 text-sm">
             Geen resultaten gevonden voor "{searchQuery}"
           </div>
         ) : (
@@ -138,7 +138,7 @@ export default function MobileSearch({ onClose }: MobileSearchProps) {
                     {product.name}
                   </h3>
                   {product.categories && product.categories.length > 0 && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-300 mt-0.5">
                       {product.categories[0].name}
                     </p>
                   )}
