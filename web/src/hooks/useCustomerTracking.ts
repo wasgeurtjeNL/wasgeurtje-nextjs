@@ -156,3 +156,103 @@ export async function trackUserLogin(email: string, customerId: number) {
   }
 }
 
+/**
+ * Track product view
+ * Sends ViewContent event to Facebook CAPI via Intelligence system
+ */
+export async function trackProductView(productId: string, productName?: string, productPrice?: number) {
+  try {
+    const fingerprint = await getStoredFingerprint();
+    
+    // Get Facebook tracking IDs
+    const fbp = document.cookie.split('; ').find(row => row.startsWith('_fbp='))?.split('=')[1];
+    const fbc = document.cookie.split('; ').find(row => row.startsWith('_fbc='))?.split('=')[1];
+
+    await fetch('/api/intelligence/track-customer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_type: 'product_viewed',
+        product_id: productId,
+        product_name: productName,
+        product_price: productPrice,
+        fingerprint: fingerprint,
+        fbp: fbp,
+        fbc: fbc
+      })
+    });
+
+    console.log('[Tracking] ✅ Product view tracked:', productId);
+  } catch (error) {
+    console.error('[Tracking] ❌ Product view tracking error:', error);
+  }
+}
+
+/**
+ * Track search event
+ */
+export async function trackSearch(searchQuery: string) {
+  try {
+    const fingerprint = await getStoredFingerprint();
+    
+    // Get Facebook tracking IDs
+    const fbp = document.cookie.split('; ').find(row => row.startsWith('_fbp='))?.split('=')[1];
+    const fbc = document.cookie.split('; ').find(row => row.startsWith('_fbc='))?.split('=')[1];
+
+    await fetch('/api/intelligence/track-customer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_type: 'search',
+        search_query: searchQuery,
+        fingerprint: fingerprint,
+        fbp: fbp,
+        fbc: fbc
+      })
+    });
+
+    console.log('[Tracking] ✅ Search tracked:', searchQuery);
+  } catch (error) {
+    console.error('[Tracking] ❌ Search tracking error:', error);
+  }
+}
+
+/**
+ * Track engagement (time on page + scroll depth)
+ */
+export async function trackEngagement(timeOnPage: number, scrollDepth: number) {
+  // Only track engaged users (>30s or >50% scroll)
+  if (timeOnPage < 30 && scrollDepth < 50) return;
+  
+  try {
+    const fingerprint = await getStoredFingerprint();
+    
+    // Get Facebook tracking IDs
+    const fbp = document.cookie.split('; ').find(row => row.startsWith('_fbp='))?.split('=')[1];
+    const fbc = document.cookie.split('; ').find(row => row.startsWith('_fbc='))?.split('=')[1];
+
+    await fetch('/api/intelligence/track-customer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_type: 'engaged_session',
+        time_on_page: timeOnPage,
+        scroll_depth: scrollDepth,
+        fingerprint: fingerprint,
+        fbp: fbp,
+        fbc: fbc
+      })
+    });
+
+    console.log('[Tracking] ✅ Engagement tracked:', { timeOnPage, scrollDepth });
+  } catch (error) {
+    console.error('[Tracking] ❌ Engagement tracking error:', error);
+  }
+}
+

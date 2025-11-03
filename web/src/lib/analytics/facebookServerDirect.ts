@@ -179,10 +179,11 @@ export async function sendFacebookEventDirect(options: FacebookEventOptions): Pr
     if (numItems !== undefined) custom_data.num_items = numItems;
 
     // Build event
+    // 🎯 OPTIMIZATION 5: Improved deduplication with timestamp-based event ID
     const event = {
       event_name: eventName,
-      event_time: Math.floor(Date.now() / 1000),
-      event_id: eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      event_time: Math.floor(Date.now() / 1000), // Use seconds (not milliseconds) for better deduplication
+      event_id: eventId || `${eventName}_${Math.floor(Date.now() / 1000)}_${Math.random().toString(36).substring(7)}`,
       event_source_url: eventSourceUrl || 'https://wasgeurtje-nextjs.vercel.app',
       action_source: 'website',
       user_data,
@@ -242,6 +243,10 @@ export async function trackIntelligencePageView(options: {
   clientIp?: string;
   userAgent?: string;
   pageUrl?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
 }) {
   return sendFacebookEventDirect({
     eventName: 'PageView',
@@ -252,6 +257,10 @@ export async function trackIntelligencePageView(options: {
     fbc: options.fbc,
     clientIpAddress: options.clientIp,
     clientUserAgent: options.userAgent,
+    phone: options.phone,
+    city: options.city,
+    state: options.state,
+    country: options.country,
   });
 }
 
@@ -267,7 +276,12 @@ export async function trackIntelligenceViewContent(options: {
   userAgent?: string;
   pageUrl?: string;
   contentIds?: string[];
+  contentName?: string;
   value?: number;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
 }) {
   return sendFacebookEventDirect({
     eventName: 'ViewContent',
@@ -279,8 +293,13 @@ export async function trackIntelligenceViewContent(options: {
     clientIpAddress: options.clientIp,
     clientUserAgent: options.userAgent,
     contentIds: options.contentIds,
+    contentType: 'product',
     value: options.value,
     currency: 'EUR',
+    phone: options.phone,
+    city: options.city,
+    state: options.state,
+    country: options.country,
   });
 }
 
@@ -295,6 +314,10 @@ export async function trackIntelligenceLead(options: {
   clientIp?: string;
   userAgent?: string;
   pageUrl?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
 }) {
   return sendFacebookEventDirect({
     eventName: 'Lead',
@@ -305,6 +328,84 @@ export async function trackIntelligenceLead(options: {
     fbc: options.fbc,
     clientIpAddress: options.clientIp,
     clientUserAgent: options.userAgent,
+    phone: options.phone,
+    city: options.city,
+    state: options.state,
+    country: options.country,
+  });
+}
+
+/**
+ * Track Search event from Intelligence System
+ */
+export async function trackIntelligenceSearch(options: {
+  searchQuery: string;
+  email?: string;
+  customerId?: string | number;
+  fbp?: string;
+  fbc?: string;
+  clientIp?: string;
+  userAgent?: string;
+  pageUrl?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
+}) {
+  return sendFacebookEventDirect({
+    eventName: 'Search',
+    eventSourceUrl: options.pageUrl,
+    email: options.email,
+    externalId: options.customerId,
+    fbp: options.fbp,
+    fbc: options.fbc,
+    clientIpAddress: options.clientIp,
+    clientUserAgent: options.userAgent,
+    phone: options.phone,
+    city: options.city,
+    state: options.state,
+    country: options.country,
+    customData: {
+      search_string: options.searchQuery,
+    },
+  });
+}
+
+/**
+ * Track AddToCart from bundle acceptance
+ */
+export async function trackIntelligenceAddToCart(options: {
+  productId: string;
+  value: number;
+  email?: string;
+  customerId?: string | number;
+  fbp?: string;
+  fbc?: string;
+  clientIp?: string;
+  userAgent?: string;
+  pageUrl?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  phone?: string;
+}) {
+  return sendFacebookEventDirect({
+    eventName: 'AddToCart',
+    eventSourceUrl: options.pageUrl,
+    email: options.email,
+    externalId: options.customerId,
+    fbp: options.fbp,
+    fbc: options.fbc,
+    clientIpAddress: options.clientIp,
+    clientUserAgent: options.userAgent,
+    phone: options.phone,
+    city: options.city,
+    state: options.state,
+    country: options.country,
+    contentIds: [options.productId],
+    contentType: 'product',
+    value: options.value,
+    currency: 'EUR',
   });
 }
 

@@ -54,6 +54,10 @@ const CartTracker = dynamic(
   () => import("@/components/analytics/CartTracker"),
   { loading: () => null }
 );
+const EngagementTracker = dynamic(
+  () => import("@/components/analytics/EngagementTracker"),
+  { loading: () => null }
+);
 
 const ebGaramond = EB_Garamond({
   subsets: ["latin"],
@@ -122,6 +126,7 @@ export default function RootLayout({
             <LoyalityProvider>
               <ResponsiveInit />
               <CustomerIntelligenceTracker />
+              <EngagementTracker />
               <GlobalBundleOfferManager />
               <FigmaHeader />
               {children}

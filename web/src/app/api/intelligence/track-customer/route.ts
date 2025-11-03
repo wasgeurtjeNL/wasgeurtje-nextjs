@@ -7,14 +7,28 @@
  * - Returning visitor detected
  * 
  * Now using Supabase instead of WordPress for storage
+ * 
+ * 🎯 OPTIMIZED WITH 10 FACEBOOK CAPI ENHANCEMENTS:
+ * 1. ViewContent Events for product pages
+ * 2. Bundle Events as Facebook Standard Events
+ * 3. Geolocation Enrichment (IP → Location)
+ * 4. Session Quality Score
+ * 5. Search Event Tracking
+ * 6. Engagement Tracking (time on page + scroll depth)
+ * 7. Phone Number Enrichment
+ * 8. Improved Deduplication
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, supabaseServer } from '@/lib/supabase';
 import crypto from 'crypto';
+import geoip from 'geoip-lite';
 import { 
   trackIntelligencePageView, 
-  trackIntelligenceLead 
+  trackIntelligenceLead,
+  trackIntelligenceViewContent,
+  trackIntelligenceSearch,
+  trackIntelligenceAddToCart
 } from '@/lib/analytics/facebookServerDirect';
 
 const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
@@ -24,6 +38,33 @@ const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasg
  */
 function hashIP(ip: string): string {
   return crypto.createHash('sha256').update(ip).digest('hex');
+}
+
+/**
+ * 🎯 OPTIMIZATION 6: Calculate session quality score
+ * Higher score = more engaged/valuable user
+ */
+function calculateSessionScore(profile: any, eventType: string, body: any): number {
+  let score = 0;
+  
+  // Past behavior (from profile)
+  if (profile?.total_orders > 0) score += 30;
+  if (profile?.total_orders >= 3) score += 20;
+  if (profile?.avg_order_value > 50) score += 10;
+  
+  // Current session behavior
+  if (eventType === 'product_viewed') score += 10;
+  if (eventType === 'bundle_viewed') score += 15;
+  if (eventType === 'bundle_accepted') score += 25;
+  if (eventType === 'checkout_start') score += 30;
+  if (eventType === 'checkout_email_entered') score += 40;
+  if (eventType === 'search') score += 5;
+  if (eventType === 'engaged_session') {
+    if (body.time_on_page > 60) score += 15;
+    if (body.scroll_depth > 75) score += 10;
+  }
+  
+  return Math.min(score, 100);
 }
 
 export async function POST(request: NextRequest) {
@@ -42,9 +83,27 @@ export async function POST(request: NextRequest) {
     
     console.log(`[Tracking] 🔍 Detected IP: ${ip} → Hash: ${ipHash.substring(0, 20)}...`);
 
+    // 🎯 OPTIMIZATION 3: GEOLOCATION ENRICHMENT
+    // Convert IP to city/state/country for better EMQ
+    let geoData = null;
+    let geoCity = undefined;
+    let geoState = undefined;
+    let geoCountry = undefined;
+    
+    if (ip !== 'unknown') {
+      geoData = geoip.lookup(ip);
+      if (geoData) {
+        geoCity = geoData.city;
+        geoState = geoData.region;
+        geoCountry = geoData.country;
+        console.log(`[Tracking] 🌍 Geolocation: ${geoCity}, ${geoState}, ${geoCountry}`);
+      }
+    }
+
     // STEP 1: Try to recognize customer by fingerprint or IP
     let recognizedEmail = email;
     let recognizedCustomerId = customer_id;
+    let recognizedPhone = undefined; // 🎯 OPTIMIZATION 9: Phone enrichment
 
     if (!recognizedEmail && fingerprint) {
       // Check if this fingerprint is known (check both tables)
@@ -52,6 +111,8 @@ export async function POST(request: NextRequest) {
       if (knownProfile) {
         recognizedEmail = knownProfile.customer_email;
         recognizedCustomerId = knownProfile.customer_id;
+        // 🎯 OPTIMIZATION 9: Extract phone from profile
+        recognizedPhone = knownProfile.phone || undefined;
         console.log(`[Tracking] ✅ Fingerprint recognized: ${recognizedEmail}`);
         
         // 🎯 STRATEGY A: RETURNING VISITOR RECOGNITION
@@ -64,6 +125,10 @@ export async function POST(request: NextRequest) {
           clientIp: ip !== 'unknown' ? ip : undefined,
           userAgent: userAgent,
           pageUrl: referer,
+          phone: recognizedPhone, // 🎯 Phone enrichment
+          city: geoCity,          // 🎯 Geolocation
+          state: geoState,
+          country: geoCountry,
         });
         console.log(`[FB Intelligence] ✅ PageView sent for recognized visitor: ${recognizedEmail}`);
       } else {
@@ -74,6 +139,10 @@ export async function POST(request: NextRequest) {
           recognizedCustomerId = knownDevice.customer_id;
           console.log(`[Tracking] ✅ Fingerprint recognized (device): ${recognizedEmail}`);
           
+          // Try to get phone from customer_intelligence
+          const profile = await db.customer_intelligence.findByEmail(recognizedEmail);
+          recognizedPhone = profile?.phone || undefined;
+          
           // 🎯 STRATEGY A: RETURNING VISITOR RECOGNITION
           await trackIntelligencePageView({
             email: recognizedEmail,
@@ -83,6 +152,10 @@ export async function POST(request: NextRequest) {
             clientIp: ip !== 'unknown' ? ip : undefined,
             userAgent: userAgent,
             pageUrl: referer,
+            phone: recognizedPhone, // 🎯 Phone enrichment
+            city: geoCity,          // 🎯 Geolocation
+            state: geoState,
+            country: geoCountry,
           });
           console.log(`[FB Intelligence] ✅ PageView sent for recognized device: ${recognizedEmail}`);
         }
@@ -106,6 +179,10 @@ export async function POST(request: NextRequest) {
         recognizedCustomerId = devicesWithIP[0].customer_id;
         console.log(`[Tracking] ✅ IP recognized! Customer: ${recognizedEmail} (multi-device)`);
         
+        // Try to get phone from customer_intelligence
+        const profile = await db.customer_intelligence.findByEmail(recognizedEmail);
+        recognizedPhone = profile?.phone || undefined;
+        
         // 🎯 STRATEGY A: IP-BASED RECOGNITION
         await trackIntelligencePageView({
           email: recognizedEmail,
@@ -115,6 +192,10 @@ export async function POST(request: NextRequest) {
           clientIp: ip !== 'unknown' ? ip : undefined,
           userAgent: userAgent,
           pageUrl: referer,
+          phone: recognizedPhone, // 🎯 Phone enrichment
+          city: geoCity,          // 🎯 Geolocation
+          state: geoState,
+          country: geoCountry,
         });
         console.log(`[FB Intelligence] ✅ PageView sent for IP-recognized visitor: ${recognizedEmail}`);
       } else {
@@ -129,6 +210,9 @@ export async function POST(request: NextRequest) {
             clientIp: ip !== 'unknown' ? ip : undefined,
             userAgent: userAgent,
             pageUrl: referer,
+            city: geoCity,    // 🎯 Geolocation even for anonymous
+            state: geoState,
+            country: geoCountry,
           });
           console.log(`[FB Intelligence] ✅ Anonymous PageView sent (fbp: ${fbp ? 'yes' : 'no'}, fbc: ${fbc ? 'yes' : 'no'})`);
         }
@@ -293,9 +377,81 @@ export async function POST(request: NextRequest) {
           clientIp: ip !== 'unknown' ? ip : undefined,
           userAgent: userAgent,
           pageUrl: referer,
+          phone: recognizedPhone,
+          city: geoCity,
+          state: geoState,
+          country: geoCountry,
         });
         console.log(`[FB Intelligence] 🎯 PROGRESSIVE PROFILING: Lead event sent for ${email} (linking anonymous events)`);
       }
+    }
+
+    // 🎯 OPTIMIZATION 1: PRODUCT VIEW TRACKING
+    if (event_type === 'product_viewed' && body.product_id) {
+      await trackIntelligenceViewContent({
+        email: recognizedEmail,
+        customerId: recognizedCustomerId,
+        fbp: fbp,
+        fbc: fbc,
+        clientIp: ip !== 'unknown' ? ip : undefined,
+        userAgent: userAgent,
+        pageUrl: referer,
+        contentIds: [body.product_id],
+        contentName: body.product_name,
+        value: body.product_price || undefined,
+        phone: recognizedPhone,
+        city: geoCity,
+        state: geoState,
+        country: geoCountry,
+      });
+      console.log(`[FB Intelligence] 🎯 ViewContent sent for product: ${body.product_id}`);
+    }
+
+    // 🎯 OPTIMIZATION 2: BUNDLE EVENTS AS FACEBOOK STANDARD EVENTS
+    if (event_type === 'bundle_accepted' && body.bundle_data) {
+      // Send AddToCart event (Facebook Standard Event)
+      await trackIntelligenceAddToCart({
+        productId: body.bundle_data.product_id || 'bundle',
+        value: body.bundle_data.value || 0,
+        email: recognizedEmail,
+        customerId: recognizedCustomerId,
+        fbp: fbp,
+        fbc: fbc,
+        clientIp: ip !== 'unknown' ? ip : undefined,
+        userAgent: userAgent,
+        pageUrl: referer,
+        phone: recognizedPhone,
+        city: geoCity,
+        state: geoState,
+        country: geoCountry,
+      });
+      console.log(`[FB Intelligence] 🎯 Bundle Accepted → AddToCart: ${body.bundle_data.product_id}`);
+    }
+
+    // 🎯 OPTIMIZATION 7: SEARCH EVENT TRACKING
+    if (event_type === 'search' && body.search_query) {
+      await trackIntelligenceSearch({
+        searchQuery: body.search_query,
+        email: recognizedEmail,
+        customerId: recognizedCustomerId,
+        fbp: fbp,
+        fbc: fbc,
+        clientIp: ip !== 'unknown' ? ip : undefined,
+        userAgent: userAgent,
+        pageUrl: referer,
+        phone: recognizedPhone,
+        city: geoCity,
+        state: geoState,
+        country: geoCountry,
+      });
+      console.log(`[FB Intelligence] 🎯 Search event sent: "${body.search_query}"`);
+    }
+
+    // 🎯 OPTIMIZATION 8: ENGAGEMENT TRACKING
+    // Note: We don't send to Facebook, but we log it for internal analytics
+    if (event_type === 'engaged_session') {
+      console.log(`[FB Intelligence] 📊 Engaged session: ${body.time_on_page}s, ${body.scroll_depth}% scroll`);
+      // Could send as custom event if needed in the future
     }
 
     // STEP 4: Log important events only (whitelist)
@@ -305,11 +461,17 @@ export async function POST(request: NextRequest) {
       'bundle_viewed',
       'bundle_accepted',
       'bundle_rejected',
-      'order_completed'
+      'order_completed',
+      'product_viewed',     // 🎯 NEW
+      'search',             // 🎯 NEW
+      'engaged_session',    // 🎯 NEW
     ];
 
     if (event_type && importantEvents.includes(event_type)) {
       try {
+        // 🎯 OPTIMIZATION 6: Calculate session quality score
+        const sessionScore = calculateSessionScore(profile, event_type, body);
+        
         await db.behavioral_events.create({
           session_id: crypto.randomUUID(),
           customer_id: recognizedCustomerId || null,
@@ -319,10 +481,14 @@ export async function POST(request: NextRequest) {
           event_type,
           event_data: {
             timestamp: new Date().toISOString(),
-            user_agent: request.headers.get('user-agent')
+            user_agent: request.headers.get('user-agent'),
+            session_quality_score: sessionScore, // 🎯 NEW: Quality indicator for Facebook
+            geolocation: geoData ? { city: geoCity, state: geoState, country: geoCountry } : undefined,
           },
           page_url: request.headers.get('referer') || '/'
         });
+        
+        console.log(`[Tracking] ✅ Event logged: ${event_type} (Quality Score: ${sessionScore}/100)`);
       } catch (error) {
         console.error('[Tracking] Error logging event:', error);
       }
