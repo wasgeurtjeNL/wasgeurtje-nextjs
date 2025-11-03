@@ -7,6 +7,7 @@
  * - Google Analytics 4
  * - Google Ads
  * - Facebook Pixel
+ * - Hyros
  * - Stape Server-side GTM
  */
 
@@ -38,6 +39,14 @@ export const analyticsConfig = {
   // Facebook Pixel (Direct SDK)
   facebookPixel: {
     id: process.env.NEXT_PUBLIC_FB_PIXEL_ID || '834004417164714',
+    enabled: true,
+  },
+
+  // Hyros Universal Script (Advanced Attribution & Call Tracking)
+  hyros: {
+    domain: process.env.NEXT_PUBLIC_HYROS_DOMAIN || 'https://t.wasgeurtje.nl',
+    hash: process.env.NEXT_PUBLIC_HYROS_HASH || 'c71df4899b60bb4b9591ca9f1309eb7580a846ad57c32ef014c54d8b4cec064b',
+    tag: process.env.NEXT_PUBLIC_HYROS_TAG || '!clicked',
     enabled: true,
   },
 

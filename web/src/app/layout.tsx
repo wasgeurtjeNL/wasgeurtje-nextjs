@@ -46,6 +46,10 @@ const GoogleAnalytics = dynamic(
   () => import("@/components/analytics/GoogleAnalytics"),
   { loading: () => null }
 );
+const HyrosScript = dynamic(
+  () => import("@/components/analytics/HyrosScript"),
+  { loading: () => null }
+);
 const CartTracker = dynamic(
   () => import("@/components/analytics/CartTracker"),
   { loading: () => null }
@@ -90,6 +94,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://static.klaviyo.com" />
         <link rel="preconnect" href="https://connect.facebook.net" />
+        <link rel="preconnect" href="https://t.wasgeurtje.nl" />
         <link rel="dns-prefetch" href="https://sst.wasgeurtje.nl" />
         
         {/* Preload critical font for LCP improvement */}
@@ -107,6 +112,7 @@ export default function RootLayout({
         <KlaviyoSDK />
         <FacebookPixel />
         <GoogleAnalytics />
+        <HyrosScript />
         
         <AuthProvider>
           <CartProvider>
