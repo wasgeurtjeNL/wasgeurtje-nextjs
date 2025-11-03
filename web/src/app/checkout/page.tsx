@@ -17,6 +17,7 @@ import { useLoyality } from "@/context/LoyalityContext";
 import { FeatureFlags } from "@/utils/featureFlags";
 import { getSmartProductSuggestion, extractPurchasedProductIds } from "@/utils/product-suggestions";
 import { trackCheckoutEmail } from "@/hooks/useCustomerTracking";
+import CheckoutTracker from "@/components/analytics/CheckoutTracker";
 
 // Email validation schema
 const emailSchema = z.string().email("Voer een geldig e-mailadres in");
@@ -2465,6 +2466,12 @@ export default function CheckoutPage() {
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
+      {/* Analytics Tracking for Checkout */}
+      <CheckoutTracker 
+        email={formData.email} 
+        step={currentStep === 1 ? 'payment' : 'details'} 
+      />
+      
       <div className={`min-h-screen bg-[#F4F2EB] ${isShippingBarDismissed || isMobileMenuOpen ? 'shipping-bar-hidden' : ''}`}>
         {/* Sticky Shipping Bar - Mobile Only - Only shows when scrolled DOWN and header is hidden */}
         {/* Now alternates with personalized suggestion */}

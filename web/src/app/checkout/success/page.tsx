@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTracking } from "@/hooks/useTracking";
+import type { AnalyticsItem } from "@/lib/analytics/types";
 
 interface OrderDetails {
   orderId?: string;
@@ -17,34 +19,8 @@ interface OrderDetails {
   orderData?: any;
 }
 
-// Analytics and monitoring functions
-const trackOrderSuccess = (orderData: OrderDetails) => {
-  if (typeof window !== "undefined") {
-    // Google Analytics 4
-    if ((window as any).gtag) {
-      (window as any).gtag("event", "purchase", {
-        transaction_id: orderData.orderId,
-        value: orderData.amount,
-        currency: "EUR",
-        items:
-          orderData.orderData?.lineItems?.map((item: any) => ({
-            item_id: item.id,
-            item_name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })) || [],
-      });
-    }
-
-    // Facebook Pixel
-    if ((window as any).fbq) {
-      (window as any).fbq("track", "Purchase", {
-        value: orderData.amount,
-        currency: "EUR",
-      });
-    }
-  }
-};
+// NOTE: Tracking is now handled by useTracking hook in SuccessPageWrapper
+// This provides unified tracking to GTM (GA4, FB Pixel, Google Ads) + Klaviyo
 
 const logErrorToService = (errorData: any) => {
   console.error("Application Error:", errorData);
@@ -87,10 +63,14 @@ const SuccessPageWrapper = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [productDetails, setProductDetails] = useState<any[]>([]);
+  
+  // Analytics tracking hook
+  const { trackPurchase } = useTracking();
 
   // Refs to prevent duplicate operations
   const orderCreationStarted = useRef(false);
   const paymentVerified = useRef(false);
+  const hasTrackedPurchase = useRef(false);
 
   // Function to fetch product details by IDs
   const fetchProductDetails = async (lineItems: any[]) => {
@@ -155,12 +135,53 @@ const SuccessPageWrapper = () => {
     }
   }, [orderDetails.orderData]);
 
-  // Track order success when completed
+  // Track order success when completed (GTM + Klaviyo)
   useEffect(() => {
-    if (orderDetails.status === "completed" && orderDetails.orderId) {
-      trackOrderSuccess(orderDetails);
+    if (
+      (orderDetails.status === "completed" || orderDetails.status === "payment_only") && 
+      orderDetails.orderId && 
+      orderDetails.orderData?.lineItems &&
+      !hasTrackedPurchase.current
+    ) {
+      // Convert line items to analytics format
+      // Includes WordPress/WooCommerce GTM compatibility properties
+      const items: AnalyticsItem[] = orderDetails.orderData.lineItems.map((item: any) => ({
+        item_id: item.id,
+        item_name: item.name,
+        item_brand: 'Wasgeurtje',
+        item_category: 'Wasparfum',
+        price: item.price,
+        quantity: item.quantity,
+        currency: 'EUR',
+        
+        // WordPress/WooCommerce GTM compatibility properties
+        sku: item.sku || `WSG-WP-${item.id}`,  // Use real SKU if available, fallback to generated
+        id: `gla_${item.id}`,                   // GLA prefixed ID for Google Ads
+        stockstatus: 'instock',                 // Default to in stock
+        stocklevel: null,                       // Not tracked currently
+        google_business_vertical: 'retail',     // Google Shopping classification
+      }));
+      
+      // Track purchase to both GTM and Klaviyo
+      trackPurchase(
+        orderDetails.orderId,
+        items,
+        orderDetails.amount || 0,
+        {
+          tax: orderDetails.orderData.tax || 0,
+          shipping: orderDetails.orderData.shipping || 0,
+        }
+      );
+      
+      hasTrackedPurchase.current = true;
+      
+      console.log('[Success Page] Purchase tracked:', {
+        orderId: orderDetails.orderId,
+        amount: orderDetails.amount,
+        items: items.length,
+      });
     }
-  }, [orderDetails.status, orderDetails.orderId]);
+  }, [orderDetails.status, orderDetails.orderId, orderDetails.orderData, orderDetails.amount, trackPurchase]);
 
   const verifyPaymentStatus = async (paymentIntentId: string) => {
     try {
@@ -389,6 +410,7 @@ const SuccessPageWrapper = () => {
       setOrderDetails((prev) => ({
         ...prev,
         isCreating: false,
+        orderId: result.orderId,                 // ✅ Added for tracking!
         wooCommerceOrderId: result.orderId,
         orderNumber: result.orderNumber,
         status: "completed",

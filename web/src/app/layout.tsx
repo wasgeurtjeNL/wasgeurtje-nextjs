@@ -1,25 +1,47 @@
 import type { Metadata, Viewport } from "next";
 import { EB_Garamond } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import dynamic from "next/dynamic";
 import "./globals.css";
 import "./product-typography.css";
-import "./blog/blog-styling.css";
-// Slick carousel CSS is now lazy-loaded only on product pages
-// import FigmaHeader from "@/components/sections/FigmaHeader";
-// import ResponsiveInit from "@/components/ResponsiveInit";
-// import { CartProvider } from "@/context/CartContext";
-// import { AuthProvider } from "@/context/AuthContext";
-// import CartSidebar from "@/components/CartSidebar";
-// import Footer from "@/components/sections/Footer";
-import FigmaHeader from "@/components/sections/FigmaHeader";
-import ResponsiveInit from "@/components/ResponsiveInit";
+
+// Direct imports for providers and essential components
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
-import CartSidebar from "@/components/CartSidebar";
-import FooterLayer from "@/components/sections/FooterLayer";
 import { LoyalityProvider } from "@/context/LoyalityContext";
-import CustomerIntelligenceTracker from "@/components/CustomerIntelligenceTracker";
-import GlobalBundleOfferManager from "@/components/GlobalBundleOfferManager";
+import FigmaHeader from "@/components/sections/FigmaHeader";
+import FooterLayer from "@/components/sections/FooterLayer";
+
+// Lazy load client-only components (these are already 'use client' components)
+// Next.js 15 handles code-splitting automatically for client components
+const ResponsiveInit = dynamic(() => import("@/components/ResponsiveInit"), {
+  loading: () => null,
+});
+const CartSidebar = dynamic(() => import("@/components/CartSidebar"), {
+  loading: () => null,
+});
+const CustomerIntelligenceTracker = dynamic(
+  () => import("@/components/CustomerIntelligenceTracker"),
+  { loading: () => null }
+);
+const GlobalBundleOfferManager = dynamic(
+  () => import("@/components/GlobalBundleOfferManager"),
+  { loading: () => null }
+);
+
+// Analytics & Tracking Components (client-side only, already marked as "use client")
+const GoogleTagManager = dynamic(
+  () => import("@/components/analytics/GoogleTagManager"),
+  { loading: () => null }
+);
+const KlaviyoSDK = dynamic(
+  () => import("@/components/analytics/KlaviyoSDK"),
+  { loading: () => null }
+);
+const CartTracker = dynamic(
+  () => import("@/components/analytics/CartTracker"),
+  { loading: () => null }
+);
 
 const ebGaramond = EB_Garamond({
   subsets: ["latin"],
@@ -52,6 +74,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://wasgeurtje-nextjs.vercel.app" />
         <link rel="dns-prefetch" href="https://wasgeurtje-nextjs.vercel.app" />
         
+        {/* Preconnect to TrustIndex for faster reviews loading */}
+        <link rel="preconnect" href="https://cdn.trustindex.io" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.trustindex.io" />
+        
+        {/* Preconnect to tracking domains for faster analytics loading */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://static.klaviyo.com" />
+        <link rel="dns-prefetch" href="https://sst.wasgeurtje.nl" />
+        
         {/* Preload critical font for LCP improvement */}
         <link
           rel="preload"
@@ -62,8 +93,15 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased overflow-x-hidden">
+        {/* Analytics & Tracking - Loaded first for accurate tracking */}
+        <GoogleTagManager />
+        <KlaviyoSDK />
+        
         <AuthProvider>
           <CartProvider>
+            {/* Cart Tracker - Must be inside CartProvider to access cart context */}
+            <CartTracker />
+            
             <LoyalityProvider>
               <ResponsiveInit />
               <CustomerIntelligenceTracker />
