@@ -72,8 +72,6 @@ export async function fetchProducts(
       per_page: "20",
     });
 
-    console.log(`Fetching products, IDs: ${productIds.join(",")}`);
-
     // Make the API request
     const response = await fetch(
       `${WOOCOMMERCE_API_URL}/products?${params.toString()}`,
@@ -234,7 +232,6 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     let checkboxtitle: string | undefined = undefined;
 
     try {
-      console.log("Fetching ACF data for product ID:", productId);
       // Use acf_format=standard to get the full image objects
       const acfResponse = await fetch(
         `https://wasgeurtje.nl/wp-json/acf/v3/product/${productId}?acf_format=standard`,
@@ -247,77 +244,50 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
         }
       );
 
-      console.log("ACF API response status:", acfResponse.status);
-      console.log("ACF API response Data:", acfResponse);
-
       if (acfResponse.ok) {
         const acfData = await acfResponse.json();
-        console.log("ACF data received:", acfData);
 
         if (acfData && acfData.acf) {
           // Extract ingredients from ACF data
           if (acfData.acf.ingredient) {
-            console.log(
-              "Found ingredients in ACF:",
-              JSON.stringify(acfData.acf.ingredient, null, 2)
-            );
-
             // Transform ACF ingredients to the format expected by ProductTemplate
             ingredients = acfData.acf.ingredient.map((ingredient: any) => {
-              console.log("Processing ingredient:", ingredient);
-              console.log("Ingredient name:", ingredient.name);
-
               // Return the ingredient with the full image object for flexibility
               return {
                 name: ingredient.name || "",
                 image: ingredient.image || "",
               };
             });
-
-            console.log(
-              "Transformed ingredients:",
-              JSON.stringify(ingredients, null, 2)
-            );
           }
 
           // Extract product info from ACF data
           if (acfData.acf.product_info) {
-            console.log("Found product info in ACF:", acfData.acf.product_info);
             productInfo = acfData.acf.product_info;
           }
 
           // Extract icon info from ACF data
           if (acfData.acf.icon_info) {
-            console.log("Found icon info in ACF:", acfData.acf.icon_info);
             iconInfo = acfData.acf.icon_info;
           }
 
           // Extract experience items from ACF data (checkbox items)
           if (acfData.acf.items) {
-            console.log("Found experience items in ACF:", acfData.acf.items);
             experienceItems = acfData.acf.items;
           }
 
           // Extract detail sections from ACF data
           if (acfData.acf.details) {
-            console.log("Found detail sections in ACF:", acfData.acf.details);
             details = acfData.acf.details;
           }
 
           // Extract bottom check items from ACF data
           if (acfData.acf.bottom_check) {
-            console.log(
-              "Found bottom check items in ACF:",
-              acfData.acf.bottom_check
-            );
             bottomCheck = acfData.acf.bottom_check;
           }
 
           // Extract titles for sections
           bottom_check_title = acfData.acf.bottom_check_title || undefined;
           checkboxtitle = acfData.acf.checkboxtitle || undefined;
-
-          console.log("Available ACF fields:", Object.keys(acfData.acf));
         }
       } else {
         // Try to get error details

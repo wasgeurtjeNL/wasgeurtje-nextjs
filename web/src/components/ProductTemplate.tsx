@@ -519,12 +519,6 @@ export default function ProductTemplate({
         product.title,
         productPrice
       );
-      
-      console.log('[ProductView] ✅ Tracked:', {
-        id: product.id,
-        name: product.title,
-        price: productPrice
-      });
     }
   }, [product.id]); // Only re-run if product ID changes
 
@@ -624,10 +618,6 @@ export default function ProductTemplate({
           initialStockRef.current = initStock;
           setStockLeft(initStock);
           localStorage.setItem(stockKey, initStock.toString());
-          console.log(
-            `Stock was too low for ${productId}, reset to:`,
-            initStock
-          );
         } else {
           initialStockRef.current = parsedStock;
           setStockLeft(parsedStock);

@@ -308,7 +308,6 @@ export default function BundleOfferPopup({
       } catch (persistErr) {
         console.error('Failed to persist bundle discount:', persistErr);
       }
-      console.log('✅ Bundle offer accepted!');
       
       onAccept?.();
       setIsOpen(false);
