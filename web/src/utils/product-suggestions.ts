@@ -45,9 +45,12 @@ export function getSmartProductSuggestion(
 
   // Helper function to check if product is already in cart
   const isInCart = (productId: string) => cartItems.some(item => item.id === productId);
+  
+  // Never suggest cap products (they should never be visible anywhere)
+  const CAP_PRODUCTS = ["348218", "348219"];
 
   // Define product suggestions in priority order with their messages
-  const productSuggestions = [
+const productSuggestions = [
     {
       id: "334999",
       messages: {
@@ -81,6 +84,11 @@ export function getSmartProductSuggestion(
 
   // Loop through suggestions and find the first one that's not purchased and not in cart
   for (const suggestion of productSuggestions) {
+    // Skip cap products entirely
+    if (CAP_PRODUCTS.includes(suggestion.id)) {
+      continue;
+    }
+    
     const notPurchased = !purchasedProductIds.includes(suggestion.id);
     const notInCart = !isInCart(suggestion.id);
 
@@ -113,7 +121,8 @@ export function getSmartProductSuggestion(
 
   // If no new products to suggest, suggest a favorite from their past (only if we have history)
   if (hasPurchaseHistory) {
-    const favoriteNotInCart = purchasedProductIds.find(id => !isInCart(id));
+    // Find favorite that's not in cart AND not a cap product
+    const favoriteNotInCart = purchasedProductIds.find(id => !isInCart(id) && !CAP_PRODUCTS.includes(id));
     if (favoriteNotInCart) {
       // Different message for wasstrips vs geuren
       const isWasstrips = favoriteNotInCart === "335060";

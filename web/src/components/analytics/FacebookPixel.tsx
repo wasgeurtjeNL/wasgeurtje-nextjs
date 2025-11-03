@@ -15,15 +15,49 @@ export default function FacebookPixel() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.fbq && isTrackingEnabled()) {
-      // Initialize Facebook Pixel
-      window.fbq('init', facebookPixel.id);
+      // ✅ ADVANCED MATCHING: Get user data from localStorage (if available)
+      const getUserData = () => {
+        const email = localStorage.getItem('user_email');
+        const phone = localStorage.getItem('user_phone');
+        const firstName = localStorage.getItem('user_first_name');
+        const lastName = localStorage.getItem('user_last_name');
+        const city = localStorage.getItem('user_city');
+        const state = localStorage.getItem('user_state');
+        const zipCode = localStorage.getItem('user_zip');
+        const country = localStorage.getItem('user_country') || 'nl';
+        
+        const userData: any = {};
+        
+        // Facebook automatically hashes these parameters
+        if (email) userData.em = email;
+        if (phone) userData.ph = phone;
+        if (firstName) userData.fn = firstName;
+        if (lastName) userData.ln = lastName;
+        if (city) userData.ct = city;
+        if (state) userData.st = state;
+        if (zipCode) userData.zp = zipCode;
+        if (country) userData.country = country;
+        
+        return Object.keys(userData).length > 0 ? userData : undefined;
+      };
+      
+      const advancedMatchData = getUserData();
+      
+      // Initialize Facebook Pixel with or without Advanced Matching
+      if (advancedMatchData) {
+        window.fbq('init', facebookPixel.id, advancedMatchData);
+        if (debug) {
+          console.log('[FB Pixel] ✅ Initialized WITH Advanced Matching:', Object.keys(advancedMatchData).join(', '));
+        }
+      } else {
+        window.fbq('init', facebookPixel.id);
+        if (debug) {
+          console.log('[FB Pixel] ⚠️ Initialized WITHOUT Advanced Matching (no user data available)');
+        }
+      }
       
       // Track PageView
       window.fbq('track', 'PageView');
-      
-      if (debug) {
-        console.log('[FB Pixel] Initialized with ID:', facebookPixel.id);
-      }
     }
   }, [facebookPixel.id, debug]);
 

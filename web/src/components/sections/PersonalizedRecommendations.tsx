@@ -51,8 +51,8 @@ export default function PersonalizedRecommendations() {
         return;
       }
       
-      // Product IDs to exclude from recommendations
-      const excludedProductIds = new Set(["334999", "1893"]);
+      // Product IDs to exclude from recommendations (including cap products that should never be shown)
+      const excludedProductIds = new Set(["334999", "1893", "348218", "348219"]);
       
       // Filter out excluded products and out of stock products
       const filteredProducts = allProducts.filter((p: any) => 

@@ -2627,7 +2627,9 @@ export default function ProductTemplate({
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {relatedProducts.map((relProduct) => (
+              {relatedProducts
+                .filter((relProduct) => !["348218", "348219"].includes(relProduct.id)) // Filter out cap products
+                .map((relProduct) => (
                 <div key={relProduct.id} className="flex flex-col">
                   <Link
                     href={`/wasparfum/${relProduct.slug}`}

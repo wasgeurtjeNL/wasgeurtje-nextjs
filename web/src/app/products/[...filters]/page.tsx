@@ -149,9 +149,10 @@ async function getFilteredProducts(filters: FilterParams): Promise<Product[]> {
 
     const products = await response.json();
 
-    // Filter out products that are out of stock
+    // Filter out products that are out of stock AND cap products that should never be shown
+    const CAP_PRODUCTS = ["348218", "348219"];
     const inStockProducts = products.filter((product: any) => 
-      product.stock_status !== 'outofstock'
+      product.stock_status !== 'outofstock' && !CAP_PRODUCTS.includes(product.id.toString())
     );
 
     // Transform WooCommerce product data to our format

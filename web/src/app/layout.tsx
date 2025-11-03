@@ -42,6 +42,10 @@ const FacebookPixel = dynamic(
   () => import("@/components/analytics/FacebookPixel"),
   { loading: () => null }
 );
+const FacebookClickIdCapture = dynamic(
+  () => import("@/components/analytics/FacebookClickIdCapture"),
+  { loading: () => null }
+);
 const GoogleAnalytics = dynamic(
   () => import("@/components/analytics/GoogleAnalytics"),
   { loading: () => null }
@@ -115,6 +119,7 @@ export default function RootLayout({
         <GoogleTagManager />
         <KlaviyoSDK />
         <FacebookPixel />
+        <FacebookClickIdCapture />
         <GoogleAnalytics />
         <HyrosScript />
         

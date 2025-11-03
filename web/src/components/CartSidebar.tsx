@@ -262,9 +262,10 @@ export default function CartSidebar() {
         }
         const products = await res.json();
         
-        // Filter out products that are out of stock
+        // Filter out products that are out of stock AND cap products
+        const CAP_PRODUCTS = ["348218", "348219"]; // Dopjes die nergens getoond mogen worden
         const inStockProducts = (Array.isArray(products) ? products : []).filter(
-          (p: any) => p.stock_status !== 'outofstock'
+          (p: any) => p.stock_status !== 'outofstock' && !CAP_PRODUCTS.includes(String(p.id))
         );
         
         const mapped = inStockProducts.map(
@@ -537,9 +538,37 @@ export default function CartSidebar() {
                 </div>
               ) : (
                 <>
+                  {/* Gratis dopjes melding */}
+                  {(() => {
+                    // Tel aantal flesjes (niet dopjes)
+                    const BOTTLE_PRODUCTS = [
+                      "1427", "1425", "1423", "1417", "1410",
+                      "273950", "273949", "273947", "273946", "273942"
+                    ];
+                    const totalBottles = items
+                      .filter(item => BOTTLE_PRODUCTS.includes(item.id))
+                      .reduce((sum, item) => sum + item.quantity, 0);
+
+                    if (totalBottles > 0) {
+                      return (
+                        <div className="mb-3 p-2.5 bg-gradient-to-r from-[#d7aa43]/10 to-[#e8b960]/10 border border-[#d7aa43]/30 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <span className="text-lg flex-shrink-0">🎁</span>
+                            <p className="text-sm text-[#814E1E] leading-relaxed">
+                              <strong className="font-bold">{totalBottles} gratis {totalBottles === 1 ? 'dopje' : 'dopjes'}</strong> toegevoegd voor optimale dosering van je wasparfum
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Cart Items */}
                   <div className="space-y-1.">
-                    {items.map((item) => {
+                    {items
+                      .filter((item) => !item.isHiddenProduct) // Verberg dopjes
+                      .map((item) => {
                       // Create a unique key that includes a variant or a fallback to ensure uniqueness
                       const itemKey = `${item.id}-${
                         item.variant ||

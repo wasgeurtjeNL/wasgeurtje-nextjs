@@ -101,8 +101,14 @@ async function getFeaturedProducts(): Promise<Product[]> {
 
     const products = await response.json();
 
+    // Filter out cap products (348218, 348219) that should never be shown
+    const CAP_PRODUCTS = ["348218", "348219"];
+    const filteredProducts = products.filter((product: any) => 
+      !CAP_PRODUCTS.includes(product.id.toString())
+    );
+
     // Transform WooCommerce product data to our format
-    return products.map((product: any) => ({
+    return filteredProducts.map((product: any) => ({
       id: product.id.toString(),
       slug: product.slug,
       title: product.name,
@@ -143,8 +149,14 @@ async function getBestSellingProducts(): Promise<Product[]> {
 
     const products = await response.json();
 
+    // Filter out cap products (348218, 348219) that should never be shown
+    const CAP_PRODUCTS = ["348218", "348219"];
+    const filteredProducts = products.filter((product: any) => 
+      !CAP_PRODUCTS.includes(product.id.toString())
+    );
+
     // Transform WooCommerce product data to our format
-    return products.map((product: any) => ({
+    return filteredProducts.map((product: any) => ({
       id: product.id.toString(),
       slug: product.slug,
       title: product.name,

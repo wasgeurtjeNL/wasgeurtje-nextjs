@@ -88,7 +88,13 @@ const SuccessPageWrapper = () => {
       if (response.ok) {
         const products = await response.json();
 
-        const productsWithQuantity = products.map((product: any) => {
+        // Filter out cap products (348218, 348219) that should never be shown
+        const CAP_PRODUCTS = ["348218", "348219"];
+        const visibleProducts = products.filter((product: any) => 
+          !CAP_PRODUCTS.includes(String(product.id))
+        );
+
+        const productsWithQuantity = visibleProducts.map((product: any) => {
           const lineItem = lineItems.find((item) => item.id == product.id);
           return {
             ...product,
@@ -147,9 +153,15 @@ const SuccessPageWrapper = () => {
       orderDetails.orderData?.lineItems &&
       !hasTrackedPurchase.current
     ) {
+      // Filter out cap products before tracking (they should never be tracked in analytics)
+      const CAP_PRODUCTS = ["348218", "348219"];
+      const visibleLineItems = orderDetails.orderData.lineItems.filter(
+        (item: any) => !CAP_PRODUCTS.includes(String(item.id))
+      );
+      
       // Convert line items to analytics format
       // Includes WordPress/WooCommerce GTM compatibility properties
-      const items: AnalyticsItem[] = orderDetails.orderData.lineItems.map((item: any) => ({
+      const items: AnalyticsItem[] = visibleLineItems.map((item: any) => ({
         item_id: item.id,
         item_name: item.name,
         item_brand: 'Wasgeurtje',
@@ -798,6 +810,41 @@ const SuccessPageWrapper = () => {
                   <h3 className="font-bold text-gray-900 mb-6 text-xl border-b border-gray-200 pb-3">
                     Bestelde producten
                   </h3>
+
+                  {/* Gratis dopjes melding */}
+                  {(() => {
+                    const BOTTLE_PRODUCTS = [
+                      "1427", "1425", "1423", "1417", "1410",
+                      "273950", "273949", "273947", "273946", "273942"
+                    ];
+                    
+                    // Count bottle products from productDetails or orderData
+                    let totalBottles = 0;
+                    if (productDetails.length > 0) {
+                      totalBottles = productDetails
+                        .filter((product: any) => BOTTLE_PRODUCTS.includes(String(product.id)))
+                        .reduce((sum: number, product: any) => sum + (product.quantity || 0), 0);
+                    } else if (orderDetails.orderData?.lineItems) {
+                      totalBottles = orderDetails.orderData.lineItems
+                        .filter((item: any) => BOTTLE_PRODUCTS.includes(String(item.id)))
+                        .reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+                    }
+
+                    if (totalBottles > 0) {
+                      return (
+                        <div className="mb-4 p-3 bg-gradient-to-r from-[#d7aa43]/10 to-[#e8b960]/10 border border-[#d7aa43]/30 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">🎁</span>
+                            <p className="text-sm text-[#814E1E]">
+                              <strong className="font-bold">{totalBottles} gratis {totalBottles === 1 ? 'dopje' : 'dopjes'}</strong> toegevoegd voor optimale dosering van je wasparfum
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   <div className="space-y-6">
                     {productDetails.length > 0
                       ? // Show detailed product info when available
@@ -809,33 +856,35 @@ const SuccessPageWrapper = () => {
                             {/* Product Image */}
                             <div className="flex-shrink-0">
                               <div className="w-20 h-20 bg-gray-100 rounded-lg border-2 border-gray-200 flex items-center justify-center overflow-hidden">
-                                {product.image ? (
-                                  <img
-                                    src={product.image}
-                                    alt={product.title || product.name}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      console.log(
-                                        "Image failed to load:",
-                                        product.image
-                                      );
-                                      e.currentTarget.style.display = "none";
-                                      const sibling = e.currentTarget
-                                        .nextElementSibling as HTMLElement | null;
-                                      if (sibling)
-                                        sibling.style.display = "flex";
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                                    Geen afbeelding
-                                  </div>
-                                )}
+                                {(() => {
+                                  // Try to get image from multiple possible sources
+                                  const imageUrl = product.images?.[0]?.src || product.image || null;
+                                  
+                                  if (imageUrl) {
+                                    return (
+                                      <img
+                                        src={imageUrl}
+                                        alt={product.title || product.name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          console.log("Image failed to load:", imageUrl);
+                                          e.currentTarget.style.display = "none";
+                                          const sibling = e.currentTarget.nextElementSibling as HTMLElement | null;
+                                          if (sibling) sibling.style.display = "flex";
+                                        }}
+                                      />
+                                    );
+                                  }
+                                  
+                                  return (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                      Geen afbeelding
+                                    </div>
+                                  );
+                                })()}
                                 <div
                                   className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs"
-                                  style={{
-                                    display: product.image ? "none" : "flex",
-                                  }}
+                                  style={{ display: "none" }}
                                 >
                                   Geen afbeelding
                                 </div>
@@ -871,7 +920,9 @@ const SuccessPageWrapper = () => {
                           </div>
                         ))
                       : // Fallback to basic product info while loading
-                        orderDetails.orderData?.lineItems?.map(
+                        orderDetails.orderData?.lineItems
+                          ?.filter((item: any) => !["348218", "348219"].includes(String(item.id))) // Filter out cap products
+                          ?.map(
                           (item: any, index: number) => (
                             <div
                               key={index}

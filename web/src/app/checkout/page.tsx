@@ -1126,6 +1126,13 @@ export default function CheckoutPage() {
         );
         
         if (suggestion) {
+          // Never suggest cap products (they should never be visible)
+          const CAP_PRODUCTS = ["348218", "348219"];
+          if (CAP_PRODUCTS.includes(suggestion.productId)) {
+            setPersonalizedSuggestion(null);
+            return;
+          }
+          
           // Fetch product info
           const productResponse = await fetch(`/api/woocommerce/products?ids=${suggestion.productId}`);
           
@@ -1133,18 +1140,23 @@ export default function CheckoutPage() {
             const productData = await productResponse.json();
             const product = Array.isArray(productData) ? productData[0] : productData;
             
-            setPersonalizedSuggestion({
-              productId: suggestion.productId,
-              title: product.name || product.title,
-              price: parseFloat(product.price),
-              image: product.images?.[0]?.src || product.image || "",
-              message: suggestion.message,
-            });
-            
-            // Reset banner interaction state when new suggestion is set
-            // This allows the banner to update when cart changes
-            setBannerInteracted(false);
-            setShowPersonalizedBanner(true);
+            // Double-check product is not a cap product
+            if (product && !CAP_PRODUCTS.includes(String(product.id))) {
+              setPersonalizedSuggestion({
+                productId: suggestion.productId,
+                title: product.name || product.title,
+                price: parseFloat(product.price),
+                image: product.images?.[0]?.src || product.image || "",
+                message: suggestion.message,
+              });
+              
+              // Reset banner interaction state when new suggestion is set
+              // This allows the banner to update when cart changes
+              setBannerInteracted(false);
+              setShowPersonalizedBanner(true);
+            } else {
+              setPersonalizedSuggestion(null);
+            }
           }
         } else {
           setPersonalizedSuggestion(null);
@@ -2007,19 +2019,21 @@ export default function CheckoutPage() {
           const wcProducts = await fetchProductsByIds(productIds.slice(0, 6));
 
           // Filter out products that are out of stock
+          // Filter out products that are out of stock AND cap products that should never be shown
+          const CAP_PRODUCTS = ["348218", "348219"];
           const inStockProducts = wcProducts.filter((product: any) => 
-            product.stock_status !== 'outofstock'
+            product.stock_status !== 'outofstock' && !CAP_PRODUCTS.includes(String(product.id))
           );
 
           // Transform to our format with badges (no cart status needed since we filter them out)
           const transformedProducts = inStockProducts.map((product: any) => ({
             id: product.id,
-            title: product.title,
+            title: product.title || product.name || 'Product',
             price: product.price,
             image: product.image,
             description:
               product.description ||
-              `Geniet van deze ${product.title.toLowerCase()}`,
+              `Geniet van deze ${(product.title || product.name || 'product').toLowerCase()}`,
             badge: getProductBadge(product.id),
             inCart: false, // Always false since we only fetch non-cart products
           }));
@@ -4506,7 +4520,7 @@ export default function CheckoutPage() {
                                 </h2>
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className="text-sm text-gray-600 font-medium">
-                                    {items.length} {items.length === 1 ? 'product' : 'producten'}
+                                    {items.filter(item => !item.isHiddenProduct).length} {items.filter(item => !item.isHiddenProduct).length === 1 ? 'product' : 'producten'}
                                   </span>
                                   <span className="text-gray-300">•</span>
                                   <div className="flex items-center gap-1">
@@ -4553,6 +4567,31 @@ export default function CheckoutPage() {
                           </div>
                         )}
 
+                        {/* Gratis dopjes melding */}
+                        {(() => {
+                          const BOTTLE_PRODUCTS = [
+                            "1427", "1425", "1423", "1417", "1410",
+                            "273950", "273949", "273947", "273946", "273942"
+                          ];
+                          const totalBottles = items
+                            .filter(item => BOTTLE_PRODUCTS.includes(item.id))
+                            .reduce((sum, item) => sum + item.quantity, 0);
+
+                          if (totalBottles > 0) {
+                            return (
+                              <div className="px-6 py-3 bg-gradient-to-r from-[#d7aa43]/10 to-[#e8b960]/10 border-b border-[#d7aa43]/30">
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className="text-lg">🎁</span>
+                                  <span className="text-sm text-[#814E1E]">
+                                    <strong className="font-bold">{totalBottles} gratis {totalBottles === 1 ? 'dopje' : 'dopjes'}</strong> voor optimale dosering
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+
                         {/* Products Section */}
                         <div className="px-6 py-5 max-h-[400px] overflow-y-auto"
                           style={{
@@ -4561,7 +4600,9 @@ export default function CheckoutPage() {
                           }}
                         >
                         <div className="space-y-3">
-                          {items.map((item) => (
+                          {items
+                            .filter((item) => !item.isHiddenProduct) // Verberg dopjes
+                            .map((item) => (
                             <div
                               key={item.id}
                               className="group relative bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300 hover:border-[#d7aa43]/30"
@@ -4968,7 +5009,9 @@ export default function CheckoutPage() {
                         className="bg-white rounded-lg p-6 shadow-sm lg:hidden hidden"
                       >
                         <div className="space-y-4 mb-6">
-                          {items.map((item) => (
+                          {items
+                            .filter((item) => !item.isHiddenProduct) // Verberg dopjes
+                            .map((item) => (
                             <div
                               key={item.id}
                               className="border border-gray-200 rounded-lg p-3"
@@ -6179,7 +6222,7 @@ export default function CheckoutPage() {
                           </h2>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-sm text-gray-600 font-medium">
-                              {items.length} {items.length === 1 ? 'product' : 'producten'}
+                              {items.filter(item => !item.isHiddenProduct).length} {items.filter(item => !item.isHiddenProduct).length === 1 ? 'product' : 'producten'}
                             </span>
                             <span className="text-gray-300">•</span>
                             <div className="flex items-center gap-1">
@@ -6226,6 +6269,31 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
+                  {/* Gratis dopjes melding */}
+                  {(() => {
+                    const BOTTLE_PRODUCTS = [
+                      "1427", "1425", "1423", "1417", "1410",
+                      "273950", "273949", "273947", "273946", "273942"
+                    ];
+                    const totalBottles = items
+                      .filter(item => BOTTLE_PRODUCTS.includes(item.id))
+                      .reduce((sum, item) => sum + item.quantity, 0);
+
+                    if (totalBottles > 0) {
+                      return (
+                        <div className="px-6 py-3 bg-gradient-to-r from-[#d7aa43]/10 to-[#e8b960]/10 border-b border-[#d7aa43]/30">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="text-lg">🎁</span>
+                            <span className="text-sm text-[#814E1E]">
+                              <strong className="font-bold">{totalBottles} gratis {totalBottles === 1 ? 'dopje' : 'dopjes'}</strong> voor optimale dosering
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Products Section */}
                   <div className="px-6 py-5 max-h-[400px] overflow-y-auto"
                     style={{
@@ -6235,7 +6303,9 @@ export default function CheckoutPage() {
                   >
 
                   <div className="space-y-3">
-                    {items.map((item) => (
+                    {items
+                      .filter((item) => !item.isHiddenProduct) // Verberg dopjes
+                      .map((item) => (
                       <div
                         key={item.id}
                         className="group relative bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300 hover:border-[#d7aa43]/30"
@@ -6624,7 +6694,9 @@ export default function CheckoutPage() {
                   className="bg-white rounded-lg p-6 shadow-sm lg:hidden hidden"
                 >
                   <div className="space-y-4 mb-6">
-                    {items.map((item) => (
+                    {items
+                      .filter((item) => !item.isHiddenProduct) // Verberg dopjes
+                      .map((item) => (
                       <div
                         key={item.id}
                         className="border border-gray-200 rounded-lg p-3"

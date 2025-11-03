@@ -38,6 +38,7 @@ function getFacebookBrowserId(): string | undefined {
 
 /**
  * Send event to server-side tracking API
+ * ✅ WITH DEDUPLICATION: Uses same event ID as client-side
  */
 async function sendServerEvent(
   eventName: string,
@@ -58,6 +59,21 @@ async function sendServerEvent(
     const fbclid = getFacebookClickId();
     const fbp = getFacebookBrowserId();
 
+    // ✅ DEDUPLICATION: Try to get event ID from sessionStorage (set by client-side)
+    let finalEventId = eventId;
+    if (!finalEventId && typeof window !== 'undefined') {
+      const storedEventId = sessionStorage.getItem('fb_last_event_id');
+      const storedEventName = sessionStorage.getItem('fb_last_event_name');
+      
+      // Only use stored event ID if it matches the current event name
+      if (storedEventId && storedEventName === eventName) {
+        finalEventId = storedEventId;
+        if (analyticsConfig.debug) {
+          console.log('[FB Server] ✅ Using client-side event ID for deduplication:', finalEventId);
+        }
+      }
+    }
+
     // Build user data with Facebook identifiers
     const fullUserData: Record<string, any> = {
       ...userData,
@@ -77,7 +93,7 @@ async function sendServerEvent(
     const payload = {
       eventName,
       eventData: {
-        eventId: eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        eventId: finalEventId || `${eventName}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         eventSourceUrl: window.location.href,
       },
       customData,
