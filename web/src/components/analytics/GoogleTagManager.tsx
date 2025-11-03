@@ -26,7 +26,7 @@ export default function GoogleTagManager() {
 
   return (
     <>
-      {/* GTM Script - Loaded from Stape server-side endpoint */}
+      {/* GTM Script - Loaded from Google's standard servers */}
       <Script
         id="gtm-script"
         strategy="afterInteractive"
@@ -34,8 +34,9 @@ export default function GoogleTagManager() {
           __html: `
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            '${stape.serverUrl}/QXJwkvinfao.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;
+            j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+            f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','${gtm.id}');
           `,
         }}
@@ -44,18 +45,18 @@ export default function GoogleTagManager() {
       {/* GTM noscript fallback */}
       <noscript>
         <iframe
-          src={`${stape.serverUrl}/ns.html?id=${gtm.id}`}
+          src={`https://www.googletagmanager.com/ns.html?id=${gtm.id}`}
           height="0"
           width="0"
           style={{ display: 'none', visibility: 'hidden' }}
         />
       </noscript>
 
-      {/* GA4 Config via Stape */}
+      {/* GA4 Config via Google */}
       <Script
         id="ga4-config"
         strategy="afterInteractive"
-        src={`${stape.serverUrl}/gtag/js?id=${analyticsConfig.ga4.measurementId}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=${analyticsConfig.ga4.measurementId}`}
       />
 
       {/* Debug logging in development */}
