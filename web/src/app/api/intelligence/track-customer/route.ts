@@ -12,6 +12,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, supabaseServer } from '@/lib/supabase';
 import crypto from 'crypto';
+import { 
+  trackIntelligencePageView, 
+  trackIntelligenceLead 
+} from '@/lib/analytics/facebookServerDirect';
 
 const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
 
@@ -25,7 +29,7 @@ function hashIP(ip: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, customer_id, event_type = 'session_track', fingerprint } = body;
+    const { email, customer_id, event_type = 'session_track', fingerprint, fbp, fbc } = body;
 
     // Get client IP from request headers
     const ip = request.headers.get('x-forwarded-for') || 
@@ -33,6 +37,8 @@ export async function POST(request: NextRequest) {
                'unknown';
     
     const ipHash = hashIP(ip);
+    const userAgent = request.headers.get('user-agent') || undefined;
+    const referer = request.headers.get('referer') || undefined;
     
     console.log(`[Tracking] 🔍 Detected IP: ${ip} → Hash: ${ipHash.substring(0, 20)}...`);
 
@@ -47,6 +53,19 @@ export async function POST(request: NextRequest) {
         recognizedEmail = knownProfile.customer_email;
         recognizedCustomerId = knownProfile.customer_id;
         console.log(`[Tracking] ✅ Fingerprint recognized: ${recognizedEmail}`);
+        
+        // 🎯 STRATEGY A: RETURNING VISITOR RECOGNITION
+        // Send PageView to Facebook with recognized email (improves EMQ!)
+        await trackIntelligencePageView({
+          email: recognizedEmail,
+          customerId: recognizedCustomerId,
+          fbp: fbp,
+          fbc: fbc,
+          clientIp: ip !== 'unknown' ? ip : undefined,
+          userAgent: userAgent,
+          pageUrl: referer,
+        });
+        console.log(`[FB Intelligence] ✅ PageView sent for recognized visitor: ${recognizedEmail}`);
       } else {
         // Fallback: check device_tracking table
         const knownDevice = await db.device_tracking.findByFingerprint(fingerprint);
@@ -54,6 +73,18 @@ export async function POST(request: NextRequest) {
           recognizedEmail = knownDevice.customer_email;
           recognizedCustomerId = knownDevice.customer_id;
           console.log(`[Tracking] ✅ Fingerprint recognized (device): ${recognizedEmail}`);
+          
+          // 🎯 STRATEGY A: RETURNING VISITOR RECOGNITION
+          await trackIntelligencePageView({
+            email: recognizedEmail,
+            customerId: recognizedCustomerId,
+            fbp: fbp,
+            fbc: fbc,
+            clientIp: ip !== 'unknown' ? ip : undefined,
+            userAgent: userAgent,
+            pageUrl: referer,
+          });
+          console.log(`[FB Intelligence] ✅ PageView sent for recognized device: ${recognizedEmail}`);
         }
       }
     }
@@ -74,8 +105,33 @@ export async function POST(request: NextRequest) {
         recognizedEmail = devicesWithIP[0].customer_email;
         recognizedCustomerId = devicesWithIP[0].customer_id;
         console.log(`[Tracking] ✅ IP recognized! Customer: ${recognizedEmail} (multi-device)`);
+        
+        // 🎯 STRATEGY A: IP-BASED RECOGNITION
+        await trackIntelligencePageView({
+          email: recognizedEmail,
+          customerId: recognizedCustomerId,
+          fbp: fbp,
+          fbc: fbc,
+          clientIp: ip !== 'unknown' ? ip : undefined,
+          userAgent: userAgent,
+          pageUrl: referer,
+        });
+        console.log(`[FB Intelligence] ✅ PageView sent for IP-recognized visitor: ${recognizedEmail}`);
       } else {
         console.log(`[Tracking] ❌ IP not recognized: ${ipHash.substring(0, 20)}...`);
+        
+        // 🎯 STRATEGY B: ANONYMOUS FACEBOOK EVENTS
+        // Even without email, send PageView with fbp/fbc for retargeting
+        if (fbp || fbc) {
+          await trackIntelligencePageView({
+            fbp: fbp,
+            fbc: fbc,
+            clientIp: ip !== 'unknown' ? ip : undefined,
+            userAgent: userAgent,
+            pageUrl: referer,
+          });
+          console.log(`[FB Intelligence] ✅ Anonymous PageView sent (fbp: ${fbp ? 'yes' : 'no'}, fbc: ${fbc ? 'yes' : 'no'})`);
+        }
       }
     }
 
@@ -219,6 +275,26 @@ export async function POST(request: NextRequest) {
             profile = await db.customer_intelligence.findByEmail(recognizedEmail);
           }
         }
+      }
+    }
+
+    // 🎯 STRATEGY C: PROGRESSIVE PROFILING
+    // If email was just provided (not recognized, but explicitly given), send Lead event
+    // This links previous anonymous events to this email
+    if (email && !customer_id && event_type === 'checkout_email_entered') {
+      // Check if this is a NEW email (not previously tracked with this fingerprint)
+      const wasAnonymous = !recognizedEmail || recognizedEmail === email;
+      
+      if (wasAnonymous) {
+        await trackIntelligenceLead({
+          email: email,
+          fbp: fbp,
+          fbc: fbc,
+          clientIp: ip !== 'unknown' ? ip : undefined,
+          userAgent: userAgent,
+          pageUrl: referer,
+        });
+        console.log(`[FB Intelligence] 🎯 PROGRESSIVE PROFILING: Lead event sent for ${email} (linking anonymous events)`);
       }
     }
 

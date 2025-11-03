@@ -43,7 +43,8 @@ async function sendServerEvent(
   eventName: string,
   customData: Record<string, any> = {},
   userData: Record<string, any> = {},
-  eventId?: string
+  eventId?: string,
+  externalId?: string | number // Customer ID for logged-in users
 ) {
   if (!isTrackingEnabled()) {
     if (analyticsConfig.debug) {
@@ -58,11 +59,16 @@ async function sendServerEvent(
     const fbp = getFacebookBrowserId();
 
     // Build user data with Facebook identifiers
-    const fullUserData = {
+    const fullUserData: Record<string, any> = {
       ...userData,
       fbc: fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined,
       fbp: fbp,
     };
+
+    // Add external_id if provided (customer ID for logged-in users)
+    if (externalId) {
+      fullUserData.externalId = String(externalId);
+    }
 
     // Get test event code from environment variable (for testing in Facebook Events Manager)
     // This is set in the environment variables for testing purposes
@@ -137,7 +143,12 @@ export const trackServerAddToCart = (item: AnalyticsItem, quantity: number = 1) 
 /**
  * Track Initiate Checkout event (server-side)
  */
-export const trackServerInitiateCheckout = (items: AnalyticsItem[], totalValue: number, userEmail?: string) => {
+export const trackServerInitiateCheckout = (
+  items: AnalyticsItem[], 
+  totalValue: number, 
+  userEmail?: string,
+  externalId?: string | number // Customer ID for logged-in users
+) => {
   const userData: Record<string, any> = {};
   
   if (userEmail) {
@@ -156,14 +167,21 @@ export const trackServerInitiateCheckout = (items: AnalyticsItem[], totalValue: 
       value: totalValue,
       currency: items[0]?.currency || 'EUR',
     },
-    userData
+    userData,
+    undefined, // eventId
+    externalId // Pass customer ID
   );
 };
 
 /**
  * Track Add Payment Info event (server-side)
  */
-export const trackServerAddPaymentInfo = (items: AnalyticsItem[], totalValue: number, userEmail?: string) => {
+export const trackServerAddPaymentInfo = (
+  items: AnalyticsItem[], 
+  totalValue: number, 
+  userEmail?: string,
+  externalId?: string | number // Customer ID for logged-in users
+) => {
   const userData: Record<string, any> = {};
   
   if (userEmail) {
@@ -177,7 +195,9 @@ export const trackServerAddPaymentInfo = (items: AnalyticsItem[], totalValue: nu
       value: totalValue,
       currency: items[0]?.currency || 'EUR',
     },
-    userData
+    userData,
+    undefined, // eventId
+    externalId // Pass customer ID
   );
 };
 
@@ -197,6 +217,7 @@ export const trackServerPurchase = (
     state?: string;
     zipCode?: string;
     country?: string;
+    externalId?: string | number; // Customer ID for logged-in users
   }
 ) => {
   const userData: Record<string, any> = {};
@@ -223,7 +244,8 @@ export const trackServerPurchase = (
       currency: items[0]?.currency || 'EUR',
     },
     userData,
-    `purchase_${orderId}` // Use orderId for deduplication between client and server
+    `purchase_${orderId}`, // Use orderId for deduplication between client and server
+    options?.externalId // Pass customer ID
   );
 };
 

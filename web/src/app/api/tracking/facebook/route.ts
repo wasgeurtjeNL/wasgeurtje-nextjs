@@ -225,6 +225,12 @@ export async function POST(request: NextRequest) {
       user_data.fbp = userData.fbp;
     }
 
+    // Add External ID (customer ID) if available - for logged-in users
+    // This significantly improves Event Match Quality (EMQ)
+    if (userData.externalId) {
+      user_data.external_id = hashData(String(userData.externalId));
+    }
+
     // Build event data
     const eventTime = Math.floor(Date.now() / 1000); // Unix timestamp
     const eventId = eventData?.eventId || `${eventName}_${Date.now()}_${Math.random().toString(36).substring(7)}`;

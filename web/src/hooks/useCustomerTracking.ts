@@ -36,17 +36,20 @@ export function useCustomerTracking(options: TrackingOptions = {}) {
     const finalEmail = trackEmail || email;
     const finalCustomerId = trackCustomerId || customerId;
 
-    // If no email or ID, track as anonymous
-    if (!finalEmail && !finalCustomerId) {
-      console.log('[Tracking] Anonymous visitor - skipping for now');
-      return;
-    }
-
     try {
       // Get browser fingerprint
       const fingerprint = await getStoredFingerprint();
+      
+      // Get Facebook tracking IDs (fbp and fbc cookies)
+      const fbp = document.cookie.split('; ').find(row => row.startsWith('_fbp='))?.split('=')[1];
+      const fbc = document.cookie.split('; ').find(row => row.startsWith('_fbc='))?.split('=')[1];
 
-      console.log('[Tracking] Tracking customer:', { email: finalEmail, customerId: finalCustomerId });
+      console.log('[Tracking] Tracking customer:', { 
+        email: finalEmail || 'anonymous', 
+        customerId: finalCustomerId || 'none',
+        fbp: fbp ? 'yes' : 'no',
+        fbc: fbc ? 'yes' : 'no'
+      });
 
       const response = await fetch('/api/intelligence/track-customer', {
         method: 'POST',
@@ -57,7 +60,9 @@ export function useCustomerTracking(options: TrackingOptions = {}) {
           email: finalEmail,
           customer_id: finalCustomerId,
           event_type: eventType,
-          fingerprint: fingerprint
+          fingerprint: fingerprint,
+          fbp: fbp,
+          fbc: fbc
         })
       });
 
@@ -75,11 +80,10 @@ export function useCustomerTracking(options: TrackingOptions = {}) {
     }
   }, [email, customerId, eventType, oncePerSession]);
 
-  // Auto-track on mount if email/ID provided
+  // Auto-track on mount (always, even for anonymous visitors)
+  // This enables Facebook retargeting even without email
   useEffect(() => {
-    if (email || customerId) {
-      trackCustomer();
-    }
+    trackCustomer();
   }, [email, customerId, trackCustomer]);
 
   return {
@@ -94,6 +98,10 @@ export function useCustomerTracking(options: TrackingOptions = {}) {
 export async function trackCheckoutEmail(email: string) {
   try {
     const fingerprint = await getStoredFingerprint();
+    
+    // Get Facebook tracking IDs
+    const fbp = document.cookie.split('; ').find(row => row.startsWith('_fbp='))?.split('=')[1];
+    const fbc = document.cookie.split('; ').find(row => row.startsWith('_fbc='))?.split('=')[1];
 
     await fetch('/api/intelligence/track-customer', {
       method: 'POST',
@@ -103,7 +111,9 @@ export async function trackCheckoutEmail(email: string) {
       body: JSON.stringify({
         email: email,
         event_type: 'checkout_email_entered',
-        fingerprint: fingerprint
+        fingerprint: fingerprint,
+        fbp: fbp,
+        fbc: fbc
       })
     });
 
@@ -120,6 +130,10 @@ export async function trackCheckoutEmail(email: string) {
 export async function trackUserLogin(email: string, customerId: number) {
   try {
     const fingerprint = await getStoredFingerprint();
+    
+    // Get Facebook tracking IDs
+    const fbp = document.cookie.split('; ').find(row => row.startsWith('_fbp='))?.split('=')[1];
+    const fbc = document.cookie.split('; ').find(row => row.startsWith('_fbc='))?.split('=')[1];
 
     await fetch('/api/intelligence/track-customer', {
       method: 'POST',
@@ -130,7 +144,9 @@ export async function trackUserLogin(email: string, customerId: number) {
         email: email,
         customer_id: customerId,
         // No event_type - just update device tracking
-        fingerprint: fingerprint
+        fingerprint: fingerprint,
+        fbp: fbp,
+        fbc: fbc
       })
     });
 

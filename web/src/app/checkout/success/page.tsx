@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTracking } from "@/hooks/useTracking";
 import type { AnalyticsItem } from "@/lib/analytics/types";
+import { useAuth } from "@/context/AuthContext";
 
 interface OrderDetails {
   orderId?: string;
@@ -66,6 +67,9 @@ const SuccessPageWrapper = () => {
   
   // Analytics tracking hook
   const { trackPurchase } = useTracking();
+  
+  // Get logged-in user for customer ID
+  const { isLoggedIn, user } = useAuth();
 
   // Refs to prevent duplicate operations
   const orderCreationStarted = useRef(false);
@@ -175,6 +179,7 @@ const SuccessPageWrapper = () => {
           firstName: orderDetails.orderData.customer?.firstName,
           lastName: orderDetails.orderData.customer?.lastName,
           userPhone: orderDetails.orderData.customer?.phone,
+          externalId: isLoggedIn && user ? user.id : undefined, // Pass customer ID for logged-in users
         }
       );
       

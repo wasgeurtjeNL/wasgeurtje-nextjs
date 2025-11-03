@@ -13,6 +13,7 @@ import { useEffect, useRef } from 'react';
 import { useCart, CartItem } from '@/context/CartContext';
 import { useTracking } from '@/hooks/useTracking';
 import type { AnalyticsItem } from '@/lib/analytics/types';
+import { useAuth } from '@/context/AuthContext';
 
 interface CheckoutTrackerProps {
   email?: string;
@@ -46,6 +47,7 @@ function convertCartItemToAnalyticsItem(item: CartItem): AnalyticsItem {
 export default function CheckoutTracker({ email, step = 'details' }: CheckoutTrackerProps) {
   const { items, subtotal } = useCart();
   const { trackCheckoutStarted, identifyUser } = useTracking();
+  const { isLoggedIn, user } = useAuth();
   
   // Track if we've already tracked checkout started
   const hasTrackedCheckoutStartRef = useRef(false);
@@ -60,7 +62,8 @@ export default function CheckoutTracker({ email, step = 'details' }: CheckoutTra
         analyticsItems,
         subtotal,
         undefined, // coupon
-        email
+        email,
+        isLoggedIn && user ? user.id : undefined // Pass customer ID for logged-in users
       );
       
       hasTrackedCheckoutStartRef.current = true;
@@ -69,9 +72,10 @@ export default function CheckoutTracker({ email, step = 'details' }: CheckoutTra
         items: analyticsItems.length,
         value: subtotal,
         email: email || 'not provided',
+        customerId: isLoggedIn && user ? user.id : 'guest',
       });
     }
-  }, [items, subtotal, email, trackCheckoutStarted]);
+  }, [items, subtotal, email, trackCheckoutStarted, isLoggedIn, user]);
 
   // Track email identification
   useEffect(() => {

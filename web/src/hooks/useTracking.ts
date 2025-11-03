@@ -169,7 +169,8 @@ export function useTracking() {
     items: AnalyticsItem[], 
     totalValue: number, 
     coupon?: string,
-    userEmail?: string
+    userEmail?: string,
+    externalId?: string | number // Customer ID for logged-in users
   ) => {
     // Identify user if email provided
     if (userEmail) {
@@ -187,8 +188,8 @@ export function useTracking() {
     // Facebook Pixel (Client-side)
     trackFacebookCheckout(items, totalValue);
     
-    // Facebook Conversions API (Server-side)
-    trackServerInitiateCheckout(items, totalValue, userEmail);
+    // Facebook Conversions API (Server-side) with customer ID
+    trackServerInitiateCheckout(items, totalValue, userEmail, externalId);
     
     // GA4
     trackGA4Checkout(items, totalValue);
@@ -230,6 +231,7 @@ export function useTracking() {
       userPhone?: string;
       firstName?: string;
       lastName?: string;
+      externalId?: string | number; // Customer ID for logged-in users
     }
   ) => {
     // GTM
@@ -250,7 +252,7 @@ export function useTracking() {
     // Facebook Pixel (Client-side)
     trackFacebookPurchase(orderId, items, totalValue);
     
-    // Facebook Conversions API (Server-side) with user data
+    // Facebook Conversions API (Server-side) with user data + customer ID
     const billingAddress = options?.billingAddress;
     trackServerPurchase(orderId, items, totalValue, {
       userEmail: options?.userEmail || billingAddress?.email,
@@ -261,6 +263,7 @@ export function useTracking() {
       state: billingAddress?.state,
       zipCode: billingAddress?.postalCode,
       country: billingAddress?.country || 'nl',
+      externalId: options?.externalId, // Pass customer ID for logged-in users
     });
     
     // GA4
