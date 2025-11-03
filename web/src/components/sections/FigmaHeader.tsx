@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
+import SearchBar from "@/components/SearchBar";
 
 export default function FigmaHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -164,8 +165,11 @@ export default function FigmaHeader() {
               </Link>
             </div>
 
-            {/* Account + cart */}
+            {/* Search + Account + cart */}
             <div className="flex items-center space-x-4 shrink-0">
+              {/* Search */}
+              <SearchBar />
+              
               {/* Account dropdown */}
               <div className="relative" ref={accountMenuRef}>
                 <button

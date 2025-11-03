@@ -1,92 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WC_API_URL = 'https://wasgeurtje.nl/wp-json/wc/v3';
-const CK = process.env.WOOCOMMERCE_CONSUMER_KEY!;
-const CS = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
-
-function wcHeaders() {
-  // Basic auth header for WooCommerce REST API
-  const token = Buffer.from(`${CK}:${CS}`).toString('base64');
-  return {
-    Authorization: `Basic ${token}`,
-    'Content-Type': 'application/json',
-  } as Record<string, string>;
-}
-
-// Product ID mapping from cart IDs to WooCommerce IDs
-function mapCartIdToWooCommerceId(cartId: string): string {
-  const idMapping: Record<string, string> = {
-    'trial-pack': '1893', // Proefpakket - 5 Geuren
-    'full-moon': '1425',  // Full Moon
-    'blossom-drip': '1410', // Blossom Drip
-    'flower-rain': '274', // Flower Rain (if needed)
-    'sweet-fog': '275', // Sweet Fog (if needed)
-  };
-  
-  // Return mapped ID if exists, otherwise return original ID
-  return idMapping[cartId] || cartId;
-}
+const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'https://wasgeurtje.nl/wp-json/wc/v3';
+const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY;
+const WC_CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET;
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const ids = searchParams.get('ids');
-    
-    let apiUrl: string;
-    
-    if (!ids) {
-      // Fetch all products if no IDs specified
-      console.log(`🔄 Products API: Fetching all products`);
-      apiUrl = `${WC_API_URL}/products?per_page=100&status=publish`;
-    } else {
-      // Map cart IDs to WooCommerce IDs
-      const cartIds = ids.split(',');
-      const mappedIds = cartIds.map(id => mapCartIdToWooCommerceId(id.trim()));
-      
-      console.log(`🔄 Products API: Mapping cart IDs [${cartIds.join(', ')}] to WooCommerce IDs [${mappedIds.join(', ')}]`);
-      apiUrl = `${WC_API_URL}/products?include=${mappedIds.join(',')}&per_page=20`;
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get('search');
+    const per_page = searchParams.get('per_page') || '10';
+
+    if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
+      return NextResponse.json(
+        { error: 'WooCommerce credentials not configured' },
+        { status: 500 }
+      );
     }
 
-    // Fetch products from WooCommerce
-    const response = await fetch(apiUrl, {
-      headers: wcHeaders(),
-      cache: 'no-store', // Don't cache for fresh product data
+    // Build WooCommerce API URL
+    const url = new URL(`${WORDPRESS_API_URL}/products`);
+    url.searchParams.append('consumer_key', WC_CONSUMER_KEY);
+    url.searchParams.append('consumer_secret', WC_CONSUMER_SECRET);
+    url.searchParams.append('per_page', per_page);
+    url.searchParams.append('status', 'publish');
+    
+    if (search) {
+      url.searchParams.append('search', search);
+    }
+
+    console.log('[WooCommerce API] Fetching products:', { search, per_page });
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      next: {
+        revalidate: 60, // Cache for 60 seconds
+      },
     });
 
     if (!response.ok) {
-      throw new Error(`WooCommerce API error: ${response.status}`);
+      console.error('[WooCommerce API] Error:', response.status, response.statusText);
+      return NextResponse.json(
+        { error: 'Failed to fetch products' },
+        { status: response.status }
+      );
     }
 
     const products = await response.json();
-    
-    // Transform WooCommerce product data to our format
-    const transformedProducts = products.map((product: any) => ({
-      id: product.id.toString(),
-      name: product.name,
-      title: product.name,
-      slug: product.slug,
-      price: parseFloat(product.price),
-      regular_price: product.regular_price ? parseFloat(product.regular_price) : null,
-      sale_price: product.sale_price ? parseFloat(product.sale_price) : null,
-      image: product.images && product.images.length > 0 ? product.images[0].src : '/figma/products/default-product.png',
-      images: product.images || [],
-      description: product.short_description ? product.short_description.replace(/<[^>]*>/g, '') : '', // Strip HTML
-      on_sale: product.on_sale,
-      stock_status: product.stock_status,
-      sku: product.sku,
-      average_rating: product.average_rating || "0",
-      rating_count: product.rating_count || 0,
-      categories: product.categories || []
-    }));
 
-    return NextResponse.json(transformedProducts);
+    console.log('[WooCommerce API] ✅ Products fetched:', products.length);
 
+    return NextResponse.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('[WooCommerce API] Exception:', error);
     return NextResponse.json(
-      { message: 'Failed to fetch products' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
-
