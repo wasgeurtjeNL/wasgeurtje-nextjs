@@ -105,10 +105,34 @@ export default function BundleOfferPopup({
                          pathname?.startsWith('/cart');
   const shouldHideWidget = isExcludedPage || isCartOpen;
 
+  // Initialize from stored data on mount
   useEffect(() => {
     if (!customerEmail) return;
 
-    // Fetch bundle offer
+    // First, check if there's a stored offer (for page navigation persistence)
+    try {
+      const storedOffer = sessionStorage.getItem('wg-bundle-offer');
+      if (storedOffer) {
+        const { offer: savedOffer, countdown: savedCountdown, isMinimized: savedMinimized, expiresAt } = JSON.parse(storedOffer);
+        
+        // Check if offer hasn't expired
+        if (expiresAt && Date.now() < expiresAt) {
+          setOffer(savedOffer);
+          setCountdown(savedCountdown);
+          setIsMinimized(savedMinimized);
+          setIsOpen(!savedMinimized); // Only open if not minimized
+          setLoading(false);
+          return; // Don't fetch new offer
+        } else {
+          // Expired, remove from storage
+          sessionStorage.removeItem('wg-bundle-offer');
+        }
+      }
+    } catch (err) {
+      console.error('Error loading stored offer:', err);
+    }
+
+    // Fetch bundle offer if no valid stored offer
     const fetchOffer = async () => {
       try {
         // Get fingerprint for more accurate customer identification
@@ -122,6 +146,15 @@ export default function BundleOfferPopup({
         if (data.success && data.bundle) {
           setOffer(data);
           setIsOpen(true);
+          
+          // Store offer for persistence across page navigation
+          const offerData = {
+            offer: data,
+            countdown: 300, // 5 minutes
+            isMinimized: false,
+            expiresAt: Date.now() + (300 * 1000) // 5 minutes from now
+          };
+          sessionStorage.setItem('wg-bundle-offer', JSON.stringify(offerData));
           
           // ✅ Log "viewed" event when popup is shown
           // Using WordPress API endpoint (more reliable than Next.js endpoint during dev)
@@ -142,7 +175,7 @@ export default function BundleOfferPopup({
       }
     };
 
-    // Delay showing popup by 2 seconds
+    // Delay showing popup by 2 seconds (only for new offers)
     const timer = setTimeout(fetchOffer, 2000);
     return () => clearTimeout(timer);
   }, [customerEmail]);
@@ -154,16 +187,36 @@ export default function BundleOfferPopup({
     const timer = setInterval(() => {
       setCountdown(prev => {
         const newCount = prev - 1;
-        // Auto-close widget when timer expires
-        if (newCount <= 0 && isMinimized) {
-          setIsMinimized(false);
+        
+        // Update stored countdown
+        if (offer) {
+          try {
+            const storedOffer = sessionStorage.getItem('wg-bundle-offer');
+            if (storedOffer) {
+              const offerData = JSON.parse(storedOffer);
+              offerData.countdown = newCount;
+              sessionStorage.setItem('wg-bundle-offer', JSON.stringify(offerData));
+            }
+          } catch (err) {
+            console.error('Error updating countdown in storage:', err);
+          }
         }
+        
+        // Auto-close widget when timer expires
+        if (newCount <= 0) {
+          if (isMinimized) {
+            setIsMinimized(false);
+          }
+          // Clear stored offer when expired
+          sessionStorage.removeItem('wg-bundle-offer');
+        }
+        
         return newCount;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isOpen, isMinimized, countdown]);
+  }, [isOpen, isMinimized, countdown, offer]);
 
   // Simulated viewer count for social proof (random between 8-24)
   useEffect(() => {
@@ -259,6 +312,9 @@ export default function BundleOfferPopup({
       
       onAccept?.();
       setIsOpen(false);
+      
+      // Remove from storage when accepted
+      sessionStorage.removeItem('wg-bundle-offer');
     } catch (error) {
       console.error('Error accepting offer:', error);
     }
@@ -282,6 +338,18 @@ export default function BundleOfferPopup({
       // Minimize to widget instead of closing completely
       setIsOpen(false);
       setIsMinimized(true);
+      
+      // Update stored state to minimized
+      try {
+        const storedOffer = sessionStorage.getItem('wg-bundle-offer');
+        if (storedOffer) {
+          const offerData = JSON.parse(storedOffer);
+          offerData.isMinimized = true;
+          sessionStorage.setItem('wg-bundle-offer', JSON.stringify(offerData));
+        }
+      } catch (err) {
+        console.error('Error updating minimized state:', err);
+      }
     } catch (error) {
       console.error('Error rejecting offer:', error);
     }
@@ -291,11 +359,35 @@ export default function BundleOfferPopup({
     // Minimize to widget instead of closing completely
     setIsOpen(false);
     setIsMinimized(true);
+    
+    // Update stored state to minimized
+    try {
+      const storedOffer = sessionStorage.getItem('wg-bundle-offer');
+      if (storedOffer) {
+        const offerData = JSON.parse(storedOffer);
+        offerData.isMinimized = true;
+        sessionStorage.setItem('wg-bundle-offer', JSON.stringify(offerData));
+      }
+    } catch (err) {
+      console.error('Error updating minimized state:', err);
+    }
   };
 
   const handleReopenPopup = () => {
     setIsMinimized(false);
     setIsOpen(true);
+    
+    // Update stored state to opened
+    try {
+      const storedOffer = sessionStorage.getItem('wg-bundle-offer');
+      if (storedOffer) {
+        const offerData = JSON.parse(storedOffer);
+        offerData.isMinimized = false;
+        sessionStorage.setItem('wg-bundle-offer', JSON.stringify(offerData));
+      }
+    } catch (err) {
+      console.error('Error updating reopened state:', err);
+    }
   };
 
   const handleFinalClose = () => {
@@ -303,6 +395,9 @@ export default function BundleOfferPopup({
     setIsOpen(false);
     setIsMinimized(false);
     onClose?.();
+    
+    // Remove from storage when completely closed
+    sessionStorage.removeItem('wg-bundle-offer');
   };
 
   const formatTime = (seconds: number) => {
