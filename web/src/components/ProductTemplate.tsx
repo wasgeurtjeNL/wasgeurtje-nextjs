@@ -7,6 +7,7 @@ import { Product } from '@/types/product';
 import { useCart, CartItem } from "@/context/CartContext";
 import { getMetaData } from '@/utils/product-helpers';
 import Footer from "@/components/sections/Footer";
+import { trackProductView } from '@/hooks/useCustomerTracking';
 // No need to import EB_Garamond here as it's already defined in the root layout
 
 export interface ProductInfoSection {
@@ -504,6 +505,27 @@ export default function ProductTemplate({
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // 🎯 OPTIMIZATION 1: Track product view for Facebook CAPI
+  useEffect(() => {
+    if (product && product.id) {
+      // Parse price to number
+      const productPrice = parseProductPrice(product.price);
+      
+      // Track product view
+      trackProductView(
+        String(product.id),
+        product.title,
+        productPrice
+      );
+      
+      console.log('[ProductView] ✅ Tracked:', {
+        id: product.id,
+        name: product.title,
+        price: productPrice
+      });
+    }
+  }, [product.id]); // Only re-run if product ID changes
 
   // Mount flag and initialize client-only random values
   useEffect(() => {
