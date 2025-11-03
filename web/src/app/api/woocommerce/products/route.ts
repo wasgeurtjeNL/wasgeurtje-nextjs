@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'https://wasgeurtje.nl/wp-json/wc/v3';
-const WC_CONSUMER_KEY = process.env.WC_CONSUMER_KEY;
-const WC_CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET;
+const WC_API_URL = 'https://wasgeurtje.nl';
+const CK = process.env.WOOCOMMERCE_CONSUMER_KEY!;
+const CS = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
+
+function wcHeaders() {
+  // Basic auth header for WooCommerce REST API
+  const token = Buffer.from(`${CK}:${CS}`).toString('base64');
+  return {
+    Authorization: `Basic ${token}`,
+    'Content-Type': 'application/json',
+  } as Record<string, string>;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +19,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const per_page = searchParams.get('per_page') || '10';
 
-    if (!WC_CONSUMER_KEY || !WC_CONSUMER_SECRET) {
+    if (!CK || !CS) {
+      console.error('[WooCommerce API] Credentials not configured');
       return NextResponse.json(
         { error: 'WooCommerce credentials not configured' },
         { status: 500 }
@@ -18,9 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build WooCommerce API URL
-    const url = new URL(`${WORDPRESS_API_URL}/products`);
-    url.searchParams.append('consumer_key', WC_CONSUMER_KEY);
-    url.searchParams.append('consumer_secret', WC_CONSUMER_SECRET);
+    const url = new URL(`${WC_API_URL}/wp-json/wc/v3/products`);
     url.searchParams.append('per_page', per_page);
     url.searchParams.append('status', 'publish');
     
@@ -31,9 +39,7 @@ export async function GET(request: NextRequest) {
     console.log('[WooCommerce API] Fetching products:', { search, per_page });
 
     const response = await fetch(url.toString(), {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: wcHeaders(),
       next: {
         revalidate: 60, // Cache for 60 seconds
       },
