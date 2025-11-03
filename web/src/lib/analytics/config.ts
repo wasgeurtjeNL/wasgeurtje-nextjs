@@ -35,9 +35,9 @@ export const analyticsConfig = {
     enabled: true,
   },
 
-  // Facebook Pixel
+  // Facebook Pixel (Direct SDK)
   facebookPixel: {
-    pixelId: process.env.NEXT_PUBLIC_FB_PIXEL_ID || '834004417164714',
+    id: process.env.NEXT_PUBLIC_FB_PIXEL_ID || '834004417164714',
     enabled: true,
   },
 

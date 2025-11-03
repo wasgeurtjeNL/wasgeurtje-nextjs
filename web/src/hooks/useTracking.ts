@@ -3,7 +3,12 @@
 /**
  * Unified Tracking Hook
  * 
- * Single interface for tracking events to both GTM (dataLayer) and Klaviyo
+ * Single interface for tracking events to:
+ * - GTM DataLayer (for GTM tags + compatibility)
+ * - Klaviyo (Direct SDK)
+ * - Facebook Pixel (Direct SDK)
+ * - Google Analytics 4 (Direct gtag.js)
+ * 
  * Ensures consistent tracking across all platforms
  */
 
@@ -32,6 +37,24 @@ import {
   trackKlaviyoPlacedOrder,
   trackKlaviyoEvent,
 } from '@/lib/analytics/klaviyo';
+
+// Facebook Pixel functions (Direct SDK)
+import {
+  trackFacebookViewContent,
+  trackFacebookAddToCart,
+  trackFacebookCheckout,
+  trackFacebookPurchase,
+  trackFacebookLead,
+} from '@/lib/analytics/facebook';
+
+// Google Analytics 4 functions (Direct gtag.js)
+import {
+  trackGA4ViewItem,
+  trackGA4AddToCart,
+  trackGA4Checkout,
+  trackGA4Purchase,
+  trackGA4GenerateLead,
+} from '@/lib/analytics/ga4';
 
 export function useTracking() {
   /**
@@ -66,6 +89,12 @@ export function useTracking() {
     
     // Klaviyo
     trackKlaviyoViewedProduct(item);
+    
+    // Facebook Pixel
+    trackFacebookViewContent(item);
+    
+    // GA4
+    trackGA4ViewItem(item);
   }, []);
 
   /**
@@ -79,6 +108,16 @@ export function useTracking() {
     
     // Klaviyo
     trackKlaviyoAddedToCart(items, value);
+    
+    // Facebook Pixel - track each item
+    items.forEach(item => {
+      trackFacebookAddToCart(item, item.quantity);
+    });
+    
+    // GA4 - track each item
+    items.forEach(item => {
+      trackGA4AddToCart(item, item.quantity);
+    });
   }, []);
 
   /**
@@ -119,6 +158,8 @@ export function useTracking() {
     // Identify user if email provided
     if (userEmail) {
       identifyKlaviyoProfile({ email: userEmail });
+      trackFacebookLead(userEmail);
+      trackGA4GenerateLead(totalValue);
     }
     
     // GTM
@@ -126,6 +167,12 @@ export function useTracking() {
     
     // Klaviyo
     trackKlaviyoStartedCheckout(items, totalValue);
+    
+    // Facebook Pixel
+    trackFacebookCheckout(items, totalValue);
+    
+    // GA4
+    trackGA4Checkout(items, totalValue);
   }, []);
 
   /**
@@ -176,6 +223,12 @@ export function useTracking() {
       discountCode: options?.coupon,
       discountValue: options?.discountValue,
     });
+    
+    // Facebook Pixel
+    trackFacebookPurchase(orderId, items, totalValue);
+    
+    // GA4
+    trackGA4Purchase(orderId, items, totalValue, options?.tax, options?.shipping);
   }, []);
 
   /**

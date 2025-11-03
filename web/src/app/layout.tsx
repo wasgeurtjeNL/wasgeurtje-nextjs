@@ -38,6 +38,14 @@ const KlaviyoSDK = dynamic(
   () => import("@/components/analytics/KlaviyoSDK"),
   { loading: () => null }
 );
+const FacebookPixel = dynamic(
+  () => import("@/components/analytics/FacebookPixel"),
+  { loading: () => null }
+);
+const GoogleAnalytics = dynamic(
+  () => import("@/components/analytics/GoogleAnalytics"),
+  { loading: () => null }
+);
 const CartTracker = dynamic(
   () => import("@/components/analytics/CartTracker"),
   { loading: () => null }
@@ -81,6 +89,7 @@ export default function RootLayout({
         {/* Preconnect to tracking domains for faster analytics loading */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://static.klaviyo.com" />
+        <link rel="preconnect" href="https://connect.facebook.net" />
         <link rel="dns-prefetch" href="https://sst.wasgeurtje.nl" />
         
         {/* Preload critical font for LCP improvement */}
@@ -96,6 +105,8 @@ export default function RootLayout({
         {/* Analytics & Tracking - Loaded first for accurate tracking */}
         <GoogleTagManager />
         <KlaviyoSDK />
+        <FacebookPixel />
+        <GoogleAnalytics />
         
         <AuthProvider>
           <CartProvider>
