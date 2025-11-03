@@ -7,11 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import Image from "next/image";
 import SearchBar from "@/components/SearchBar";
+import MobileSearch from "@/components/MobileSearch";
 
 export default function FigmaHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isMenuAnimating, setIsMenuAnimating] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { openCart, cartCount } = useCart();
   const { user, isLoggedIn, logout } = useAuth();
 
@@ -59,6 +61,7 @@ export default function FigmaHeader() {
       setTimeout(() => {
         setMobileMenuOpen(false);
         setIsMenuAnimating(false);
+        setMobileSearchOpen(false); // Reset search when closing menu
       }, 300);
     } else {
       setMobileMenuOpen(true);
@@ -387,6 +390,51 @@ export default function FigmaHeader() {
 
               {/* Menu Items Container */}
               <div className="flex flex-col py-8 px-6 space-y-2">
+                {/* Search */}
+                {!mobileSearchOpen ? (
+                  <button
+                    onClick={() => setMobileSearchOpen(true)}
+                    className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-sm border border-white/10 hover:border-[#d7aa43]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#d7aa43]/20 w-full"
+                    style={{ animationDelay: "0ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
+                    <div className="flex items-center gap-4 px-6 py-5">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#d7aa43]/20 to-[#c29635]/10 group-hover:from-[#d7aa43]/30 group-hover:to-[#c29635]/20 transition-all duration-300">
+                        <svg className="w-6 h-6 text-[#d7aa43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white font-semibold text-lg tracking-wide group-hover:text-[#e8b960] transition-colors duration-300">
+                          ZOEKEN
+                        </div>
+                        <div className="text-gray-400 text-xs mt-0.5">Vind jouw product</div>
+                      </div>
+                      <svg className="w-5 h-5 text-[#d7aa43]/50 group-hover:text-[#d7aa43] group-hover:translate-x-1 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                ) : (
+                  <div className="rounded-xl bg-gradient-to-br from-black via-[#1a1207] to-black border border-[#d7aa43]/30 overflow-hidden">
+                    {/* Close Button */}
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                      <div className="text-white font-semibold text-lg tracking-wide">
+                        ZOEKEN
+                      </div>
+                      <button
+                        onClick={() => setMobileSearchOpen(false)}
+                        className="text-gray-400 hover:text-white transition-colors">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <MobileSearch onClose={() => {
+                      setMobileSearchOpen(false);
+                      toggleMobileMenu();
+                    }} />
+                  </div>
+                )}
+
                 {/* Blogs */}
                 <Link
                   href="/blogs"
@@ -395,7 +443,7 @@ export default function FigmaHeader() {
                     toggleMobileMenu();
                   }}
                   className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-sm border border-white/10 hover:border-[#d7aa43]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#d7aa43]/20"
-                  style={{ animationDelay: "0ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
+                  style={{ animationDelay: "100ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
                   <div className="flex items-center gap-4 px-6 py-5">
                     <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#d7aa43]/20 to-[#c29635]/10 group-hover:from-[#d7aa43]/30 group-hover:to-[#c29635]/20 transition-all duration-300">
                       <svg className="w-6 h-6 text-[#d7aa43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,7 +470,7 @@ export default function FigmaHeader() {
                     toggleMobileMenu();
                   }}
                   className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-sm border border-white/10 hover:border-[#d7aa43]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#d7aa43]/20"
-                  style={{ animationDelay: "100ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
+                  style={{ animationDelay: "200ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
                   <div className="flex items-center gap-4 px-6 py-5">
                     <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#d7aa43]/20 to-[#c29635]/10 group-hover:from-[#d7aa43]/30 group-hover:to-[#c29635]/20 transition-all duration-300">
                       <svg className="w-6 h-6 text-[#d7aa43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,7 +497,7 @@ export default function FigmaHeader() {
                     toggleMobileMenu();
                   }}
                   className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-sm border border-white/10 hover:border-[#d7aa43]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#d7aa43]/20"
-                  style={{ animationDelay: "200ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
+                  style={{ animationDelay: "300ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
                   <div className="flex items-center gap-4 px-6 py-5">
                     <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#d7aa43]/20 to-[#c29635]/10 group-hover:from-[#d7aa43]/30 group-hover:to-[#c29635]/20 transition-all duration-300">
                       <svg className="w-6 h-6 text-[#d7aa43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -479,7 +527,7 @@ export default function FigmaHeader() {
                     toggleMobileMenu();
                   }}
                   className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-sm border border-white/10 hover:border-[#d7aa43]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#d7aa43]/20"
-                  style={{ animationDelay: "300ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
+                  style={{ animationDelay: "400ms", animation: "slideInFromLeft 0.4s ease-out forwards" }}>
                   <div className="flex items-center gap-4 px-6 py-5">
                     <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-[#d7aa43]/20 to-[#c29635]/10 group-hover:from-[#d7aa43]/30 group-hover:to-[#c29635]/20 transition-all duration-300">
                       <svg className="w-6 h-6 text-[#d7aa43]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -91,7 +91,7 @@ export default function SearchBar() {
       {/* Search Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="text-white flex items-center space-x-2"
+        className="text-white hover:text-[#d7aa43] transition-colors flex items-center space-x-2"
         aria-label="Search">
         <svg
           className="w-6 h-6"
