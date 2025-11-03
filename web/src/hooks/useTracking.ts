@@ -38,7 +38,7 @@ import {
   trackKlaviyoEvent,
 } from '@/lib/analytics/klaviyo';
 
-// Facebook Pixel functions (Direct SDK)
+// Facebook Pixel functions (Direct SDK - Client-side)
 import {
   trackFacebookViewContent,
   trackFacebookAddToCart,
@@ -46,6 +46,14 @@ import {
   trackFacebookPurchase,
   trackFacebookLead,
 } from '@/lib/analytics/facebook';
+
+// Facebook Conversions API functions (Server-side)
+import {
+  trackServerViewContent,
+  trackServerAddToCart,
+  trackServerInitiateCheckout,
+  trackServerPurchase,
+} from '@/lib/analytics/facebookServer';
 
 // Google Analytics 4 functions (Direct gtag.js)
 import {
@@ -90,8 +98,11 @@ export function useTracking() {
     // Klaviyo
     trackKlaviyoViewedProduct(item);
     
-    // Facebook Pixel
+    // Facebook Pixel (Client-side)
     trackFacebookViewContent(item);
+    
+    // Facebook Conversions API (Server-side)
+    trackServerViewContent(item);
     
     // GA4
     trackGA4ViewItem(item);
@@ -109,9 +120,14 @@ export function useTracking() {
     // Klaviyo
     trackKlaviyoAddedToCart(items, value);
     
-    // Facebook Pixel - track each item
+    // Facebook Pixel (Client-side) - track each item
     items.forEach(item => {
       trackFacebookAddToCart(item, item.quantity);
+    });
+    
+    // Facebook Conversions API (Server-side) - track each item
+    items.forEach(item => {
+      trackServerAddToCart(item, item.quantity);
     });
     
     // GA4 - track each item
@@ -168,8 +184,11 @@ export function useTracking() {
     // Klaviyo
     trackKlaviyoStartedCheckout(items, totalValue);
     
-    // Facebook Pixel
+    // Facebook Pixel (Client-side)
     trackFacebookCheckout(items, totalValue);
+    
+    // Facebook Conversions API (Server-side)
+    trackServerInitiateCheckout(items, totalValue, userEmail);
     
     // GA4
     trackGA4Checkout(items, totalValue);
@@ -207,6 +226,10 @@ export function useTracking() {
       billingAddress?: any;
       shippingAddress?: any;
       discountValue?: number;
+      userEmail?: string;
+      userPhone?: string;
+      firstName?: string;
+      lastName?: string;
     }
   ) => {
     // GTM
@@ -224,8 +247,21 @@ export function useTracking() {
       discountValue: options?.discountValue,
     });
     
-    // Facebook Pixel
+    // Facebook Pixel (Client-side)
     trackFacebookPurchase(orderId, items, totalValue);
+    
+    // Facebook Conversions API (Server-side) with user data
+    const billingAddress = options?.billingAddress;
+    trackServerPurchase(orderId, items, totalValue, {
+      userEmail: options?.userEmail || billingAddress?.email,
+      firstName: options?.firstName || billingAddress?.firstName,
+      lastName: options?.lastName || billingAddress?.lastName,
+      phone: options?.userPhone || billingAddress?.phone,
+      city: billingAddress?.city,
+      state: billingAddress?.state,
+      zipCode: billingAddress?.postalCode,
+      country: billingAddress?.country || 'nl',
+    });
     
     // GA4
     trackGA4Purchase(orderId, items, totalValue, options?.tax, options?.shipping);

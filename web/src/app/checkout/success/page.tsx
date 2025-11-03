@@ -162,7 +162,7 @@ const SuccessPageWrapper = () => {
         google_business_vertical: 'retail',     // Google Shopping classification
       }));
       
-      // Track purchase to both GTM and Klaviyo
+      // Track purchase to all platforms (GTM, Klaviyo, FB Pixel, FB Conversions API, GA4)
       trackPurchase(
         orderDetails.orderId,
         items,
@@ -170,6 +170,11 @@ const SuccessPageWrapper = () => {
         {
           tax: orderDetails.orderData.tax || 0,
           shipping: orderDetails.orderData.shipping || 0,
+          billingAddress: orderDetails.orderData.customer || orderDetails.orderData.billingAddress,
+          userEmail: orderDetails.customerEmail || orderDetails.orderData.customer?.email,
+          firstName: orderDetails.orderData.customer?.firstName,
+          lastName: orderDetails.orderData.customer?.lastName,
+          userPhone: orderDetails.orderData.customer?.phone,
         }
       );
       
