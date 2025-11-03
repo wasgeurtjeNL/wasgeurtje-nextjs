@@ -6,7 +6,7 @@
  * - Klaviyo
  * - Google Analytics 4
  * - Google Ads
- * - Facebook Pixel
+ * - Facebook Pixel (Client + Server-side via Conversions API)
  * - Hyros
  * - Stape Server-side GTM
  */
