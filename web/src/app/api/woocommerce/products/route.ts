@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
     const per_page = searchParams.get('per_page') || '10';
-
+    
     if (!CK || !CS) {
       console.error('[WooCommerce API] Credentials not configured');
       return NextResponse.json(
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     const products = await response.json();
-
+    
     console.log('[WooCommerce API] ✅ Products fetched:', products.length);
 
     return NextResponse.json(products);
