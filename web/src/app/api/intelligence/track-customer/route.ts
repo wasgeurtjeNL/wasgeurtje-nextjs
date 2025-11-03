@@ -22,7 +22,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, supabaseServer } from '@/lib/supabase';
 import crypto from 'crypto';
-import geoip from 'geoip-lite';
 import { 
   trackIntelligencePageView, 
   trackIntelligenceLead,
@@ -30,6 +29,16 @@ import {
   trackIntelligenceSearch,
   trackIntelligenceAddToCart
 } from '@/lib/analytics/facebookServerDirect';
+
+// Dynamic import to avoid SSR issues
+let geoip: any = null;
+if (typeof window === 'undefined') {
+  try {
+    geoip = require('geoip-lite');
+  } catch (error) {
+    console.warn('[Geolocation] geoip-lite not available:', error);
+  }
+}
 
 const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
 
@@ -90,13 +99,17 @@ export async function POST(request: NextRequest) {
     let geoState = undefined;
     let geoCountry = undefined;
     
-    if (ip !== 'unknown') {
-      geoData = geoip.lookup(ip);
-      if (geoData) {
-        geoCity = geoData.city;
-        geoState = geoData.region;
-        geoCountry = geoData.country;
-        console.log(`[Tracking] 🌍 Geolocation: ${geoCity}, ${geoState}, ${geoCountry}`);
+    if (ip !== 'unknown' && geoip) {
+      try {
+        geoData = geoip.lookup(ip);
+        if (geoData) {
+          geoCity = geoData.city;
+          geoState = geoData.region;
+          geoCountry = geoData.country;
+          console.log(`[Tracking] 🌍 Geolocation: ${geoCity}, ${geoState}, ${geoCountry}`);
+        }
+      } catch (error) {
+        console.warn('[Tracking] Geolocation lookup failed:', error);
       }
     }
 
