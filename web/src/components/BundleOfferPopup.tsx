@@ -85,6 +85,20 @@ export default function BundleOfferPopup({
   const [countdown, setCountdown] = useState(300); // 5 minutes
   const [viewerCount, setViewerCount] = useState(0); // Simulated social proof
   
+  // Notify other components about bundle popup visibility
+  useEffect(() => {
+    const bundleStatus = {
+      isVisible: isOpen,
+      isMinimized: isMinimized
+    };
+    // Dispatch custom event for components to listen to
+    window.dispatchEvent(new CustomEvent('bundlePopupStatusChanged', { 
+      detail: bundleStatus 
+    }));
+    // Also store in sessionStorage as fallback
+    sessionStorage.setItem('bundlePopupStatus', JSON.stringify(bundleStatus));
+  }, [isOpen, isMinimized]);
+  
   // Hide widget on checkout/cart pages or when sidecart is open
   const isExcludedPage = pathname?.startsWith('/checkout') || 
                          pathname?.startsWith('/payment') ||
@@ -433,7 +447,9 @@ export default function BundleOfferPopup({
       {/* Popup */}
       <div className="fixed top-[72px] sm:top-20 left-0 right-0 bottom-0 z-50 flex items-start justify-center p-3 sm:p-6 pointer-events-none">
         <div 
-          className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-full p-3 sm:p-6 pointer-events-auto animate-scale-in overflow-y-auto"
+          className={`relative bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-full p-3 sm:p-6 pointer-events-auto animate-scale-in overflow-y-auto ${
+            countdown <= 90 ? 'animate-urgent-pulse' : ''
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
@@ -470,16 +486,22 @@ export default function BundleOfferPopup({
             </div>
           </div>
 
-          {/* Urgency & Scarcity */}
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-lg p-1.5 sm:p-2.5 mb-2.5 sm:mb-4">
+          {/* Urgency & Scarcity - Enhanced when < 90 seconds */}
+          <div className={`bg-gradient-to-r from-red-50 to-orange-50 border-2 rounded-lg p-1.5 sm:p-2.5 mb-2.5 sm:mb-4 ${
+            countdown <= 90 ? 'border-red-600 bg-red-100 animate-border-pulse' : 'border-red-300'
+          }`}>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
                 <div className="relative">
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 ${
+                    countdown <= 90 ? 'animate-ping-fast' : 'animate-pulse'
+                  }`} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <span className="text-[10px] sm:text-xs text-red-900 font-bold">
+                <span className={`text-[10px] sm:text-xs font-bold ${
+                  countdown <= 90 ? 'text-red-700 animate-text-pulse' : 'text-red-900'
+                }`}>
                   ⚡ Verloopt over {formatTime(countdown)}
                 </span>
               </div>
@@ -713,6 +735,54 @@ export default function BundleOfferPopup({
         }
         .animate-bounce-subtle {
           animation: bounce-subtle 2s ease-in-out infinite;
+        }
+        @keyframes urgent-pulse {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow: 0 0 20px 8px rgba(220, 38, 38, 0.4);
+            transform: scale(1.01);
+          }
+        }
+        .animate-urgent-pulse {
+          animation: urgent-pulse 1s ease-in-out infinite;
+        }
+        @keyframes border-pulse {
+          0%, 100% {
+            border-color: rgb(220, 38, 38);
+          }
+          50% {
+            border-color: rgb(239, 68, 68);
+          }
+        }
+        .animate-border-pulse {
+          animation: border-pulse 0.8s ease-in-out infinite;
+        }
+        @keyframes ping-fast {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 0.5;
+          }
+        }
+        .animate-ping-fast {
+          animation: ping-fast 0.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes text-pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.7;
+          }
+        }
+        .animate-text-pulse {
+          animation: text-pulse 0.8s ease-in-out infinite;
         }
       `}</style>
     </>

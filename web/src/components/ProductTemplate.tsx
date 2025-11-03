@@ -408,6 +408,7 @@ export default function ProductTemplate({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [urgencyTimer, setUrgencyTimer] = useState(0);
   const [showStickyCart, setShowStickyCart] = useState(false);
+  const [isBundlePopupVisible, setIsBundlePopupVisible] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<
     "single" | "duo" | "trio" | null
   >(null); // Start with no bundle selected
@@ -814,6 +815,32 @@ export default function ProductTemplate({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Listen to bundle popup visibility changes
+  useEffect(() => {
+    const handleBundlePopupStatusChange = (event: any) => {
+      const { isVisible, isMinimized } = event.detail;
+      // Only hide sticky cart when popup is fully visible (not minimized)
+      setIsBundlePopupVisible(isVisible && !isMinimized);
+    };
+
+    window.addEventListener('bundlePopupStatusChanged', handleBundlePopupStatusChange);
+    
+    // Check initial state from sessionStorage
+    try {
+      const stored = sessionStorage.getItem('bundlePopupStatus');
+      if (stored) {
+        const { isVisible, isMinimized } = JSON.parse(stored);
+        setIsBundlePopupVisible(isVisible && !isMinimized);
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+
+    return () => {
+      window.removeEventListener('bundlePopupStatusChanged', handleBundlePopupStatusChange);
+    };
+  }, []);
+
   // Auto-show emotional elements after page load - only 50.000+ customers message
   useEffect(() => {
     // Show bestseller badge immediately
@@ -1111,8 +1138,8 @@ export default function ProductTemplate({
         </div>
       )}
 
-      {/* Sticky Cart - Hidden when cart sidebar is open */}
-      {showStickyCart && !cart.isOpen && (
+      {/* Sticky Cart - Hidden when cart sidebar is open or bundle popup is visible */}
+      {showStickyCart && !cart.isOpen && !isBundlePopupVisible && (
         <div
           className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t z-[9999] py-3 px-4"
           style={{ borderColor: "#D6AD61" }}
