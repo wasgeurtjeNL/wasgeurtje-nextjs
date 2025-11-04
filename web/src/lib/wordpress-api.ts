@@ -159,26 +159,38 @@ export async function transformWordPressProduct(wpProduct: any) {
           src: img.src,
           alt: img.alt || productData.name || wpProduct.post_title,
         }))
-      : [
+      : mainImage
+      ? [
           {
             id: productId,
-            src:
-              mainImage ||
-              `https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
+            src: mainImage,
             alt: productData.name || wpProduct.post_title || "",
           },
-        ];
+        ]
+      : [];
+
+    // Convert WordPress permalink to NextJS route
+    const productSlug = productData.slug || wpProduct.post_name || "";
+    let relativePermalink = "";
+    
+    // If we have a full permalink, extract the path
+    if (productData.permalink || wpProduct.link) {
+      try {
+        const url = new URL(productData.permalink || wpProduct.link);
+        relativePermalink = url.pathname; // e.g., /wasparfum/morning-vapor/
+      } catch {
+        // If URL parsing fails, construct from slug
+        relativePermalink = `/product/${productSlug}`;
+      }
+    } else {
+      relativePermalink = `/product/${productSlug}`;
+    }
 
     return {
       id: productId,
       name: productData.name || wpProduct.post_title || "",
-      slug: productData.slug || wpProduct.post_name || "",
-      permalink:
-        productData.permalink ||
-        wpProduct.link ||
-        `https://wasgeurtje.nl/product/${
-          productData.slug || wpProduct.post_name
-        }`,
+      slug: productSlug,
+      permalink: relativePermalink,
       price: price,
       regular_price: regularPrice,
       sale_price: salePrice,
@@ -195,13 +207,24 @@ export async function transformWordPressProduct(wpProduct: any) {
     console.error("Error transforming product:", error);
     // Return basic fallback data
     const productId = wpProduct.ID || wpProduct.id;
+    const fallbackSlug = wpProduct.post_name || wpProduct.slug || "";
+    
+    // Convert WordPress link to relative URL if available
+    let fallbackPermalink = `/product/${fallbackSlug}`;
+    if (wpProduct.link) {
+      try {
+        const url = new URL(wpProduct.link);
+        fallbackPermalink = url.pathname;
+      } catch {
+        // Keep default fallback
+      }
+    }
+    
     return {
       id: productId,
       name: wpProduct.post_title || wpProduct.name || "Product",
-      slug: wpProduct.post_name || wpProduct.slug || "",
-      permalink: `https://wasgeurtje.nl/product/${
-        wpProduct.post_name || wpProduct.slug || ""
-      }`,
+      slug: fallbackSlug,
+      permalink: fallbackPermalink,
       price: "0",
       regular_price: "0",
       sale_price: "",
