@@ -1237,7 +1237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (token: string, password: string) => {
     try {
       const response = await fetch(
-        `https://wasgeurtje.nl/wp-json/wasgeurtje/v1/resetpassword`,
+        `https://api.wasgeurtje.nl/wp-json/wasgeurtje/v1/resetpassword`,
         {
           method: "POST",
           headers: {

@@ -3,7 +3,7 @@ import { Product } from '@/types/product';
 import ProductCard from "@/components/ProductCard";
 
 const WOOCOMMERCE_API_URL =
-  process.env.WOOCOMMERCE_API_URL || "https://wasgeurtje.nl/wp-json/wc/v3";
+  process.env.WOOCOMMERCE_API_URL || "https://api.wasgeurtje.nl/wp-json/wc/v3";
 const WOOCOMMERCE_CONSUMER_KEY = process.env.WOOCOMMERCE_CONSUMER_KEY!;
 const WOOCOMMERCE_CONSUMER_SECRET = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
 

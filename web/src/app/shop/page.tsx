@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Shop onze complete collectie wasparfums, wasgeurtjes en meer. Gratis verzending vanaf €40.",
 };
 
-const WOOCOMMERCE_API_URL = "https://wasgeurtje.nl/wp-json/wc/v3";
+const WOOCOMMERCE_API_URL = "https://api.wasgeurtje.nl/wp-json/wc/v3";
 
 // Fetch all products
 async function getAllProducts(): Promise<Product[]> {

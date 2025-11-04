@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WOOCOMMERCE_API_URL = 'https://wasgeurtje.nl/wp-json/wc/v3';
+const WOOCOMMERCE_API_URL = 'https://api.wasgeurtje.nl/wp-json/wc/v3';
 const WOOCOMMERCE_CONSUMER_KEY = process.env.WOOCOMMERCE_CONSUMER_KEY!;
 const WOOCOMMERCE_CONSUMER_SECRET = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
 

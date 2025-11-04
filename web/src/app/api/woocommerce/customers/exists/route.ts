@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     // First try WooCommerce customers API
     try {
       const wcResponse = await fetch(
-        `https://wasgeurtje.nl/wp-json/wc/v3/customers?email=${encodeURIComponent(email)}`,
+        `https://api.wasgeurtje.nl/wp-json/wc/v3/customers?email=${encodeURIComponent(email)}`,
         {
           headers: {
             'Authorization': getWooCommerceAuthHeader(),

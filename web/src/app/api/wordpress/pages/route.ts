@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // WordPress API credentials (same as WooCommerce site)
-const WP_API_URL = process.env.WORDPRESS_API_URL || 'https://wasgeurtje.nl/wp-json/wp/v2';
-const WC_API_URL = process.env.WOOCOMMERCE_API_URL || 'https://wasgeurtje.nl/wp-json/wc/v3';
+const WP_API_URL = process.env.WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
+const WC_API_URL = process.env.WOOCOMMERCE_API_URL || 'https://api.wasgeurtje.nl/wp-json/wc/v3';
 const CK = process.env.WOOCOMMERCE_CONSUMER_KEY!;
 const CS = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
 

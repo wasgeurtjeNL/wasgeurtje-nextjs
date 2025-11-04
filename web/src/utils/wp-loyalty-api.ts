@@ -2,8 +2,8 @@
 // Dit bestand bevat functies voor het ophalen van loyalty punten uit de WP Loyalty database
 
 // API URLs
-const WOOCOMMERCE_API_URL = 'https://wasgeurtje.nl/wp-json/wc/v3';
-const WORDPRESS_API_URL = 'https://wasgeurtje.nl/wp-json/wp/v2';
+const WOOCOMMERCE_API_URL = 'https://api.wasgeurtje.nl/wp-json/wc/v3';
+const WORDPRESS_API_URL = 'https://api.wasgeurtje.nl/wp-json/wp/v2';
 
 // Interface voor loyalty data
 export interface LoyaltyData {

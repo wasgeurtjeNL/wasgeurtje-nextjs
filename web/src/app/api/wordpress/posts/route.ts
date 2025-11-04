@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'https://wasgeurtje.nl/wp-json/wp/v2';
+const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
 
 // Headers for WordPress API
 function wpHeaders() {

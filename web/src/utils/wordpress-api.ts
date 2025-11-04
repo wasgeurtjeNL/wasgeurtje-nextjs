@@ -1,9 +1,9 @@
 // WordPress API utilities for fetching pages, posts, and ACF content
 
 const WP_API_URL =
-  process.env.WORDPRESS_API_URL || "https://wasgeurtje.nl/wp-json/wp/v2";
+  process.env.WORDPRESS_API_URL || "https://api.wasgeurtje.nl/wp-json/wp/v2";
 const WC_API_URL =
-  process.env.WOOCOMMERCE_API_URL || "https://wasgeurtje.nl/wp-json/wc/v3";
+  process.env.WOOCOMMERCE_API_URL || "https://api.wasgeurtje.nl/wp-json/wc/v3";
 const CK = process.env.WOOCOMMERCE_CONSUMER_KEY!;
 const CS = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
 
@@ -22,8 +22,11 @@ export async function fetchPage(slugOrId: string | number) {
     ? `${WP_API_URL}/pages/${slugOrId}?acf_format=standard&_embed`
     : `${WP_API_URL}/pages?slug=${slugOrId}&acf_format=standard&_embed`;
 
+  // WordPress pages are publicly accessible, no auth needed for GET requests
   const response = await fetch(endpoint, {
-    headers: getWPHeaders(),
+    headers: {
+      "Content-Type": "application/json",
+    },
     next: { revalidate: 3600 }, // 1 hour cache
   });
 
@@ -46,10 +49,13 @@ export async function fetchPage(slugOrId: string | number) {
 
 // Fetch all pages
 export async function fetchAllPages() {
+  // WordPress pages are publicly accessible, no auth needed for GET requests
   const response = await fetch(
     `${WP_API_URL}/pages?per_page=100&acf_format=standard`,
     {
-      headers: getWPHeaders(),
+      headers: {
+        "Content-Type": "application/json",
+      },
       next: { revalidate: 3600 },
     }
   );
@@ -70,7 +76,9 @@ export async function fetchPosts(page = 1, perPage = 10, category?: string) {
     const catResponse = await fetch(
       `${WP_API_URL}/categories?slug=${category}`,
       {
-        headers: getWPHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
 
@@ -82,8 +90,11 @@ export async function fetchPosts(page = 1, perPage = 10, category?: string) {
     }
   }
 
+  // WordPress posts are publicly accessible, no auth needed for GET requests
   const response = await fetch(endpoint, {
-    headers: getWPHeaders(),
+    headers: {
+      "Content-Type": "application/json",
+    },
     next: { revalidate: 300 }, // 5 minutes cache for blog posts
   });
 

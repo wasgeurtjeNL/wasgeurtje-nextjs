@@ -13,7 +13,7 @@ function initializeStripe() {
 }
 
 // WooCommerce credentials
-const WC_API_URL = process.env.WOOCOMMERCE_API_URL || 'https://wasgeurtje.nl/wp-json/wc/v3';
+const WC_API_URL = process.env.WOOCOMMERCE_API_URL || 'https://api.wasgeurtje.nl/wp-json/wc/v3';
 const CK = process.env.WOOCOMMERCE_CONSUMER_KEY!;
 const CS = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
 

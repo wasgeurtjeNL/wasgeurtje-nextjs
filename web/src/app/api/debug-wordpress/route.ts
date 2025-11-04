@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const WORDPRESS_API_URL =
-  process.env.WORDPRESS_API_URL || "https://wasgeurtje.nl/wp-json";
+  process.env.WORDPRESS_API_URL || "https://api.wasgeurtje.nl/wp-json";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

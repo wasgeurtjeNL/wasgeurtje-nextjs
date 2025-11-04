@@ -1,7 +1,7 @@
 import { WasparfumPage, Product } from '@/types/acf';
 
 const WORDPRESS_API_URL =
-  process.env.WORDPRESS_API_URL || "https://wasgeurtje.nl/wp-json";
+  process.env.WORDPRESS_API_URL || "https://api.wasgeurtje.nl/wp-json";
 
 // WordPress API endpoints
 const endpoints = {

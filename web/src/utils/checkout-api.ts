@@ -1,6 +1,6 @@
 import { getWooCommerceAuthHeader, getJWTToken } from './auth-api';
 
-const WOOCOMMERCE_API_URL = 'https://wasgeurtje.nl/wp-json/wc/v3';
+const WOOCOMMERCE_API_URL = 'https://api.wasgeurtje.nl/wp-json/wc/v3';
 
 export interface CheckoutFormData {
   // Personal details
