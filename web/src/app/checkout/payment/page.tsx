@@ -175,26 +175,33 @@ export default function PaymentPage({
     createPaymentIntent(orderData);
   }, []); // Empty deps - only run once on mount
 
-  // Recreate payment intent when appliedDiscount or totals change
+  // Create/recreate payment intent ONLY when finalTotal actually changes
   useEffect(() => {
-    // Skip on initial mount (hasInitialized will handle that)
+    // Wait for initial mount to complete
     if (!hasInitialized.current) return;
     
-    // Only recreate if orderData exists
+    // Only create if orderData exists
     if (!orderData) return;
 
-    console.log("🔄 OrderData changed, recreating payment intent", {
-      appliedDiscount: orderData.appliedDiscount,
-      totals: orderData.totals,
-    });
+    // Get current total
+    const currentTotal = orderData?.totals?.finalTotal;
     
-    // Recreate payment intent with updated data
-    createPaymentIntent(orderData);
+    // Only create/recreate if the amount has actually changed
+    if (currentTotal !== lastPaymentIntentAmount.current) {
+      console.log("ðŸ„ Total changed, creating payment intent", {
+        previousAmount: lastPaymentIntentAmount.current,
+        newAmount: currentTotal,
+        appliedDiscount: orderData.appliedDiscount,
+      });
+
+      lastPaymentIntentAmount.current = currentTotal;
+      createPaymentIntent(orderData);
+    } else {
+      console.log("â­ï¸ Skipping - total unchanged:", currentTotal);
+    }
   }, [
-    orderData?.appliedDiscount?.coupon_code,
-    orderData?.appliedDiscount?.discount_amount,
     orderData?.totals?.finalTotal,
-  ]); // Listen to discount and total changes
+  ]); // Only listen to finalTotal
 
   // Fetch product details when orderData is available (only once)
   useEffect(() => {
