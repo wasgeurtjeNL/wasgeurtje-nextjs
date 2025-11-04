@@ -119,7 +119,7 @@ export default async function ShopPage() {
           <div className="text-center p-4 bg-white rounded-lg shadow-sm">
             <div className="text-2xl mb-1">⏰</div>
             <p className="text-sm font-medium" style={{ color: "#814E1E" }}>
-              Voor 16:00 besteld, morgen in huis
+              Bestel voor 23:59, vandaag verzonden
             </p>
           </div>
           <div className="text-center p-4 bg-white rounded-lg shadow-sm">

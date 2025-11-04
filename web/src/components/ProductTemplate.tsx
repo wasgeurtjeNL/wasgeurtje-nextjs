@@ -322,7 +322,7 @@ export default function ProductTemplate({
     items: [
       "Gratis verzending boven €40 in NL & BE 📦",
       "Uitzonderlijke kwaliteit wasgeur",
-      "Op werkdagen voor 16.00 besteld, vandaag verzonden 🚀",
+      "Bestel voor 23:59 - vandaag verzonden 🚀",
       "Gemaakt van milieuvriendelijke en duurzame materialen",
     ],
   },
@@ -1429,7 +1429,7 @@ export default function ProductTemplate({
                     9.8 uit 1400+ reviews
                   </span>
                   <img
-                    src="https://wasgeurtje.nl/wp-content/mu-plugins/purplefire//images/trustpilot-logo.webp"
+                    src="https://api.wasgeurtje.nl/wp-content/mu-plugins/purplefire//images/trustpilot-logo.webp"
                     alt="Trustpilot"
                     className="h-5"
                   />
@@ -1533,7 +1533,7 @@ export default function ProductTemplate({
                     </svg>
                   </div>
                   <span className="text-[13px] md:text-sm text-green-600 font-medium">
-                    Op voorraad - Vandaag verzonden bij bestelling voor 16:00
+                    Op voorraad - Bestel voor 23:59, vandaag verzonden
                   </span>
                 </div>
 
@@ -2051,7 +2051,7 @@ export default function ProductTemplate({
                           <li>
                             • Gratis verzending vanaf €40 in Nederland en België
                           </li>
-                          <li>• Voor 16:00 besteld, vandaag verzonden</li>
+                          <li>• Bestel voor 23:59, vandaag verzonden</li>
                           <li>• Levertijd: 1-2 werkdagen</li>
                           <li>• Track & Trace code per e-mail</li>
                         </ul>
@@ -2165,7 +2165,7 @@ export default function ProductTemplate({
                               • Gratis verzending vanaf €40 in Nederland en
                               België
                             </li>
-                            <li>• Voor 16:00 besteld, vandaag verzonden</li>
+                            <li>• Bestel voor 23:59, vandaag verzonden</li>
                             <li>• Levertijd: 1-2 werkdagen</li>
                             <li>• Track & Trace code per e-mail</li>
                           </ul>

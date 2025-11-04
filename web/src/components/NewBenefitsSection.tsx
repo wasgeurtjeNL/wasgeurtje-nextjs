@@ -15,33 +15,33 @@ type Benefit = {
 const benefits: Benefit[] = [
   {
     label: "Uitzonderlijke kwaliteit wasparfum",
-    img: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-long-lasting-scent.svg",
+    img: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-long-lasting-scent.svg",
     alt: "Lange houdbaarheid geur",
   },
   {
     label: "Gemaakt van milieuvriendelijke en duurzame materialen",
-    img: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-eco-friendly-and-parben-free.svg",
+    img: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-eco-friendly-and-parben-free.svg",
     alt: "Milieuvriendelijk en parabeenvrij",
   },
   {
     label: "Geen microplastics",
-    img: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-microplastic-free.svg",
+    img: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-microplastic-free.svg",
     alt: "Zonder microplastics",
   },
   {
     label: "Biologisch afbreekbaar",
-    img: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-biodegradable.svg",
+    img: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-biodegradable.svg",
     alt: "Biologisch afbreekbaar",
   },
   {
     label: "Flessen van gerecycled plastic",
-    img: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-recycled-plastic.png",
-    webp: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-recycled-plastic.png.webp",
+    img: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-recycled-plastic.png",
+    webp: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-recycled-plastic.png.webp",
     alt: "Gerecycled plastic",
   },
   {
     label: "Compact en makkelijk in gebruik",
-    img: "https://wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-compact.svg",
+    img: "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/new-icon-compact.svg",
     alt: "Compact formaat",
   },
 ];

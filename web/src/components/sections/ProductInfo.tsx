@@ -112,7 +112,7 @@ const ProductInfo: React.FC<ProductDetailsCustomProps> = ({ productInfo }) => {
         </span>
 
         <img
-          src="https://wasgeurtje.nl/wp-content/mu-plugins/purplefire//images/trustpilot-logo.webp"
+          src="https://api.wasgeurtje.nl/wp-content/mu-plugins/purplefire//images/trustpilot-logo.webp"
           alt="trustpilot icon"
         />
       </div>
@@ -643,7 +643,7 @@ const ProductInfo: React.FC<ProductDetailsCustomProps> = ({ productInfo }) => {
             <div className="payments-method mb-6">
               <img
                 src={
-                  "https://wasgeurtje.nl/wp-content/uploads/2025/04/payment_methods_logos.png"
+                  "https://api.wasgeurtje.nl/wp-content/uploads/2025/04/payment_methods_logos.png"
                 }
                 alt="payment method logo"
               />

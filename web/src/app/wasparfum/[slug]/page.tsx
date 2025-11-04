@@ -41,7 +41,7 @@ const defaultPromises = {
   items: [
     "Gratis verzending boven €40 in NL & BE 📦",
     "Uitzonderlijke kwaliteit wasgeur",
-    "Op werkdagen voor 16.00 besteld, vandaag verzonden 🚀",
+    "Bestel voor 23:59 - vandaag verzonden 🚀",
     "Gemaakt van milieuvriendelijke en duurzame materialen",
   ],
 };

@@ -33,7 +33,7 @@ export default function TrustBanner() {
             <svg className="w-5 h-5 text-[#e9c356]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
             </svg>
-            <p className="text-sm text-gray-700">Voor 16:00 uur besteld, vandaag verzonden*</p>
+            <p className="text-sm text-gray-700">Bestel voor 23:59, vandaag verzonden*</p>
           </div>
 
           {/* Gratis verzending */}

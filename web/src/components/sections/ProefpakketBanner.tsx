@@ -6,12 +6,12 @@ const ProefpakketBanner: React.FC = () => {
       {/* Inline responsive background images */}
       <style>{`
         section.parallax {
-          background-image: url("https://wasgeurtje.nl/wp-content/uploads/2025/04/parallax-bg-mobile.webp");
+          background-image: url("https://api.wasgeurtje.nl/wp-content/uploads/2025/04/parallax-bg-mobile.webp");
         }
 
         @media (min-width: 768px) {
           section.parallax {
-            background-image: url("https://wasgeurtje.nl/wp-content/uploads/2025/04/parallax-bg-desktop-scaled.webp");
+            background-image: url("https://api.wasgeurtje.nl/wp-content/uploads/2025/04/parallax-bg-desktop-scaled.webp");
             background-repeat: no-repeat;
             background-size: cover;
             background-position: center;
@@ -59,11 +59,11 @@ const ProefpakketBanner: React.FC = () => {
         {/* Shipping info */}
         <div className="free-shipping flex items-center justify-center gap-3 md:mt-2 mt-1 text-[#212529]">
           <img
-            src="https://wasgeurtje.nl/wp-content/uploads/2025/04/try-now-shipping-icon.svg"
+            src="https://api.wasgeurtje.nl/wp-content/uploads/2025/04/try-now-shipping-icon.svg"
             alt="Try Now Free Shipping Icon"
             className="w-7 h-7"
           />
-          <div className="text-lg">Gratis verzending!</div>
+          <div className="text-lg">Vandaag voor 23:59 besteld, is zelfde dag verzonden  </div>
         </div>
       </div>
     </section>
