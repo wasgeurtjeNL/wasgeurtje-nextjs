@@ -76,6 +76,8 @@ export default function PaymentPage({
   const [productDetails, setProductDetails] = useState<any[]>([]);
   const hasInitialized = useRef(false);
   const hasFetchedProducts = useRef(false);
+  const lastPaymentIntentAmount = useRef<number | null>(null);
+  const isCreatingIntent = useRef(false); // Prevent multiple simultaneous creations
 
   // Memoize Stripe options to prevent Elements from re-mounting
   const stripeOptions = useMemo(() => {
@@ -176,32 +178,47 @@ export default function PaymentPage({
   }, []); // Empty deps - only run once on mount
 
   // Create/recreate payment intent ONLY when finalTotal actually changes
+  // Create payment intent ONCE when all conditions are met
   useEffect(() => {
     // Wait for initial mount to complete
     if (!hasInitialized.current) return;
     
-    // Only create if orderData exists
-    if (!orderData) return;
+    // Only create if orderData exists and has valid data
+    if (!orderData || !orderData.totals) return;
 
     // Get current total
-    const currentTotal = orderData?.totals?.finalTotal;
+    const currentTotal = orderData.totals.finalTotal;
     
-    // Only create/recreate if the amount has actually changed
-    if (currentTotal !== lastPaymentIntentAmount.current) {
-      console.log("ðŸ„ Total changed, creating payment intent", {
-        previousAmount: lastPaymentIntentAmount.current,
-        newAmount: currentTotal,
-        appliedDiscount: orderData.appliedDiscount,
-      });
-
-      lastPaymentIntentAmount.current = currentTotal;
-      createPaymentIntent(orderData);
-    } else {
-      console.log("â­ï¸ Skipping - total unchanged:", currentTotal);
+    // Skip if no valid total
+    if (!currentTotal || currentTotal <= 0) {
+      console.log("â­ï¸ Skipping - invalid total:", currentTotal);
+      return;
     }
+
+    // Skip if already creating
+    if (isCreatingIntent.current) {
+      console.log("â­ï¸ Skipping - already creating payment intent");
+      return;
+    }
+
+    // Skip if we already created intent for this amount
+    if (currentTotal === lastPaymentIntentAmount.current) {
+      console.log("â­ï¸ Skipping - payment intent already exists for:", currentTotal);
+      return;
+    }
+
+    // All checks passed - create payment intent
+    console.log("âœ… Creating payment intent for:", currentTotal);
+    isCreatingIntent.current = true;
+    lastPaymentIntentAmount.current = currentTotal;
+    
+    createPaymentIntent(orderData).finally(() => {
+      isCreatingIntent.current = false;
+    });
   }, [
     orderData?.totals?.finalTotal,
-  ]); // Only listen to finalTotal
+    orderData?.lineItems?.length,
+  ]); // Only listen to finalTotal and cart changes
 
   // Fetch product details when orderData is available (only once)
   useEffect(() => {
