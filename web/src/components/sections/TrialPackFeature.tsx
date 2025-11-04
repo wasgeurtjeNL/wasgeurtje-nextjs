@@ -219,11 +219,11 @@ export default function TrialPackFeature() {
           <div
             className={`font-['Helvetica'] text-[#212529] ${
               isMobile
-                ? "text-[16px]"
+                ? "text-[14px]"
                 : isTablet
-                ? "text-[17px]"
+                ? "text-[16px]"
                 : "text-[18px]"
-            } leading-[1.5] truncate max-w-[1040px] w-full h-10`}
+            } leading-[1.6] max-w-[1040px] w-full`}
             dangerouslySetInnerHTML={{
               __html:
                 product.description ||
@@ -242,7 +242,7 @@ export default function TrialPackFeature() {
                 : isTablet
                 ? "text-[15px]"
                 : "text-[16px]"
-            } leading-[1.5]`}
+            } leading-[1.6]`}
           >
             <span className="font-bold">Includes: </span>
             <span>x5 10ml bottles</span>
@@ -255,10 +255,10 @@ export default function TrialPackFeature() {
                 : isTablet
                 ? "text-[15px]"
                 : "text-[16px]"
-            } leading-[1.5]`}
+            } leading-[1.6]`}
           >
             <span className="font-bold">Perfumes: </span>
-            <span>
+            <span className="break-words">
               • Morning Vapor • Flower Rain • Blossom Drip • Sundance • Full
               Moon
             </span>
@@ -271,7 +271,7 @@ export default function TrialPackFeature() {
                 : isTablet
                 ? "text-[13px]"
                 : "text-[14px]"
-            } leading-[1.5]`}
+            } leading-[1.6] break-words`}
           >
             *2-4 washes per bottle, depending on your preferred scent strength.*
           </div>
