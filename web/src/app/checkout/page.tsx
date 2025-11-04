@@ -251,6 +251,17 @@ export default function CheckoutPage() {
   const [addressRefresh, setAddressRefresh] = useState(0);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
 
+  // Helper function to clear bundle discount
+  const clearBundleDiscount = () => {
+    localStorage.removeItem('wg-bundle-discount');
+    setBundleDiscount(0);
+    setBundleDiscountMeta(null);
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    setShouldAutoApplyCoupon(false);
+    setCouponToAutoApply(null);
+  };
+
   // Load bundle discount from localStorage
   const [shouldAutoApplyCoupon, setShouldAutoApplyCoupon] = useState(false);
   const [couponToAutoApply, setCouponToAutoApply] = useState<string | null>(null);
@@ -272,9 +283,7 @@ export default function CheckoutPage() {
             setShouldAutoApplyCoupon(true);
           }
         } else {
-          localStorage.removeItem('wg-bundle-discount');
-          setBundleDiscount(0);
-          setBundleDiscountMeta(null);
+          clearBundleDiscount();
         }
       } else {
         setBundleDiscount(0);
@@ -4672,9 +4681,11 @@ export default function CheckoutPage() {
                                       )}
                                     </div>
                                     <button
-                                      onClick={() =>
-                                        removeFromCart(item.id, item.variant)
-                                      }
+                                      onClick={() => {
+                                        // Clear bundle discount when item is removed
+                                        clearBundleDiscount();
+                                        removeFromCart(item.id, item.variant);
+                                      }}
                                       className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                       title="Product verwijderen"
                                     >
@@ -4706,13 +4717,15 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
                                       <button
-                                        onClick={() =>
+                                        onClick={() => {
+                                          // Clear bundle discount when quantity is decreased
+                                          clearBundleDiscount();
                                           updateQuantity(
                                             item.id,
                                             item.variant,
                                             Math.max(1, item.quantity - 1)
-                                          )
-                                        }
+                                          );
+                                        }}
                                         className="px-2.5 py-1.5 text-gray-600 hover:text-[#d7aa43] hover:bg-amber-50 transition-colors rounded-l-md disabled:opacity-30 disabled:cursor-not-allowed"
                                         disabled={item.quantity <= 1}
                                       >
@@ -5074,9 +5087,11 @@ export default function CheckoutPage() {
                                       )}
                                     </div>
                                     <button
-                                      onClick={() =>
-                                        removeFromCart(item.id, item.variant)
-                                      }
+                                      onClick={() => {
+                                        // Clear bundle discount when item is removed
+                                        clearBundleDiscount();
+                                        removeFromCart(item.id, item.variant);
+                                      }}
                                       className="text-gray-400 hover:text-red-500 transition-colors p-1"
                                       title="Product verwijderen"
                                     >
@@ -5100,13 +5115,15 @@ export default function CheckoutPage() {
                                   <div className="flex flex-wrap items-center justify-between">
                                     <div className="flex flex-wrap items-center border border-gray-300 rounded">
                                       <button
-                                        onClick={() =>
+                                        onClick={() => {
+                                          // Clear bundle discount when quantity is decreased
+                                          clearBundleDiscount();
                                           updateQuantity(
                                             item.id,
                                             item.variant,
                                             Math.max(1, item.quantity - 1)
-                                          )
-                                        }
+                                          );
+                                        }}
                                         className="px-2 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                                         disabled={item.quantity <= 1}
                                       >
@@ -6409,13 +6426,15 @@ export default function CheckoutPage() {
                               </div>
                               <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
                                 <button
-                                  onClick={() =>
+                                  onClick={() => {
+                                    // Clear bundle discount when quantity is decreased
+                                    clearBundleDiscount();
                                     updateQuantity(
                                       item.id,
                                       item.variant,
                                       Math.max(1, item.quantity - 1)
-                                    )
-                                  }
+                                    );
+                                  }}
                                   className="px-2.5 py-1.5 text-gray-600 hover:text-[#d7aa43] hover:bg-amber-50 transition-colors rounded-l-md disabled:opacity-30 disabled:cursor-not-allowed"
                                   disabled={item.quantity <= 1}
                                 >
@@ -6785,13 +6804,15 @@ export default function CheckoutPage() {
                             <div className="flex flex-wrap items-center justify-between">
                               <div className="flex flex-wrap items-center border border-gray-300 rounded">
                                 <button
-                                  onClick={() =>
+                                  onClick={() => {
+                                    // Clear bundle discount when quantity is decreased
+                                    clearBundleDiscount();
                                     updateQuantity(
                                       item.id,
                                       item.variant,
                                       Math.max(1, item.quantity - 1)
-                                    )
-                                  }
+                                    );
+                                  }}
                                   className="px-2 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                                   disabled={item.quantity <= 1}
                                 >

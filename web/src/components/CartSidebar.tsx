@@ -85,6 +85,15 @@ export default function CartSidebar() {
   const [animatedItems, setAnimatedItems] = useState<Set<string>>(new Set());
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
 
+  // Helper function to clear bundle discount
+  const clearBundleDiscount = () => {
+    localStorage.removeItem('wg-bundle-discount');
+    setIsPromoApplied(false);
+    setAppliedCouponCode("");
+    setAppliedDiscountAmount(0);
+    setPromoCode("");
+  };
+
   // Auto-apply bundle discount coupon from BundleOfferPopup
   useEffect(() => {
     if (!isOpen) return; // Only check when cart is open
@@ -107,10 +116,7 @@ export default function CartSidebar() {
           setIsPromoApplied(true);
         } else {
           // Expired, clear it
-          localStorage.removeItem('wg-bundle-discount');
-          setIsPromoApplied(false);
-          setAppliedCouponCode("");
-          setAppliedDiscountAmount(0);
+          clearBundleDiscount();
         }
       }
     } catch (err) {
@@ -656,13 +662,15 @@ export default function CartSidebar() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md overflow-hidden shadow-sm">
                                 <button
-                                  onClick={() =>
+                                  onClick={() => {
+                                    // Clear bundle discount when quantity is decreased
+                                    clearBundleDiscount();
                                     updateQuantity(
                                       item.id,
                                       item.variant,
                                       Math.max(0, item.quantity - 1)
-                                    )
-                                  }
+                                    );
+                                  }}
                                   className="px-2 py-1 hover:bg-white transition-all duration-200 text-[#814E1E] font-bold text-sm group"
                                 >
                                   <span className="group-hover:scale-110 inline-block transition-transform">
@@ -703,9 +711,11 @@ export default function CartSidebar() {
                             </div>
                           </div>
                           <button
-                            onClick={() =>
-                              removeFromCart(item.id, item.variant)
-                            }
+                            onClick={() => {
+                              // Clear bundle discount when item is removed
+                              clearBundleDiscount();
+                              removeFromCart(item.id, item.variant);
+                            }}
                             className="absolute top-1.5 right-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-all duration-200"
                             aria-label="Verwijder uit winkelwagen"
                           >
