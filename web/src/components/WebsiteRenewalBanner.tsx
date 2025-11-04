@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { X, Sparkles, Package, Mail } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function WebsiteRenewalBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     // Check if user has already seen and dismissed the banner
@@ -26,6 +29,13 @@ export default function WebsiteRenewalBanner() {
       // Remember that user has dismissed the banner
       localStorage.setItem("hasSeenRenewalBanner", "true");
     }, 300);
+  };
+
+  const handleContactClick = () => {
+    handleClose();
+    setTimeout(() => {
+      router.push("/contact");
+    }, 400);
   };
 
   if (!isVisible) return null;
@@ -104,35 +114,60 @@ export default function WebsiteRenewalBanner() {
               </div>
 
               {/* Contact info */}
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 p-4 sm:p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                <div className="flex items-start gap-3 sm:gap-4">
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 p-3.5 sm:p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-start gap-2.5 sm:gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
-                      <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
+                      <Mail className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-white" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-blue-900 mb-1 text-base sm:text-lg leading-tight">
+                    <h3 className="font-bold text-blue-900 mb-0.5 sm:mb-1 text-sm sm:text-base leading-tight">
                       Vragen of Problemen?
                     </h3>
-                    <p className="text-blue-800 text-xs sm:text-sm mb-3 leading-relaxed">
+                    <p className="text-blue-800 text-xs mb-2 leading-relaxed">
                       Ons team staat voor je klaar!
                     </p>
-                    <div className="flex flex-col gap-2">
-                      <a
-                        href="/contact"
-                        className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors text-sm sm:text-base"
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        onClick={handleContactClick}
+                        className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors text-xs sm:text-sm text-left"
                       >
                         📝 Ga naar contactformulier
-                      </a>
+                      </button>
                       <a
                         href="mailto:info@wasgeurtje.nl"
-                        className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors text-xs sm:text-sm break-all"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors text-xs break-all"
                       >
-                        <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <Mail className="w-3 h-3 flex-shrink-0" />
                         <span className="truncate">info@wasgeurtje.nl</span>
                       </a>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback section */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-500 p-3.5 sm:p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="flex items-start gap-2.5 sm:gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 bg-purple-500 rounded-full flex items-center justify-center shadow-md">
+                      <Sparkles className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-purple-900 mb-0.5 sm:mb-1 text-sm sm:text-base leading-tight">
+                      Heb je iets ontdekt wat beter kan?
+                    </h3>
+                    <p className="text-purple-800 text-xs mb-2 leading-relaxed">
+                      Laat het ons weten via het contactformulier!
+                    </p>
+                    <button
+                      onClick={handleContactClick}
+                      className="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 font-semibold hover:underline transition-colors text-xs sm:text-sm text-left"
+                    >
+                      💡 Geef feedback
+                    </button>
                   </div>
                 </div>
               </div>
