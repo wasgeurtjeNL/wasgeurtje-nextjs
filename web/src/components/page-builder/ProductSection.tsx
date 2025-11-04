@@ -165,7 +165,7 @@ export default function ProductSection({ section }: ProductSectionProps) {
                 onClick={() => {
                   if (mounted && addToCart) {
                     addToCart({
-                      id: product.id,
+                      id: String(product.id), // Convert to string as CartItem expects string ID
                       title: product.name,
                       price: parseFloat(
                         (product.price || product.regular_price || "0")
