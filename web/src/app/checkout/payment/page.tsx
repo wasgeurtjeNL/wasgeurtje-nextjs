@@ -95,6 +95,11 @@ export default function PaymentPage({
     };
     sessionStorage.setItem("successOrderData", JSON.stringify(successData));
 
+    // Clear payment intent from sessionStorage as it's now complete
+    sessionStorage.removeItem("paymentIntentId");
+    sessionStorage.removeItem("clientSecret");
+    console.log("✅ Payment successful, cleared payment intent from sessionStorage");
+
     // Always redirect to success page for consistent flow
     router.push(`/checkout/success?payment_intent=${successPaymentIntentId}`);
   }, [orderData, router]);
@@ -171,25 +176,40 @@ export default function PaymentPage({
       return;
     }
 
-    // Create PaymentIntent once on mount
-    createPaymentIntent(orderData);
+    // Check if we have an existing payment intent in sessionStorage
+    const existingPaymentIntentId = sessionStorage.getItem("paymentIntentId");
+    const existingClientSecret = sessionStorage.getItem("clientSecret");
+
+    if (existingPaymentIntentId && existingClientSecret) {
+      console.log("💳 Reusing existing payment intent:", existingPaymentIntentId);
+      setPaymentIntentId(existingPaymentIntentId);
+      setClientSecret(existingClientSecret);
+      setLoading(false);
+    } else {
+      console.log("💳 No existing payment intent, creating new one");
+      // Create PaymentIntent once on mount
+      createPaymentIntent(orderData);
+    }
   }, []); // Empty deps - only run once on mount
 
-  // Recreate payment intent when appliedDiscount or totals change
+  // Update payment intent when appliedDiscount or totals change
   useEffect(() => {
     // Skip on initial mount (hasInitialized will handle that)
     if (!hasInitialized.current) return;
     
-    // Only recreate if orderData exists
+    // Only update if orderData exists
     if (!orderData) return;
 
-    console.log("🔄 OrderData changed, recreating payment intent", {
+    // Only update if we have an existing payment intent
+    if (!paymentIntentId) return;
+
+    console.log("🔄 OrderData changed, updating payment intent", {
       appliedDiscount: orderData.appliedDiscount,
       totals: orderData.totals,
     });
     
-    // Recreate payment intent with updated data
-    createPaymentIntent(orderData);
+    // Update payment intent with new data
+    updatePaymentIntent(orderData);
   }, [
     orderData?.appliedDiscount?.coupon_code,
     orderData?.appliedDiscount?.discount_amount,
@@ -251,6 +271,11 @@ export default function PaymentPage({
       setClientSecret(result.clientSecret);
       setPaymentIntentId(result.paymentIntentId);
 
+      // Store payment intent details in sessionStorage for reuse
+      sessionStorage.setItem("paymentIntentId", result.paymentIntentId);
+      sessionStorage.setItem("clientSecret", result.clientSecret);
+      console.log("✅ Payment intent stored in sessionStorage");
+
       // Store order data for success page BEFORE payment (for async redirects like iDEAL)
       const successData = {
         orderData: data,
@@ -258,12 +283,10 @@ export default function PaymentPage({
       };
       const serializedData = JSON.stringify(successData);
       sessionStorage.setItem("successOrderData", serializedData);
-      // DEBUG: ✅ Order data stored in sessionStorage for success page:', successData);
       console.log("📦 Serialized data length:", serializedData.length);
 
       // Verify it was stored correctly
       const verifyData = sessionStorage.getItem("successOrderData");
-      // DEBUG: ✅ Verified sessionStorage data exists:', !!verifyData);
 
       setLoading(false);
     } catch (err) {
@@ -277,6 +300,65 @@ export default function PaymentPage({
     }
   };
 
+  const updatePaymentIntent = async (data: any) => {
+    try {
+      console.log("🔄 Updating payment intent with data:", {
+        paymentIntentId,
+        hasAppliedDiscount: !!data.appliedDiscount,
+        appliedDiscount: data.appliedDiscount,
+        hasTotals: !!data.totals,
+        totals: data.totals,
+      });
+      
+      const response = await fetch("/api/stripe/update-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          paymentIntentId,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to update payment intent";
+
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+
+        setError(errorMessage);
+        return;
+      }
+
+      const result = await response.json();
+      setClientSecret(result.clientSecret);
+
+      // Update sessionStorage with new client secret (payment intent ID stays the same)
+      sessionStorage.setItem("clientSecret", result.clientSecret);
+      console.log("✅ Payment intent updated successfully");
+
+      // Update order data for success page
+      const successData = {
+        orderData: data,
+        paymentIntentId: result.paymentIntentId,
+      };
+      sessionStorage.setItem("successOrderData", JSON.stringify(successData));
+
+    } catch (err) {
+      console.error("Error updating PaymentIntent:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Er is een fout opgetreden bij het updaten van de betaling"
+      );
+    }
+  };
+
   const handlePaymentSuccess = (successPaymentIntentId: string) => {
     // Store both order data and payment intent ID for success page
     const successData = {
@@ -284,6 +366,11 @@ export default function PaymentPage({
       paymentIntentId: successPaymentIntentId,
     };
     sessionStorage.setItem("successOrderData", JSON.stringify(successData));
+
+    // Clear payment intent from sessionStorage as it's now complete
+    sessionStorage.removeItem("paymentIntentId");
+    sessionStorage.removeItem("clientSecret");
+    console.log("✅ Payment successful, cleared payment intent from sessionStorage");
 
     // Always redirect to success page for consistent flow
     router.push(`/checkout/success?payment_intent=${successPaymentIntentId}`);
