@@ -252,6 +252,9 @@ export default function CheckoutPage() {
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
 
   // Load bundle discount from localStorage
+  const [shouldAutoApplyCoupon, setShouldAutoApplyCoupon] = useState(false);
+  const [couponToAutoApply, setCouponToAutoApply] = useState<string | null>(null);
+  
   useEffect(() => {
     try {
       const raw = typeof window !== 'undefined' ? localStorage.getItem('wg-bundle-discount') : null;
@@ -262,6 +265,12 @@ export default function CheckoutPage() {
           const amount = Number(parsed.amount) || 0;
           setBundleDiscount(amount);
           setBundleDiscountMeta({ code: parsed.code, offerId: parsed.offerId });
+          
+          // Flag to auto-apply the coupon code from the bundle
+          if (parsed.code && !appliedDiscount) {
+            setCouponToAutoApply(parsed.code);
+            setShouldAutoApplyCoupon(true);
+          }
         } else {
           localStorage.removeItem('wg-bundle-discount');
           setBundleDiscount(0);
@@ -1805,6 +1814,28 @@ export default function CheckoutPage() {
     setDiscountError("");
   };
 
+  // Auto-apply coupon from bundle discount  
+  // NOTE: We don't actually call applyDiscountCode for bundle coupons
+  // because the bundle discount is already applied via calculateBundleDiscount()
+  // We just set the appliedDiscount state to show the coupon UI
+  useEffect(() => {
+    if (shouldAutoApplyCoupon && couponToAutoApply && !appliedDiscount && bundleDiscountMeta) {
+      // Apply after a short delay to ensure component is ready
+      const timer = setTimeout(() => {
+        // Set the discount state directly without API validation
+        setAppliedDiscount({
+          code: couponToAutoApply,
+          amount: bundleDiscount,
+          type: "fixed",
+        });
+        setDiscountCode("");
+        setShouldAutoApplyCoupon(false); // Only apply once
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAutoApplyCoupon, couponToAutoApply, appliedDiscount, bundleDiscountMeta, bundleDiscount]);
+
   // Fetch real product data from WooCommerce API
   const fetchProductsByIds = async (productIds: string[]) => {
     try {
@@ -2068,6 +2099,10 @@ export default function CheckoutPage() {
   };
 
   const calculateBundleDiscount = () => {
+    // Don't apply bundle discount if it's already applied as a coupon code
+    if (appliedDiscount && bundleDiscountMeta && appliedDiscount.code === bundleDiscountMeta.code) {
+      return 0; // Already applied through appliedDiscount
+    }
     return Math.max(0, bundleDiscount || 0);
   };
 

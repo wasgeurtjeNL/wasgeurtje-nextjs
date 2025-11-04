@@ -67,6 +67,8 @@ export default function CartSidebar() {
   const contextMessage = getContextualMessage();
   const [promoCode, setPromoCode] = useState("");
   const [isPromoApplied, setIsPromoApplied] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState("");
+  const [appliedDiscountAmount, setAppliedDiscountAmount] = useState(0);
   const [showAlternateMessage, setShowAlternateMessage] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
   const [upsellProducts, setUpsellProducts] = useState<
@@ -82,6 +84,39 @@ export default function CartSidebar() {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [animatedItems, setAnimatedItems] = useState<Set<string>>(new Set());
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
+
+  // Auto-apply bundle discount coupon from BundleOfferPopup
+  useEffect(() => {
+    if (!isOpen) return; // Only check when cart is open
+    
+    try {
+      const bundleDiscountData = localStorage.getItem('wg-bundle-discount');
+      if (bundleDiscountData) {
+        const parsed = JSON.parse(bundleDiscountData);
+        const now = Date.now();
+        
+        // Check if not expired
+        if (parsed.expiresAt && parsed.expiresAt > now) {
+          const couponCode = parsed.code; // e.g., "popup10"
+          const discountAmount = Number(parsed.amount) || 0;
+          
+          // Auto-apply the coupon
+          setPromoCode(couponCode);
+          setAppliedCouponCode(couponCode);
+          setAppliedDiscountAmount(discountAmount);
+          setIsPromoApplied(true);
+        } else {
+          // Expired, clear it
+          localStorage.removeItem('wg-bundle-discount');
+          setIsPromoApplied(false);
+          setAppliedCouponCode("");
+          setAppliedDiscountAmount(0);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load bundle discount in CartSidebar:', err);
+    }
+  }, [isOpen]);
 
   // Leuke marketing boodschappen over wasstrips
   const alternateMessages = [
@@ -900,8 +935,8 @@ export default function CartSidebar() {
                   )}
                   {isPromoApplied && (
                     <div className="flex justify-between text-sm font-medium text-green-600">
-                      <span>Korting (10%)</span>
-                      <span>-€{(subtotal * 0.1).toFixed(2)}</span>
+                      <span>Korting ({appliedCouponCode})</span>
+                      <span>-€{appliedDiscountAmount.toFixed(2)}</span>
                     </div>
                   )}
                 </div>

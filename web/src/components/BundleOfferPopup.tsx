@@ -297,10 +297,14 @@ export default function BundleOfferPopup({
       try {
         const discountRaw = offer.pricing?.discount_amount ?? 0 as any;
         const discountAmount = parsePriceToNumber(discountRaw);
+        const savingsPercentage = getSavingsPercentage();
+        const couponCode = `popup${savingsPercentage}`; // e.g., popup10, popup11, popup12
+        
         const payload = {
           offerId: offer.offer_id,
-          code: `BUNDLE-${offer.offer_id}`,
+          code: couponCode,
           amount: discountAmount,
+          percentage: savingsPercentage,
           createdAt: Date.now(),
           expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
         };
