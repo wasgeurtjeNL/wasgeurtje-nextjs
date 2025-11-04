@@ -1857,15 +1857,27 @@ export default function CheckoutPage() {
   // Fetch real product data from WooCommerce API
   const fetchProductsByIds = async (productIds: string[]) => {
     try {
-      const response = await fetch(
-        `/api/woocommerce/products?ids=${productIds.join(",")}`
-      );
+      const url = `/api/woocommerce/products?ids=${productIds.join(",")}`;
+      console.log('[Checkout] Fetching products:', url);
+      
+      const response = await fetch(url);
+      
       if (!response.ok) {
-        throw new Error("Failed to fetch products");
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[Checkout] ❌ Failed to fetch products:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          url
+        });
+        throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
       }
-      return await response.json();
+      
+      const products = await response.json();
+      console.log('[Checkout] ✅ Products fetched successfully:', products.length);
+      return products;
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error("[Checkout] ❌ Exception fetching products:", error);
       return [];
     }
   };

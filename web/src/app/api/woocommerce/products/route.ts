@@ -52,9 +52,21 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      console.error('[WooCommerce API] Error:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.error('[WooCommerce API] Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+        url: url.toString()
+      });
       return NextResponse.json(
-        { error: 'Failed to fetch products' },
+        { 
+          error: 'Failed to fetch products',
+          details: {
+            status: response.status,
+            message: response.statusText
+          }
+        },
         { status: response.status }
       );
     }
