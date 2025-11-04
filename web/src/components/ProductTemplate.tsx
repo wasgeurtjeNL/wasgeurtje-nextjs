@@ -1950,12 +1950,8 @@ export default function ProductTemplate({
                         ) {
                           // Als het alleen "Gratis verzending" is zonder "boven €40"
                           if (!lowerText.includes('40') && !lowerText.includes('vanaf')) {
-                            // Vervang met duidelijke tekst
-                            if (lowerText.includes('track') && lowerText.includes('1.95')) {
-                              displayText = 'Verzending €4,95 (gratis vanaf €40) 📦';
-                            } else {
-                              displayText = 'Gratis verzending vanaf €40 in NL & BE 📦';
-                            }
+                            // CRO-geoptimaliseerd: focus op het voordeel
+                            displayText = 'Gratis verzending vanaf €40 📦';
                           }
                         }
                         
