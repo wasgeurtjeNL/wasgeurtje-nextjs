@@ -40,7 +40,7 @@ if (typeof window === 'undefined') {
   }
 }
 
-const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
+const WORDPRESS_API = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
 
 /**
  * Hash IP address for privacy (SHA-256)
