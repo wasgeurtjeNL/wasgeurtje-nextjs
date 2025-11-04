@@ -1014,7 +1014,7 @@ export default function CheckoutPage() {
       try {
         // Use the WordPress custom endpoint for efficient SQL-based search
         // Requires BOTH phone AND last name for security
-        const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
+        const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
         const response = await fetch(
           `${wpApiUrl}/wp-json/custom/v1/orders-by-phone?phone=${encodeURIComponent(formData.phone)}&last_name=${encodeURIComponent(formData.lastName)}`
         );
@@ -1096,7 +1096,7 @@ export default function CheckoutPage() {
         }
         // For non-logged-in users: Try to fetch by phone + last name
         else if (!isLoggedIn && formData.phone && formData.lastName) {
-          const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://wasgeurtje.nl';
+          const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
           const response = await fetch(
             `${wpApiUrl}/wp-json/custom/v1/orders-by-phone?phone=${encodeURIComponent(formData.phone)}&last_name=${encodeURIComponent(formData.lastName)}`
           );
@@ -1106,7 +1106,7 @@ export default function CheckoutPage() {
             
             if (data.found && data.order) {
               // Fetch the full order details to get line items (purchased products)
-              const wcApiUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_API_URL || 'https://wasgeurtje.nl/wp-json/wc/v3';
+              const wcApiUrl = process.env.NEXT_PUBLIC_WOOCOMMERCE_API_URL || 'https://api.wasgeurtje.nl/wp-json/wc/v3';
               const wcKey = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_KEY;
               const wcSecret = process.env.NEXT_PUBLIC_WOOCOMMERCE_CONSUMER_SECRET;
               

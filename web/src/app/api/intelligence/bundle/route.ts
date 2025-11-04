@@ -73,8 +73,9 @@ export async function GET(request: NextRequest) {
       console.log(`[Bundle API] No bundle found for ${customerEmail}, attempting to generate via WordPress...`);
       
       try {
+        const apiBaseUrl = process.env.API_BASE_URL || 'https://api.wasgeurtje.nl';
         const wpResponse = await fetch(
-          `https://wasgeurtje.nl/wp-json/wg/v1/intelligence/bundle?customer_email=${encodeURIComponent(customerEmail)}`,
+          `${apiBaseUrl}/wp-json/wg/v1/intelligence/bundle?customer_email=${encodeURIComponent(customerEmail)}`,
           {
             method: 'GET',
             cache: 'no-store'
@@ -211,8 +212,9 @@ function generateOfferMessage(profile: any): string {
  */
 async function getCustomerFirstName(email: string): Promise<string> {
   try {
+    const apiBaseUrl = process.env.API_BASE_URL || 'https://api.wasgeurtje.nl';
     const response = await fetch(
-      `https://wasgeurtje.nl/wp-json/wg/v1/customer/name?email=${encodeURIComponent(email)}`,
+      `${apiBaseUrl}/wp-json/wg/v1/customer/name?email=${encodeURIComponent(email)}`,
       { cache: 'no-store' }
     );
     

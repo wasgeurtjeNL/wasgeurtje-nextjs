@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createLoyaltyCoupon } from '@/utils/coupon-api';
 
 // Configuration
+const API_BASE_URL = process.env.API_BASE_URL || 'https://api.wasgeurtje.nl';
 const WPLOYALTY_REDUCE_ENDPOINT =
-  "https://wasgeurtje.nl/wp-json/wc/v3/wployalty/customers/points/reduce";
+  `${API_BASE_URL}/wp-json/wc/v3/wployalty/customers/points/reduce`;
 const REQUIRED_POINTS = 60;
 const DISCOUNT_AMOUNT = 13; // €13 discount for 60 points
 
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
 
         try {
           const rollbackResponse = await fetch(
-            "https://wasgeurtje.nl/wp-json/wc/v3/wployalty/customers/points/add",
+            `${API_BASE_URL}/wp-json/wc/v3/wployalty/customers/points/add`,
             {
               method: "POST",
               headers: {
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
       // Rollback points on any error
       try {
         await fetch(
-          "https://wasgeurtje.nl/wp-json/wc/v3/wployalty/customers/points/add",
+          `${API_BASE_URL}/wp-json/wc/v3/wployalty/customers/points/add`,
           {
             method: "POST",
             headers: {
@@ -213,7 +214,7 @@ export async function POST(request: NextRequest) {
     let remainingPoints = points - REQUIRED_POINTS; // Fallback calculation
     try {
       const pointsResponse = await fetch(
-        `https://wasgeurtje.nl/wp-json/my/v1/loyalty/points?email=${encodeURIComponent(
+        `${API_BASE_URL}/wp-json/my/v1/loyalty/points?email=${encodeURIComponent(
           email
         )}`
       );
@@ -264,7 +265,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch current points
-    const pointsEndpoint = `https://wasgeurtje.nl/wp-json/my/v1/loyalty/points?email=${encodeURIComponent(
+    const pointsEndpoint = `${API_BASE_URL}/wp-json/my/v1/loyalty/points?email=${encodeURIComponent(
       email
     )}`;
     const pointsResponse = await fetch(pointsEndpoint);

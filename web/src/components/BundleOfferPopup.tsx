@@ -158,7 +158,8 @@ export default function BundleOfferPopup({
           
           // ✅ Log "viewed" event when popup is shown
           // Using WordPress API endpoint (more reliable than Next.js endpoint during dev)
-          fetch('https://wasgeurtje.nl/wp-json/wg/v1/intelligence/bundle-status', {
+          const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
+          fetch(`${wpApiUrl}/wp-json/wg/v1/intelligence/bundle-status`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -281,7 +282,8 @@ export default function BundleOfferPopup({
 
     // Update offer status
     try {
-      await fetch('https://wasgeurtje.nl/wp-json/wg/v1/intelligence/bundle-status', {
+      const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
+      await fetch(`${wpApiUrl}/wp-json/wg/v1/intelligence/bundle-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -327,7 +329,8 @@ export default function BundleOfferPopup({
     if (!offer) return;
 
     try {
-      await fetch('https://wasgeurtje.nl/wp-json/wg/v1/intelligence/bundle-status', {
+      const wpApiUrl = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
+      await fetch(`${wpApiUrl}/wp-json/wg/v1/intelligence/bundle-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

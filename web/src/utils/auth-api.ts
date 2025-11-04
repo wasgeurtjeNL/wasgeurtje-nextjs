@@ -22,9 +22,12 @@ interface WooCommerceAddressData {
 }
 
 // API URLs (used for direct WordPress/loyalty endpoints only, WooCommerce via Next.js API routes)
-const JWT_AUTH_URL = 'https://wasgeurtje.nl/wp-json/jwt-auth/v1/token';
-const WORDPRESS_API_URL = 'https://wasgeurtje.nl/wp-json/wp/v2';
-const WPLOYALTY_API_URL = 'https://wasgeurtje.nl/wp-json/wployalty/v1';
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? (process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl')
+  : (process.env.API_BASE_URL || 'https://api.wasgeurtje.nl');
+const JWT_AUTH_URL = `${API_BASE_URL}/wp-json/jwt-auth/v1/token`;
+const WORDPRESS_API_URL = `${API_BASE_URL}/wp-json/wp/v2`;
+const WPLOYALTY_API_URL = `${API_BASE_URL}/wp-json/wployalty/v1`;
 
 // Known referral codes for specific users
 const knownReferralCodes: Record<string, string> = {
@@ -495,7 +498,10 @@ export const fetchLoyaltyPointsByEmail = async (email: string): Promise<LoyaltyD
     // DEBUG: FETCHING LOYALTY POINTS VIA ENDPOINT =====');
     // DEBUG: Fetching loyalty points for email: ${email}`);
     
-    const endpoint = `https://wasgeurtje.nl/wp-json/my/v1/loyalty/points?email=${encodeURIComponent(email)}`;
+    const apiBaseUrl = typeof window !== 'undefined' 
+      ? (process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl')
+      : (process.env.API_BASE_URL || 'https://api.wasgeurtje.nl');
+    const endpoint = `${apiBaseUrl}/wp-json/my/v1/loyalty/points?email=${encodeURIComponent(email)}`;
     // DEBUG: Loyalty endpoint URL: ${endpoint}`);
     
     const response = await fetch(endpoint, {
