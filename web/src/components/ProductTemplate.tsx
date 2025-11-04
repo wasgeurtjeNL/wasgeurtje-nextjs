@@ -1301,32 +1301,42 @@ export default function ProductTemplate({
             <div className="mt-4 bg-white rounded-xl p-4 shadow-sm">
               {product.icon_info && product.icon_info.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
-                  {product.icon_info.map((info, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      {info.icon && info.icon.url ? (
-                        <Image
-                          src={info.icon.url}
-                          alt={info.icon.alt || info.text_1}
-                          width={20}
-                          height={20}
-                          className="object-contain"
-                          unoptimized={true} // Since URL is external
-                        />
-                      ) : (
-                        <span className="text-lg" style={{ color: "#D6AD61" }}>
-                          ✓
-                        </span>
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-[13px] font-medium text-black">
-                          {info.text_1}
-                        </span>
-                        <span className="text-[13px] font-medium text-black">
-                          {info.text_2}
-                        </span>
+                  {product.icon_info.map((info, index) => {
+                    // Fix voor gratis verzending tekst - maak het duidelijker
+                    const isShippingText = 
+                      (info.text_1?.toLowerCase().includes('gratis') || info.text_1?.toLowerCase().includes('verzending')) &&
+                      (info.text_2?.toLowerCase().includes('verzending') || info.text_2?.toLowerCase().includes('gratis'));
+                    
+                    const displayText1 = isShippingText ? 'Gratis verzending' : info.text_1;
+                    const displayText2 = isShippingText ? 'vanaf €40' : info.text_2;
+
+                    return (
+                      <div key={index} className="flex items-center space-x-2">
+                        {info.icon && info.icon.url ? (
+                          <Image
+                            src={info.icon.url}
+                            alt={info.icon.alt || info.text_1}
+                            width={20}
+                            height={20}
+                            className="object-contain"
+                            unoptimized={true} // Since URL is external
+                          />
+                        ) : (
+                          <span className="text-lg" style={{ color: "#D6AD61" }}>
+                            ✓
+                          </span>
+                        )}
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-medium text-black">
+                            {displayText1}
+                          </span>
+                          <span className="text-[13px] font-medium text-black">
+                            {displayText2}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 // Fallback to default USPs
