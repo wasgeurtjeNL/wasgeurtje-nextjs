@@ -2993,7 +2993,7 @@ export default function ProductTemplate({
             JA, IK WIL {product.title.toUpperCase()} PROBEREN!
           </button>
           <p className="text-lg mt-6 opacity-90">
-            ✓ 30 dagen geld-terug-garantie ✓ Gratis verzending ✓ Vandaag
+            ✓ 30 dagen geld-terug-garantie ✓ Gratis verzending vanaf 40 ✓ Vandaag
             besteld, morgen geleverd
           </p>
         </div>
