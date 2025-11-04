@@ -38,12 +38,46 @@ const nextConfig = {
     workerThreads: false,
     cpus: 1,
   },
+
+  // API Rewrites - Automatische doorverwijzing naar backend
+  // Hiermee blijven alle endpoints in je code hetzelfde werken
+  async rewrites() {
+    const apiBaseUrl = process.env.API_BASE_URL || 'https://api.wasgeurtje.nl';
+    
+    return [
+      // WooCommerce API endpoints
+      {
+        source: '/wp-json/wc/:path*',
+        destination: `${apiBaseUrl}/wp-json/wc/:path*`,
+      },
+      // WordPress REST API
+      {
+        source: '/wp-json/:path*',
+        destination: `${apiBaseUrl}/wp-json/:path*`,
+      },
+      // ACF API endpoints
+      {
+        source: '/wp-json/acf/:path*',
+        destination: `${apiBaseUrl}/wp-json/acf/:path*`,
+      },
+      // WordPress uploads (images)
+      {
+        source: '/wp-content/uploads/:path*',
+        destination: `${apiBaseUrl}/wp-content/uploads/:path*`,
+      },
+    ];
+  },
   
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'wasgeurtje.nl',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.wasgeurtje.nl',
         pathname: '/**',
       },
       {
@@ -65,11 +99,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'wasgeurtje.nl',
-        pathname: '/wp-content/uploads/**',
       },
     ],
   },

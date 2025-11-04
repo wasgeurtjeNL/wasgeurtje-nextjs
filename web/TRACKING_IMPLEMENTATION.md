@@ -359,7 +359,7 @@ trackKlaviyoEvent('Custom Event', {
 Voor nog betere performance en privacy:
 
 1. Track events server-side via Klaviyo API
-2. Use your private key: `pk_0319811677ad3622cbf6e59bf26aa7ea88`
+2. Use your private key: `pk_xxxx`
 3. Implement in API routes (e.g., `/api/track`)
 
 ---

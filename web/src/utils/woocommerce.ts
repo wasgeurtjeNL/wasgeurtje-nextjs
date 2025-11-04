@@ -1,11 +1,12 @@
 // WooCommerce API utility functions
 import { Product } from "../types/product";
+import { WOOCOMMERCE_CONFIG, getServerApiBaseUrl } from "../config/api";
 
 // WooCommerce API credentials
-const WOOCOMMERCE_API_URL =
-  process.env.WOOCOMMERCE_API_URL || "https://wasgeurtje.nl/wp-json/wc/v3";
-const WOOCOMMERCE_CONSUMER_KEY = process.env.WOOCOMMERCE_CONSUMER_KEY!;
-const WOOCOMMERCE_CONSUMER_SECRET = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
+// Door gebruik van de centrale config kunnen we eenvoudig switchen tussen omgevingen
+const WOOCOMMERCE_API_URL = WOOCOMMERCE_CONFIG.apiUrl;
+const WOOCOMMERCE_CONSUMER_KEY = WOOCOMMERCE_CONFIG.consumerKey;
+const WOOCOMMERCE_CONSUMER_SECRET = WOOCOMMERCE_CONFIG.consumerSecret;
 
 // Wasparfum categorie ID
 const WASPARFUM_CATEGORY_ID = 309;
@@ -233,13 +234,14 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 
     try {
       // Use acf_format=standard to get the full image objects
+      // getServerApiBaseUrl() zorgt ervoor dat we altijd de juiste backend gebruiken
+      const apiBaseUrl = getServerApiBaseUrl();
       const acfResponse = await fetch(
-        `https://wasgeurtje.nl/wp-json/acf/v3/product/${productId}?acf_format=standard`,
+        `${apiBaseUrl}/wp-json/acf/v3/product/${productId}?acf_format=standard`,
         {
           next: { revalidate: 3600 }, // Cache for 1 hour
           headers: {
             Accept: "application/json",
-            Origin: "http://localhost:3000",
           },
         }
       );
