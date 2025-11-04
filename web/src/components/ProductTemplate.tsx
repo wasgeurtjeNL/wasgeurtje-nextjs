@@ -320,7 +320,7 @@ export default function ProductTemplate({
   promises = {
     title: "Wij beloven je",
     items: [
-      "Gratis verzending in NL & BE 📦",
+      "Gratis verzending boven €40 in NL & BE 📦",
       "Uitzonderlijke kwaliteit wasgeur",
       "Op werkdagen voor 16.00 besteld, vandaag verzonden 🚀",
       "Gemaakt van milieuvriendelijke en duurzame materialen",
@@ -1097,7 +1097,7 @@ export default function ProductTemplate({
               <div className="flex items-center space-x-2">
                 {!hasReachedFreeShipping && (
                   <span className="text-xs px-4 py-1 rounded-full bg-[#FCCE4E] text-[#814E1E] font-bold animate-pulse">
-                    BESPAAR €6,95
+                    BESPAAR €4,95
                   </span>
                 )}
                 <span
