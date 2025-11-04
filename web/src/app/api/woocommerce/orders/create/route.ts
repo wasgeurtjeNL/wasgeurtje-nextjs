@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveWooProductId } from '@/utils/woocommerce';
+import Stripe from "stripe";
+
+// Initialize Stripe
+function initializeStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY environment variable is not configured");
+  }
+  return new Stripe(secretKey, {
+    apiVersion: "2025-08-27.basil",
+  });
+}
+
 // WooCommerce credentials
 const WC_API_URL =
   process.env.WOOCOMMERCE_API_URL || "https://api.wasgeurtje.nl/wp-json/wc/v3";
@@ -371,7 +384,28 @@ export async function POST(request: NextRequest) {
     }
 
     const order = await response.json();
-    console.log("WooCommerce order created successfully:", order.id);
+    console.log("✅ WooCommerce order created successfully:", order.id, 'Order #:', order.number);
+
+    // Update PaymentIntent with WooCommerce order number
+    if (paymentIntentId) {
+      try {
+        const stripe = initializeStripe();
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        
+        await stripe.paymentIntents.update(paymentIntentId, {
+          description: `Order #${order.number} - Wasgeurtje`,
+          metadata: {
+            ...paymentIntent.metadata,
+            order_id: order.id.toString(),
+            order_number: order.number.toString(),
+          },
+        });
+        console.log('✅ PaymentIntent updated - Order #' + order.number + ' linked to PaymentIntent');
+      } catch (updateError) {
+        console.error('⚠️ Failed to update PaymentIntent:', updateError);
+        // Don't fail the whole process if this update fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

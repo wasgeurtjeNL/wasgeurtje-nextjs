@@ -80,11 +80,19 @@ function mapCartIdToWooCommerceId(cartId: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { paymentIntentId, lineItems, customer, appliedDiscount } = (await request.json()) as {
+    const { paymentIntentId, lineItems, customer, appliedDiscount, totals } = (await request.json()) as {
       paymentIntentId: string;
       lineItems: LineItem[];
       customer: Customer;
       appliedDiscount?: AppliedDiscount;
+      totals?: {
+        subtotal: number;
+        discountAmount: number;
+        volumeDiscount: number;
+        bundleDiscount?: number;
+        shippingCost: number;
+        finalTotal: number;
+      };
     };
 
     if (!paymentIntentId) {
@@ -102,6 +110,65 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Initialize Stripe
+    const stripe = initializeStripe();
+
+    // If totals are provided by frontend, use them (preferred method)
+    if (totals && totals.finalTotal) {
+      console.log("✅ Using totals from frontend for update:", totals);
+      
+      const finalTotal = totals.finalTotal;
+      const amountInCents = Math.round(finalTotal * 100);
+      
+      console.log(`💳 Updating PaymentIntent ${paymentIntentId} with amount: ${amountInCents} cents (€${finalTotal})`);
+      
+      // Prepare mapped line items for metadata
+      const mappedLineItems = lineItems.map((item) => ({
+        id: mapCartIdToWooCommerceId(item.id),
+        originalId: item.id,
+        quantity: item.quantity,
+      }));
+
+      // Retrieve existing PaymentIntent to get order_reference if it exists
+      const existingPaymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const orderReference = existingPaymentIntent.metadata.order_reference || 
+                             `WG-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      
+      console.log("📝 Using order reference:", orderReference);
+
+      // Update PaymentIntent with frontend totals
+      const paymentIntent = await stripe.paymentIntents.update(paymentIntentId, {
+        amount: amountInCents,
+        metadata: {
+          cart: JSON.stringify(mappedLineItems),
+          customer_email: customer.email,
+          customer_name: `${customer.firstName} ${customer.lastName}`,
+          customer_data: JSON.stringify(customer),
+          applied_discount: appliedDiscount
+            ? JSON.stringify(appliedDiscount)
+            : "",
+          subtotal: totals.subtotal.toString(),
+          discount_amount: totals.discountAmount.toString(),
+          volume_discount: totals.volumeDiscount.toString(),
+          shipping_cost: totals.shippingCost.toString(),
+          final_total: totals.finalTotal.toString(),
+          order_reference: orderReference,
+        },
+        description: `Wasgeurtje - Bestelling ${orderReference}`,
+        receipt_email: customer.email,
+      });
+
+      console.log("✅ PaymentIntent updated successfully");
+      return NextResponse.json({
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+        amount: finalTotal,
+        currency: "eur",
+      });
+    }
+
+    console.log("⚠️ No totals provided, falling back to backend calculation");
 
     if (!customer.email) {
       console.error("❌ No customer email provided");
@@ -205,12 +272,20 @@ export async function POST(request: NextRequest) {
       quantity: item.quantity,
     }));
 
+    // Retrieve existing PaymentIntent to get order_reference if it exists
+    const existingPaymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const orderReference = existingPaymentIntent.metadata.order_reference || 
+                           `WG-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    
+    console.log("📝 Using order reference:", orderReference);
+
     // Update PaymentIntent
     const paymentIntent = await stripe.paymentIntents.update(paymentIntentId, {
       amount: amountInCents,
       metadata: {
         cart: JSON.stringify(mappedLineItems),
         customer_email: customer.email,
+        customer_name: `${customer.firstName} ${customer.lastName}`,
         customer_data: JSON.stringify(customer),
         applied_discount: appliedDiscount
           ? JSON.stringify(appliedDiscount)
@@ -220,8 +295,9 @@ export async function POST(request: NextRequest) {
         volume_discount: volumeDiscount.toString(),
         shipping_cost: shippingCost.toString(),
         final_total: finalTotal.toString(),
+        order_reference: orderReference,
       },
-      description: `Wasgeurtje bestelling voor ${customer.firstName} ${customer.lastName}`,
+      description: `Wasgeurtje - Bestelling ${orderReference}`,
       receipt_email: customer.email,
     });
 

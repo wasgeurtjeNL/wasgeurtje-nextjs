@@ -286,11 +286,30 @@ export async function POST(request: NextRequest) {
           totals
         );
 
+        console.log('✅ WooCommerce order created:', order.id, 'Order #:', order.number);
+
+        // Update PaymentIntent with WooCommerce order number
+        try {
+          await stripe.paymentIntents.update(paymentIntent.id, {
+            description: `Order #${order.number} - Wasgeurtje`,
+            metadata: {
+              ...paymentIntent.metadata,
+              order_id: order.id.toString(),
+              order_number: order.number.toString(),
+            },
+          });
+          console.log('✅ PaymentIntent updated - Order #' + order.number + ' linked to PaymentIntent');
+        } catch (updateError) {
+          console.error('⚠️ Failed to update PaymentIntent:', updateError);
+          // Don't fail the whole process if this update fails
+        }
+
         // Order processing completed successfully - paymentIntentId, wooCommerceOrderId
 
         return NextResponse.json({
           success: true,
           orderId: order.id,
+          orderNumber: order.number,
           paymentIntentId: paymentIntent.id,
         });
       } catch (error) {

@@ -592,20 +592,8 @@ export default function CheckoutPage() {
     return result;
   };
 
-  useEffect(() => {
-    if (currentStep === 2) {
-      const scrollToOverview = () => {
-        const el = document.getElementById("over-view-section");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-          // try again next frame until it exists
-          requestAnimationFrame(scrollToOverview);
-        }
-      };
-      requestAnimationFrame(scrollToOverview);
-    }
-  }, [currentStep]);
+  // Removed problematic scroll effect that caused issues with dropdowns
+  // The scroll to top on step change (lines 485-490) handles navigation scrolling
 
   // Process orders to extract unique addresses
   useEffect(() => {
@@ -1909,7 +1897,7 @@ export default function CheckoutPage() {
         id: product.id,
         title: product.title,
         price: product.price,
-        image: product.image,
+        image: product.images?.[0]?.src || product.image || "",
         badge: getProductBadge(product.id),
         in_cart: false, // Always false since we filter out cart items
         quantity: 1, // Default quantity for popup
@@ -1955,7 +1943,7 @@ export default function CheckoutPage() {
           id: product.id,
           title: product.title,
           price: product.price,
-          image: product.image,
+          image: product.image, // Already transformed when loaded
           quantity: product.quantity || 1,
         };
         addToCart(cartItem);
@@ -2091,7 +2079,7 @@ export default function CheckoutPage() {
             id: product.id,
             title: product.title || product.name || 'Product',
             price: product.price,
-            image: product.image,
+            image: product.images?.[0]?.src || product.image || "",
             description:
               product.description ||
               `Geniet van deze ${(product.title || product.name || 'product').toLowerCase()}`,
@@ -2970,7 +2958,7 @@ export default function CheckoutPage() {
                               )}
                             </div>
                             <p className="text-sm font-bold text-green-600 mt-1">
-                              €{product.price.toFixed(2)}
+                              €{typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || 0).toFixed(2)}
                             </p>
                           </div>
                           {product.inCart ? (
@@ -5654,6 +5642,7 @@ export default function CheckoutPage() {
                           Kloppen je gegevens?
                         </h2>
                         <button
+                          type="button"
                           onClick={() => setCurrentStep(1)}
                           className="text-[#0071CE] hover:underline text-sm flex items-center gap-1"
                         >
@@ -5928,7 +5917,7 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                                       <span className="text-xs font-bold text-[#d7aa43]">
-                                        €{product.price.toFixed(2)}
+                                        €{typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || 0).toFixed(2)}
                                       </span>
                                       {product.badge && (
                                         <span
@@ -7451,12 +7440,12 @@ export default function CheckoutPage() {
                         <div className="flex items-center justify-between gap-1 sm:gap-2 pt-0.5 sm:pt-1">
                           <div>
                             <p className="text-base sm:text-lg lg:text-base xl:text-lg font-bold text-[#d7aa43]">
-                              €{product.price.toFixed(2)}
+                              €{typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || 0).toFixed(2)}
                             </p>
                             {/* Total price for this product */}
                             {(product.quantity || 1) > 1 && (
                               <p className="text-[9px] sm:text-[10px] text-gray-500 font-medium">
-                                Totaal: €{((product.price || 0) * (product.quantity || 1)).toFixed(2)}
+                                Totaal: €{((parseFloat(product.price) || 0) * (product.quantity || 1)).toFixed(2)}
                               </p>
                             )}
                           </div>

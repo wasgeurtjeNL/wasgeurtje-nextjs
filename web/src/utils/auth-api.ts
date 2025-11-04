@@ -21,11 +21,12 @@ interface WooCommerceAddressData {
   shipping: WooCommerceAddress;
 }
 
-// API URLs (used for direct WordPress/loyalty endpoints only, WooCommerce via Next.js API routes)
+// API URLs - Use Next.js API routes to avoid CORS and 415 errors
 const API_BASE_URL = typeof window !== 'undefined' 
   ? (process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl')
   : (process.env.API_BASE_URL || 'https://api.wasgeurtje.nl');
-const JWT_AUTH_URL = `${API_BASE_URL}/wp-json/jwt-auth/v1/token`;
+// Use Next.js API route for JWT authentication to avoid nginx 415 errors
+const JWT_AUTH_ROUTE = '/api/auth/jwt';
 const WORDPRESS_API_URL = `${API_BASE_URL}/wp-json/wp/v2`;
 const WPLOYALTY_API_URL = `${API_BASE_URL}/wp-json/wployalty/v1`;
 
@@ -80,9 +81,10 @@ export const validateJWTToken = async (): Promise<boolean> => {
   }
   
   try {
-    // DEBUG: Validating JWT token...');
-    const response = await fetch(`${JWT_AUTH_URL}/validate`, {
-      method: 'POST',
+    // Use Next.js API route to avoid 415 errors from nginx
+    devLog('🔐 Validating JWT token via proxy...');
+    const response = await fetch(JWT_AUTH_ROUTE, {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -92,15 +94,15 @@ export const validateJWTToken = async (): Promise<boolean> => {
     
     if (response.ok) {
       const validationData = await response.json();
-      // DEBUG: JWT validation successful:', validationData);
-      return true;
+      devLog('✅ JWT validation successful');
+      return validationData.valid === true;
     } else {
       const errorData = await response.json();
-      // DEBUG: JWT validation failed:', errorData);
+      devLog('❌ JWT validation failed:', errorData);
       return false;
     }
   } catch (error) {
-    console.error('DEBUG: Error validating JWT token:', error);
+    console.error('❌ Error validating JWT token:', error);
     return false;
   }
 };
@@ -153,12 +155,13 @@ export const fetchCustomerByEmail = async (email: string, password: string) => {
       throw new Error('Wachtwoord moet minimaal 4 karakters zijn');
     }
 
-    // STEP 1: Authenticeer met WordPress JWT
-    devLog('🔑 Step 1: Authenticating with WordPress JWT...');
+    // STEP 1: Authenticeer met WordPress JWT via Next.js API route
+    devLog('🔑 Step 1: Authenticating with WordPress JWT via proxy...');
     let jwtToken: string;
     
     try {
-      const jwtResponse = await fetch(JWT_AUTH_URL, {
+      // Use Next.js API route to avoid 415 errors from nginx
+      const jwtResponse = await fetch(JWT_AUTH_ROUTE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +175,7 @@ export const fetchCustomerByEmail = async (email: string, password: string) => {
       if (!jwtResponse.ok) {
         const errorData = await jwtResponse.json();
         devError('❌ JWT Authentication failed:', errorData);
-        throw new Error(errorData.message || 'Onjuiste inloggegevens');
+        throw new Error(errorData.message || errorData.error || 'Onjuiste inloggegevens');
       }
 
       const jwtData = await jwtResponse.json();
