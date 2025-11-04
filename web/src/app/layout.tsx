@@ -28,6 +28,10 @@ const GlobalBundleOfferManager = dynamic(
   () => import("@/components/GlobalBundleOfferManager"),
   { loading: () => null }
 );
+const WebsiteRenewalBanner = dynamic(
+  () => import("@/components/WebsiteRenewalBanner"),
+  { loading: () => null }
+);
 
 // Analytics & Tracking Components (client-side only, already marked as "use client")
 const GoogleTagManager = dynamic(
@@ -133,6 +137,7 @@ export default function RootLayout({
               <CustomerIntelligenceTracker />
               <EngagementTracker />
               <GlobalBundleOfferManager />
+              <WebsiteRenewalBanner />
               <FigmaHeader />
               {children}
               <FooterLayer />
