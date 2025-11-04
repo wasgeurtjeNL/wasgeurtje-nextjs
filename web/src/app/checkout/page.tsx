@@ -67,7 +67,7 @@ export default function CheckoutPage() {
     removeFromCart,
     updateQuantity,
   } = useCart();
-  const { user, isLoggedIn, orders, fetchOrders } = useAuth();
+  const { user, isLoggedIn, orders, fetchOrders, fetchLoyaltyPointsByUserEmail } = useAuth();
   
   // Track if we've already fetched orders/loyalty in this checkout session
   const hasFetchedOrdersRef = useRef(false);
@@ -567,6 +567,15 @@ export default function CheckoutPage() {
       fetchOrders();
     }
   }, [isLoggedIn, user, fetchOrders]);
+
+  // ⚡ FIX: Fetch loyalty points if user is logged in but loyalty data is missing
+  // This handles the case when user navigates directly to /checkout from external link
+  useEffect(() => {
+    if (isLoggedIn && user && user.email && !user.loyalty) {
+      console.log('[Checkout] 🎯 User logged in but loyalty data missing - fetching now...');
+      fetchLoyaltyPointsByUserEmail(user.email);
+    }
+  }, [isLoggedIn, user, fetchLoyaltyPointsByUserEmail]);
 
   // Helper function to generate consistent address ID like WordPress plugin
   const generateAddressId = (street: string, postalCode: string): string => {
