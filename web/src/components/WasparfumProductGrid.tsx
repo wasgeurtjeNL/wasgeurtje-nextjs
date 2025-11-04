@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Product } from '@/types/product';
 import Link from "next/link";
-import Image from "next/image";
+import ProductImage from './ProductImage';
 
 // Category filter component
 function CategoryFilter({
@@ -63,18 +63,12 @@ function ProductCard({ product }: { product: Product }) {
 
         {/* Product Image */}
         <div className="relative h-[300px] bg-[#F8F6F0] flex items-center justify-center p-6">
-          <Image
+          <ProductImage
             src={product.image}
             alt={product.title}
             width={220}
             height={280}
             className="object-contain h-full w-auto transition-transform group-hover:scale-110"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              if (target.src !== "/figma/product-flower-rain.png") {
-                target.src = "/figma/product-flower-rain.png";
-              }
-            }}
           />
         </div>
 

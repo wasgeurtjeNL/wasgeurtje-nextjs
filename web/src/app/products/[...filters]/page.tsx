@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Product } from '@/types/product';
+import ProductImage from '@/components/ProductImage';
 
 // Gebruik .env variabelen voor WooCommerce API configuratie
 const WOOCOMMERCE_API_URL =
@@ -266,19 +266,12 @@ export default async function FilteredProductsPage({
               >
                 <div className="bg-white border border-[#d6ad61] rounded-[4px] overflow-hidden">
                   <div className="relative h-[200px] bg-white flex items-center justify-center p-4">
-                    <Image
+                    <ProductImage
                       src={product.image}
                       alt={product.title}
                       width={160}
                       height={200}
                       className="object-contain h-full w-auto transition-transform group-hover:scale-105"
-                      onError={(e) => {
-                        // Fall back to local image if remote image fails to load
-                        const target = e.target as HTMLImageElement;
-                        if (target.src !== "/figma/product-flower-rain.png") {
-                          target.src = "/figma/product-flower-rain.png";
-                        }
-                      }}
                     />
                   </div>
                   <div className="p-4">
