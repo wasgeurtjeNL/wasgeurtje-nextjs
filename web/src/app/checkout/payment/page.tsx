@@ -460,7 +460,12 @@ export default function PaymentPage({
 
           {/* Payment Form */}
           <div className="bg-white rounded-lg md:p-6 p-2  border-gray-200">
-            <Elements stripe={stripePromise} options={stripeOptions}>
+            {/* KEY PROP: Force remount when clientSecret changes to ensure new payment intent is used */}
+            <Elements 
+              key={clientSecret} 
+              stripe={stripePromise} 
+              options={stripeOptions}
+            >
               <PaymentForm
                 onSuccess={handlePaymentSuccessMemoized}
                 onError={handlePaymentErrorMemoized}
