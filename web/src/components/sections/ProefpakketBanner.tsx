@@ -31,11 +31,11 @@ const ProefpakketBanner: React.FC = () => {
           md:static md:translate-x-0 md:items-start md:justify-center md:text-left
         "
       >
-        {/* Mobile text (no <br />) */}
-        <h2 className="block text-[32px] font-semibold text-[#212529] md:hidden font-eb-garamond leading-none">
+        {/* Mobile text (with proper line breaks) */}
+        <h2 className="block text-[32px] font-semibold text-[#212529] md:hidden font-eb-garamond leading-tight">
           Ervaar <span className="text-[#d6ad61]">luxe</span> en{" "}
-          <span className="text-[#d6ad61]">duurzaamheid </span>
-          bij elke wasbeurt
+          <span className="text-[#d6ad61]">duurzaamheid</span>
+          <br /> bij elke wasbeurt
         </h2>
 
         {/* Desktop text (with <br />) */}
