@@ -1,6 +1,7 @@
 import {
   getWasparfumPageData,
   transformWordPressProduct,
+  transformWordPressProducts,
 } from '@/lib/wordpress-api';
 import {
   WordPressPageWithACF,
@@ -57,12 +58,8 @@ export class WordPressService {
       switch (section.acf_fc_layout) {
         case "product":
         case "fancy_product":
-          // Transform product data
-          const products = await Promise.all(
-            (section.products || []).map((product: any) =>
-              transformWordPressProduct(product)
-            )
-          );
+          // Transform product data using batch transform for better performance
+          const products = await transformWordPressProducts(section.products || []);
 
           const transformedSection = {
             ...section,

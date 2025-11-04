@@ -14,45 +14,61 @@ export const endpoints = {
   acf: `${API_BASE}/acf/v3`,
 };
 
-// Fetch wrapper met error handling
+// Fetch wrapper met error handling and retry logic
 async function apiRequest(
   url: string,
   options: RequestInit = {},
-  useWooCommerceAuth: boolean = false
+  useWooCommerceAuth: boolean = false,
+  retries: number = 3
 ) {
-  try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...((options.headers as Record<string, string>) || {}),
-    };
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...((options.headers as Record<string, string>) || {}),
+      };
 
-    // Add WooCommerce authentication if needed
-    if (useWooCommerceAuth) {
-      const auth = Buffer.from(
-        `${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`
-      ).toString("base64");
-      headers["Authorization"] = `Basic ${auth}`;
+      // Add WooCommerce authentication if needed
+      if (useWooCommerceAuth) {
+        const auth = Buffer.from(
+          `${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`
+        ).toString("base64");
+        headers["Authorization"] = `Basic ${auth}`;
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers,
+        next: { revalidate: 3600 }, // Cache for 1 hour
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error Response (attempt ${attempt + 1}): ${errorText}`);
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`WordPress API Error (attempt ${attempt + 1}/${retries}):`, error);
+      
+      // If this is not the last attempt, wait before retrying
+      if (attempt < retries - 1) {
+        const waitTime = Math.min(1000 * Math.pow(2, attempt), 5000); // Exponential backoff, max 5s
+        console.log(`Retrying in ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
     }
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      next: { revalidate: 3600 }, // Cache for 1 hour
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API Error Response: ${errorText}`);
-      throw new Error(
-        `API request failed: ${response.status} ${response.statusText}`
-      );
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("WordPress API Error:", error);
-    throw error;
   }
+  
+  // All retries failed
+  throw lastError || new Error('All retry attempts failed');
 }
 
 // export const wooApi = new WooCommerceRestApi({
@@ -84,18 +100,35 @@ export async function getProductById(productId: number): Promise<any> {
   return apiRequest(url, {}, true); // Use WooCommerce auth
 }
 
-// Fetch multiple products by IDs
+// Fetch multiple products by IDs (optimized batch fetch)
 export async function getProductsByIds(productIds: number[]): Promise<any[]> {
   try {
-    const promises = productIds.map((id) => getProductById(id));
-    const results = await Promise.allSettled(promises);
+    // If only one product, use single fetch
+    if (productIds.length === 1) {
+      const product = await getProductById(productIds[0]);
+      return [product];
+    }
+    
+    // Batch fetch multiple products in one API call
+    const idsParam = productIds.join(',');
+    const url = `${endpoints.products}?include=${idsParam}&per_page=100`;
+    
+    try {
+      const products = await apiRequest(url, {}, true); // Use WooCommerce auth
+      return Array.isArray(products) ? products : [];
+    } catch (batchError) {
+      // If batch fetch fails, fall back to individual fetches with retry
+      console.warn('Batch fetch failed, falling back to individual fetches:', batchError);
+      const promises = productIds.map((id) => getProductById(id));
+      const results = await Promise.allSettled(promises);
 
-    return results
-      .filter(
-        (result): result is PromiseFulfilledResult<any> =>
-          result.status === "fulfilled"
-      )
-      .map((result) => result.value);
+      return results
+        .filter(
+          (result): result is PromiseFulfilledResult<any> =>
+            result.status === "fulfilled"
+        )
+        .map((result) => result.value);
+    }
   } catch (error) {
     console.error("Failed to fetch products:", error);
     return [];
@@ -108,29 +141,71 @@ export async function getMediaById(mediaId: number): Promise<any> {
   return apiRequest(url);
 }
 
-// Transform WordPress product data to our format
-export async function transformWordPressProduct(wpProduct: any) {
-  try {
-    // If we received product data from ACF (WordPress post type),
-    // we need to fetch the full WooCommerce product data
-    let productData = wpProduct;
+// Transform multiple WordPress products in batch (optimized)
+export async function transformWordPressProducts(wpProducts: any[]): Promise<any[]> {
+  if (!wpProducts || wpProducts.length === 0) {
+    return [];
+  }
 
-    // Check if this is ACF data (has ID or post_title) vs WooCommerce data (has id and name)
-    if (wpProduct.ID && !wpProduct.price) {
-      // This is ACF data, fetch full WooCommerce product
-      console.log(`Fetching WooCommerce data for product ID: ${wpProduct.ID}`);
-      try {
-        productData = await getProductById(wpProduct.ID);
-      } catch (error) {
-        console.error(
-          `Failed to fetch WooCommerce data for product ${wpProduct.ID}:`,
-          error
-        );
-        // Fall back to ACF data
-        productData = wpProduct;
+  try {
+    // Identify which products need WooCommerce data (ACF products without price)
+    const productsNeedingFetch: number[] = [];
+    const productsWithData: any[] = [];
+
+    wpProducts.forEach((wpProduct) => {
+      if (wpProduct.ID && !wpProduct.price) {
+        // ACF product needs WooCommerce data
+        productsNeedingFetch.push(wpProduct.ID);
+      } else {
+        // Already has complete data
+        productsWithData.push(wpProduct);
       }
+    });
+
+    // Batch fetch all products that need WooCommerce data
+    let fetchedProducts: any[] = [];
+    if (productsNeedingFetch.length > 0) {
+      console.log(`Batch fetching ${productsNeedingFetch.length} products from WooCommerce`);
+      fetchedProducts = await getProductsByIds(productsNeedingFetch);
     }
 
+    // Create a map of fetched products by ID for easy lookup
+    const fetchedProductsMap = new Map(
+      fetchedProducts.map((p) => [p.id, p])
+    );
+
+    // Transform all products
+    const transformedProducts = await Promise.all(
+      wpProducts.map(async (wpProduct) => {
+        let productData = wpProduct;
+
+        // If this product needed fetching, use the fetched data
+        if (wpProduct.ID && !wpProduct.price) {
+          const fetchedData = fetchedProductsMap.get(wpProduct.ID);
+          if (fetchedData) {
+            productData = fetchedData;
+          } else {
+            console.warn(`Failed to fetch product ${wpProduct.ID}, using fallback`);
+          }
+        }
+
+        return await transformSingleProduct(productData, wpProduct);
+      })
+    );
+
+    return transformedProducts;
+  } catch (error) {
+    console.error("Error batch transforming products:", error);
+    // Fall back to individual transforms
+    return Promise.all(
+      wpProducts.map((wpProduct) => transformWordPressProduct(wpProduct))
+    );
+  }
+}
+
+// Helper function to transform a single product (shared logic)
+async function transformSingleProduct(productData: any, wpProduct: any) {
+  try {
     const productId = productData.id || productData.ID || wpProduct.ID;
 
     // Extract price data from WooCommerce response
@@ -204,10 +279,10 @@ export async function transformWordPressProduct(wpProduct: any) {
       featured_media: productData.featured_media || wpProduct.featured_media,
     };
   } catch (error) {
-    console.error("Error transforming product:", error);
+    console.error("Error transforming single product:", error);
     // Return basic fallback data
-    const productId = wpProduct.ID || wpProduct.id;
-    const fallbackSlug = wpProduct.post_name || wpProduct.slug || "";
+    const productId = wpProduct.ID || wpProduct.id || productData.id;
+    const fallbackSlug = wpProduct.post_name || wpProduct.slug || productData.slug || "";
     
     // Convert WordPress link to relative URL if available
     let fallbackPermalink = `/product/${fallbackSlug}`;
@@ -222,7 +297,7 @@ export async function transformWordPressProduct(wpProduct: any) {
     
     return {
       id: productId,
-      name: wpProduct.post_title || wpProduct.name || "Product",
+      name: wpProduct.post_title || wpProduct.name || productData.name || "Product",
       slug: fallbackSlug,
       permalink: fallbackPermalink,
       price: "0",
@@ -232,7 +307,7 @@ export async function transformWordPressProduct(wpProduct: any) {
         {
           id: productId,
           src: `https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`,
-          alt: wpProduct.post_title || wpProduct.name || "",
+          alt: wpProduct.post_title || wpProduct.name || productData.name || "",
         },
       ],
       short_description: wpProduct.post_excerpt || "",
@@ -242,6 +317,38 @@ export async function transformWordPressProduct(wpProduct: any) {
       categories: [],
       featured_media: wpProduct.featured_media,
     };
+  }
+}
+
+// Transform WordPress product data to our format (single product - kept for backwards compatibility)
+export async function transformWordPressProduct(wpProduct: any) {
+  try {
+    // If we received product data from ACF (WordPress post type),
+    // we need to fetch the full WooCommerce product data
+    let productData = wpProduct;
+
+    // Check if this is ACF data (has ID or post_title) vs WooCommerce data (has id and name)
+    if (wpProduct.ID && !wpProduct.price) {
+      // This is ACF data, fetch full WooCommerce product
+      console.log(`Fetching WooCommerce data for product ID: ${wpProduct.ID}`);
+      try {
+        productData = await getProductById(wpProduct.ID);
+      } catch (error) {
+        console.error(
+          `Failed to fetch WooCommerce data for product ${wpProduct.ID}:`,
+          error
+        );
+        // Fall back to ACF data
+        productData = wpProduct;
+      }
+    }
+
+    // Use the shared transform logic
+    return await transformSingleProduct(productData, wpProduct);
+  } catch (error) {
+    console.error("Error transforming product:", error);
+    // Use the shared transform logic for fallback
+    return await transformSingleProduct({}, wpProduct);
   }
 }
 

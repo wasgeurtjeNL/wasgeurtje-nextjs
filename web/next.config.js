@@ -60,10 +60,10 @@ const nextConfig = {
         source: '/wp-json/acf/:path*',
         destination: `${apiBaseUrl}/wp-json/acf/:path*`,
       },
-      // WordPress uploads (images)
+      // WordPress content (includes plugins, themes, uploads)
       {
-        source: '/wp-content/uploads/:path*',
-        destination: `${apiBaseUrl}/wp-content/uploads/:path*`,
+        source: '/wp-content/:path*',
+        destination: `${apiBaseUrl}/wp-content/:path*`,
       },
     ];
   },
