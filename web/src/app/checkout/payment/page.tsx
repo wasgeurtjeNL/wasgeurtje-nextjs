@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -208,7 +208,7 @@ export default function PaymentPage({
   const createPaymentIntent = async (data: any) => {
     try {
       // GUARD: Don't create payment intent if cart is empty or subtotal is invalid
-      // This prevents creating a payment intent with only shipping costs (€4.95)
+      // This prevents creating a payment intent with only shipping costs (ï¿½4.95)
       if (!data.lineItems || data.lineItems.length === 0) {
         console.log("  Skipping payment intent creation: No line items");
         setLoading(false);
