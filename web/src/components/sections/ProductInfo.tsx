@@ -149,34 +149,56 @@ const ProductInfo: React.FC<ProductDetailsCustomProps> = ({ productInfo }) => {
                 Wij beloven je:
               </h2>
               <ul className="md:grid md:grid-cols-2">
-                {bottomCheck?.map((item: any, index: number) => (
-                  <li
-                    key={index}
-                    className="text-black flex  gap-2 mb-2 items-start"
-                  >
-                    <span>
-                      <svg
-                        width="20"
-                        height="21"
-                        viewBox="0 0 20 21"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M10 20.79C15.5228 20.79 20 16.3129 20 10.79C20 5.26719 15.5228 0.790039 10 0.790039C4.47715 0.790039 0 5.26719 0 10.79C0 16.3129 4.47715 20.79 10 20.79Z"
-                          fill="#D6AD61"
-                        ></path>
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M13.9224 9.15697C14.2478 8.83153 14.2478 8.30388 13.9224 7.97845C13.5969 7.65302 13.0693 7.65302 12.7439 7.97845L9.44423 11.2781L7.81126 9.64511C7.48582 9.31968 6.95819 9.31968 6.63275 9.64511C6.30731 9.97055 6.30731 10.4982 6.63275 10.8236L8.85497 13.0458C9.18041 13.3713 9.70805 13.3713 10.0335 13.0458L13.9224 9.15697Z"
-                          fill="white"
-                        ></path>
-                      </svg>
-                    </span>
-                    {item.item}
-                  </li>
-                ))}
+                {bottomCheck?.map((item: any, index: number) => {
+                  // Fix onduidelijke verzendteksten
+                  let displayText = item.item;
+                  const lowerText = displayText.toLowerCase();
+                  
+                  // Detecteer verschillende verzend-gerelateerde teksten
+                  if (
+                    (lowerText.includes('gratis') && lowerText.includes('verzending')) ||
+                    (lowerText.includes('track') && lowerText.includes('trace'))
+                  ) {
+                    // Als het alleen "Gratis verzending" is zonder "boven €40"
+                    if (!lowerText.includes('40') && !lowerText.includes('vanaf')) {
+                      // Vervang met duidelijke tekst
+                      if (lowerText.includes('track') && lowerText.includes('1.95')) {
+                        displayText = 'Verzending €4,95 (gratis vanaf €40) 📦';
+                      } else {
+                        displayText = 'Gratis verzending vanaf €40 in NL & BE 📦';
+                      }
+                    }
+                  }
+                  
+                  return (
+                    <li
+                      key={index}
+                      className="text-black flex  gap-2 mb-2 items-start"
+                    >
+                      <span>
+                        <svg
+                          width="20"
+                          height="21"
+                          viewBox="0 0 20 21"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M10 20.79C15.5228 20.79 20 16.3129 20 10.79C20 5.26719 15.5228 0.790039 10 0.790039C4.47715 0.790039 0 5.26719 0 10.79C0 16.3129 4.47715 20.79 10 20.79Z"
+                            fill="#D6AD61"
+                          ></path>
+                          <path
+                            fillRule="evenodd"
+                            clipRule="evenodd"
+                            d="M13.9224 9.15697C14.2478 8.83153 14.2478 8.30388 13.9224 7.97845C13.5969 7.65302 13.0693 7.65302 12.7439 7.97845L9.44423 11.2781L7.81126 9.64511C7.48582 9.31968 6.95819 9.31968 6.63275 9.64511C6.30731 9.97055 6.30731 10.4982 6.63275 10.8236L8.85497 13.0458C9.18041 13.3713 9.70805 13.3713 10.0335 13.0458L13.9224 9.15697Z"
+                            fill="white"
+                          ></path>
+                        </svg>
+                      </span>
+                      {displayText}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>

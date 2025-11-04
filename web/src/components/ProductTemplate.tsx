@@ -1938,9 +1938,29 @@ export default function ProductTemplate({
                       {product.bottom_check_title || "Wij beloven je"}
                     </h4>
                     <div className="space-y-2">
-                      {product.bottom_check.map((check, index) => (
-                        <CheckmarkItem key={index} text={check.item} />
-                      ))}
+                      {product.bottom_check.map((check, index) => {
+                        // Fix onduidelijke verzendteksten
+                        let displayText = check.item;
+                        const lowerText = displayText.toLowerCase();
+                        
+                        // Detecteer verschillende verzend-gerelateerde teksten
+                        if (
+                          (lowerText.includes('gratis') && lowerText.includes('verzending')) ||
+                          (lowerText.includes('track') && lowerText.includes('trace'))
+                        ) {
+                          // Als het alleen "Gratis verzending" is zonder "boven €40"
+                          if (!lowerText.includes('40') && !lowerText.includes('vanaf')) {
+                            // Vervang met duidelijke tekst
+                            if (lowerText.includes('track') && lowerText.includes('1.95')) {
+                              displayText = 'Verzending €4,95 (gratis vanaf €40) 📦';
+                            } else {
+                              displayText = 'Gratis verzending vanaf €40 in NL & BE 📦';
+                            }
+                          }
+                        }
+                        
+                        return <CheckmarkItem key={index} text={displayText} />;
+                      })}
                     </div>
                   </div>
                 )}
