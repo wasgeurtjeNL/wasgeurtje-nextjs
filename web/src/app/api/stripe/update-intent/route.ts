@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = initializeStripe();
+    // stripe is already initialized at line 115, no need to declare again
 
     // Calculate total amount by fetching product prices from WooCommerce
     let subtotal = 0;
