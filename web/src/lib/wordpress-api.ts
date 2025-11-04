@@ -26,9 +26,14 @@ async function apiRequest(
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const headers: Record<string, string> = {
-        "Content-Type": "application/json",
         ...((options.headers as Record<string, string>) || {}),
       };
+
+      // Only add Content-Type for POST/PUT/PATCH requests
+      const method = (options.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'PATCH'].includes(method)) {
+        headers["Content-Type"] = "application/json";
+      }
 
       // Add WooCommerce authentication if needed
       if (useWooCommerceAuth) {
