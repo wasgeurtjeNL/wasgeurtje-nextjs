@@ -207,6 +207,25 @@ export default function PaymentPage({
 
   const createPaymentIntent = async (data: any) => {
     try {
+      // GUARD: Don't create payment intent if cart is empty or subtotal is invalid
+      // This prevents creating a payment intent with only shipping costs (€4.95)
+      if (!data.lineItems || data.lineItems.length === 0) {
+        console.log("  Skipping payment intent creation: No line items");
+        setLoading(false);
+        return;
+      }
+
+      // Check if totals exist and subtotal is a valid number > 0
+      const subtotal = data.totals?.subtotal;
+      if (!data.totals || typeof subtotal !== 'number' || subtotal <= 0 || isNaN(subtotal)) {
+        console.log("  Skipping payment intent creation: Invalid subtotal", {
+          totals: data.totals,
+          subtotal: subtotal,
+          subtotalType: typeof subtotal,
+        });
+        setLoading(false);
+        return;
+      }
       console.log("ðŸ’³ Creating payment intent with data:", {
         hasAppliedDiscount: !!data.appliedDiscount,
         appliedDiscount: data.appliedDiscount,
