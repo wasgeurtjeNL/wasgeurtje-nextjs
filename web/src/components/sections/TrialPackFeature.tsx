@@ -49,14 +49,19 @@ export default function TrialPackFeature() {
           throw new Error("Product not found");
         }
 
+        // Map WooCommerce API response to Product type
+        const productImage = item.images && item.images.length > 0 
+          ? item.images[0].src 
+          : "/figma/trial-pack.png";
+
         setProduct({
-          id: item.id?.toString?.() || "1893",
-          slug: item.slug,
-          title: item.title,
-          image: item.image || "/figma/trial-pack.png",
+          id: item.id?.toString?.() || "334999",
+          slug: item.slug || "",
+          title: item.name || "Trial Pack",
+          image: productImage,
           price: formatPrice(String(item.price ?? "0")),
           scents: [],
-          description: item.description || "",
+          description: item.short_description || item.description || "",
         });
 
         setLoading(false);
@@ -222,7 +227,7 @@ export default function TrialPackFeature() {
             dangerouslySetInnerHTML={{
               __html:
                 product.description ||
-                "Not sure which fragrance to choose? Find your favorite with our best seller trial pack.",
+                "Niet zeker welke geur je moet kiezen? Vind je favoriet met ons best verkochte proefpakket.",
             }}
           />
 

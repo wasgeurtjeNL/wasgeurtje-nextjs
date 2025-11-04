@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
+    const ids = searchParams.get('ids');
     const per_page = searchParams.get('per_page') || '10';
     
     if (!CK || !CS) {
@@ -35,8 +36,13 @@ export async function GET(request: NextRequest) {
     if (search) {
       url.searchParams.append('search', search);
     }
+    
+    // Support fetching by IDs (comma-separated)
+    if (ids) {
+      url.searchParams.append('include', ids);
+    }
 
-    console.log('[WooCommerce API] Fetching products:', { search, per_page });
+    console.log('[WooCommerce API] Fetching products:', { search, ids, per_page });
 
     const response = await fetch(url.toString(), {
       headers: wcHeaders(),
