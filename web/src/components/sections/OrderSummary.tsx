@@ -361,10 +361,10 @@ export default function OrderSummary({
                 </div>
                 <div className="text-sm font-medium">
                   <span className="text-gray-500">
-                    €{item.price.toFixed(2)} × {item.quantity} ={" "}
+                    €{typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)} × {item.quantity} ={" "}
                   </span>
                   <span className="text-[#814e1e] font-semibold">
-                    €{(item.price * item.quantity).toFixed(2)}
+                    €{((typeof item.price === 'number' ? item.price : parseFloat(item.price || 0)) * item.quantity).toFixed(2)}
                   </span>
                 </div>
               </div>

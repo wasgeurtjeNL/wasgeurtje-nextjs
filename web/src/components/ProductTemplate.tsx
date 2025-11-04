@@ -1148,7 +1148,7 @@ export default function ProductTemplate({
                   {product.title}
                 </h3>
                 <p className="text-lg font-bold text-[#814E1E]">
-                  €{getCurrentPrice().toFixed(2).replace(".", ",")}
+                  €{(typeof getCurrentPrice() === 'number' ? getCurrentPrice() : parseFloat(getCurrentPrice() || 0)).toFixed(2).replace(".", ",")}
                 </p>
               </div>
             </div>
@@ -1385,7 +1385,7 @@ export default function ProductTemplate({
                     className="text-2xl font-bold"
                     style={{ color: "#000000" }}
                   >
-                    {basePrice.toFixed(2).replace(".", ",")}
+                    {(typeof basePrice === 'number' ? basePrice : parseFloat(basePrice || 0)).toFixed(2).replace(".", ",")}
                   </span>
                 </div>
                 <div className="bg-[#F8F6F0] px-4 py-1.5 rounded-full border border-[#D6AD61] flex-grow text-center">
@@ -1663,7 +1663,7 @@ export default function ProductTemplate({
                                 className="text-xl font-bold"
                                 style={{ color: "#814E1E" }}
                               >
-                                €{basePrice.toFixed(2)}
+                                €{(typeof basePrice === 'number' ? basePrice : parseFloat(basePrice || 0)).toFixed(2)}
                               </span>
                             </div>
                           </div>
@@ -1733,16 +1733,16 @@ export default function ProductTemplate({
                                 className="text-xl font-bold"
                                 style={{ color: "#814E1E" }}
                               >
-                                €{bundles.duo.price.toFixed(2)}
+                                €{typeof bundles.duo.price === 'number' ? bundles.duo.price.toFixed(2) : parseFloat(bundles.duo.price || 0).toFixed(2)}
                               </span>
                               <div className="text-sm text-gray-500 line-through">
-                                €{bundles.duo.originalPrice.toFixed(2)}
+                                €{typeof bundles.duo.originalPrice === 'number' ? bundles.duo.originalPrice.toFixed(2) : parseFloat(bundles.duo.originalPrice || 0).toFixed(2)}
                               </div>
                               <div
                                 className="text-xs"
                                 style={{ color: "#D6AD61" }}
                               >
-                                €{bundles.duo.perItem.toFixed(2)} per stuk
+                                €{typeof bundles.duo.perItem === 'number' ? bundles.duo.perItem.toFixed(2) : parseFloat(bundles.duo.perItem || 0).toFixed(2)} per stuk
                               </div>
                             </div>
                           </div>
@@ -1814,7 +1814,7 @@ export default function ProductTemplate({
                                   className="text-sm ml-2 font-bold"
                                   style={{ color: "#D6AD61" }}
                                 >
-                                  Bespaar €{bundles.trio.savings.toFixed(2)}
+                                  Bespaar €{typeof bundles.trio.savings === 'number' ? bundles.trio.savings.toFixed(2) : parseFloat(bundles.trio.savings || 0).toFixed(2)}
                                 </span>
                               </div>
                             </div>
@@ -1823,16 +1823,16 @@ export default function ProductTemplate({
                                 className="text-2xl font-bold"
                                 style={{ color: "#814E1E" }}
                               >
-                                €{bundles.trio.price.toFixed(2)}
+                                €{typeof bundles.trio.price === 'number' ? bundles.trio.price.toFixed(2) : parseFloat(bundles.trio.price || 0).toFixed(2)}
                               </span>
                               <div className="text-sm text-gray-500 line-through">
-                                €{bundles.trio.originalPrice.toFixed(2)}
+                                €{typeof bundles.trio.originalPrice === 'number' ? bundles.trio.originalPrice.toFixed(2) : parseFloat(bundles.trio.originalPrice || 0).toFixed(2)}
                               </div>
                               <div
                                 className="text-sm font-medium"
                                 style={{ color: "#D6AD61" }}
                               >
-                                Slechts €{bundles.trio.perItem.toFixed(2)} per
+                                Slechts €{typeof bundles.trio.perItem === 'number' ? bundles.trio.perItem.toFixed(2) : parseFloat(bundles.trio.perItem || 0).toFixed(2)} per
                                 stuk!
                               </div>
                             </div>
@@ -1851,18 +1851,18 @@ export default function ProductTemplate({
                       className="text-3xl font-bold"
                       style={{ color: "#814E1E" }}
                     >
-                      €{getCurrentPrice().toFixed(2)}
+                      €{(typeof getCurrentPrice() === 'number' ? getCurrentPrice() : parseFloat(getCurrentPrice() || 0)).toFixed(2)}
                     </span>
                     {getCurrentSavings() > 0 && (
                       <>
                         <span className="text-lg text-gray-500 line-through">
-                          €{bundles[selectedBundle].originalPrice.toFixed(2)}
+                          €{typeof bundles[selectedBundle].originalPrice === 'number' ? bundles[selectedBundle].originalPrice.toFixed(2) : parseFloat(bundles[selectedBundle].originalPrice || 0).toFixed(2)}
                         </span>
                         <span
                           className="text-white px-3 py-1 rounded-full text-sm font-bold"
                           style={{ backgroundColor: "#814E1E" }}
                         >
-                          BESPAAR €{getCurrentSavings().toFixed(2)}
+                          BESPAAR €{typeof getCurrentSavings() === 'number' ? getCurrentSavings().toFixed(2) : parseFloat(getCurrentSavings() || 0).toFixed(2)}
                         </span>
                       </>
                     )}
@@ -1881,7 +1881,7 @@ export default function ProductTemplate({
 
                   {selectedBundle !== "single" && (
                     <div className="text-sm" style={{ color: "#814E1E" }}>
-                      💰 Je bespaart €{getCurrentSavings().toFixed(2)} |{" "}
+                      💰 Je bespaart €{(typeof getCurrentSavings() === 'number' ? getCurrentSavings() : parseFloat(getCurrentSavings() || 0)).toFixed(2)} |{" "}
                       {bundles[selectedBundle].quantity}x 40+ wasbeurten
                     </div>
                   )}

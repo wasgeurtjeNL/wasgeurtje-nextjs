@@ -203,7 +203,7 @@ export default function PersonalizedRecommendations() {
                 
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0 md:mt-4">
                   <span className="text-sm md:text-lg font-bold text-[#1a1a1a]">
-                    €{product.price.toFixed(2)}
+                    €{typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || 0).toFixed(2)}
                   </span>
                   
                   {/* Quick Add Button */}

@@ -2674,7 +2674,7 @@ export default function CheckoutPage() {
                   {/* Price and CTA */}
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
                     <p className="text-xs font-bold whitespace-nowrap leading-tight">
-                      €{personalizedSuggestion.price.toFixed(2)}
+                      €{typeof personalizedSuggestion.price === 'number' ? personalizedSuggestion.price.toFixed(2) : parseFloat(personalizedSuggestion.price || 0).toFixed(2)}
                     </p>
                     <button
                       onClick={handleAddPersonalizedSuggestion}
@@ -4718,10 +4718,10 @@ export default function CheckoutPage() {
                                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                                     <div className="flex flex-col">
                                       <span className="text-xs text-gray-500">
-                                        €{item.price.toFixed(2)} per stuk
+                                        €{typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)} per stuk
                                       </span>
                                       <span className="text-lg font-bold text-[#d7aa43] mt-0.5">
-                                        €{(item.price * item.quantity).toFixed(2)}
+                                        €{((typeof item.price === 'number' ? item.price : parseFloat(item.price || 0)) * item.quantity).toFixed(2)}
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
@@ -6428,10 +6428,10 @@ export default function CheckoutPage() {
                             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                               <div className="flex flex-col">
                                 <span className="text-xs text-gray-500">
-                                  €{item.price.toFixed(2)} per stuk
+                                  €{typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)} per stuk
                                 </span>
                                 <span className="text-lg font-bold text-[#d7aa43] mt-0.5">
-                                  €{(item.price * item.quantity).toFixed(2)}
+                                  €{((typeof item.price === 'number' ? item.price : parseFloat(item.price || 0)) * item.quantity).toFixed(2)}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
