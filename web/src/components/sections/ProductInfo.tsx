@@ -650,7 +650,7 @@ const ProductInfo: React.FC<ProductDetailsCustomProps> = ({ productInfo }) => {
             </div>
 
             <p className="text-[#212529] font-normal text-[12px] lg:text-[14px] leading-[1.5] mb-6">
-              Gratis verzending naar NL & BE | Verdien 15 Wash Points
+              Bestel voor 23:59 vandaag verzonden NL & BE | Verdien 15 Wash Points
             </p>
 
             {/* Tabs */}
