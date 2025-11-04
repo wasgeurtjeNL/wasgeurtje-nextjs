@@ -2,11 +2,11 @@
 
 export default function ComparisonTable() {
   const features = [
-    "Long-Lasting Fragrance",
-    "Premium Scent Quality",
-    "Eco-Friendly & Paraben-Free",
-    "No Waxy or Sticky Residue",
-    "Safe For All Fabrics & Machines",
+    "Langdurige geur",
+    "Premium geurkwaliteit",
+    "Milieuvriendelijk & parabeenvrij",
+    "Geen wasachtig of plakkerig residu",
+    "Veilig voor alle stoffen & machines",
   ];
 
   const CheckIcon = () => (
@@ -43,7 +43,7 @@ export default function ComparisonTable() {
   return (
     <div className="px-4 py-3 max-w-7xl mx-auto sm:px-6 lg:px-8 my-12">
       <h2 className="font-eb-garamond font-semibold  text-[28px] md:text-[40px] mb-6 mt-2  text-[#814e1e] text-center leading-[1.2]">
-        Beyond Fabric Softener
+        Meer dan wasverzachter
       </h2>
 
       {/* ✅ Rounded wrapper + inside borders fixed */}
@@ -52,13 +52,13 @@ export default function ComparisonTable() {
           <thead>
             <tr>
               <th className="p-4 text-left text-lg font-semibold bg-white w-1/3 border border-[#D6AD6166]">
-                Feature
+                Eigenschap
               </th>
               <th className="p-4 text-center text-lg font-semibold bg-[#FCCE4E33] w-1/3 text-[#212529] border border-[#D6AD6166]">
-                Us
+                Wij
               </th>
               <th className="p-4 text-center text-lg font-semibold bg-[#D6AD611A] w-1/3 text-[#212529] border border-[#D6AD6166]">
-                Them
+                Anderen
               </th>
             </tr>
           </thead>

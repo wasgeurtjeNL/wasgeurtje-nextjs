@@ -349,7 +349,7 @@ export default function ProductDetails({ slug = "sample-product" }: { slug?: str
           {/* Availability + Perks */}
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <AvailabilityPill state={data.availability} />
-            <span className="text-sm text-gray-600">Free Shipping to NL & BE | Earn 15 Wash Points</span>
+            <span className="text-sm text-gray-600">Gratis verzending naar NL & BE | Verdien 15 Wash Points</span>
           </div>
 
           {/* Tabs */}

@@ -6725,7 +6725,7 @@ export default function CheckoutPage() {
                               {(
                                 (appliedDiscount ? calculateDiscount() : 0) +
                                 (FeatureFlags.ENABLE_VOLUME_DISCOUNT && subtotal >= 75 ? calculateVolumeDiscount() : 0) +
-                                (subtotal >= 40 ? 5.95 : 0)
+                                (subtotal >= 40 ? 4.95 : 0)
                               ).toFixed(2)}
                             </span>
                           </div>
