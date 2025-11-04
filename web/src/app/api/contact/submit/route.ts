@@ -22,7 +22,8 @@ async function sendEmailViaMandrill(data: ContactFormData) {
     throw new Error('Email service not configured');
   }
 
-  const message = {
+  // Mandrill API expects the payload in a specific format
+  const payload = {
     key: MANDRILL_API_KEY,
     message: {
       from_email: FROM_EMAIL,
@@ -34,30 +35,36 @@ async function sendEmailViaMandrill(data: ContactFormData) {
           type: 'to'
         }
       ],
-      subject: `Contact Form: ${data.subject}`,
+      subject: `Contactformulier: ${data.subject}`,
       html: `
-        <h2>Nieuw contactformulier bericht</h2>
-        <p><strong>Naam:</strong> ${data.name}</p>
-        <p><strong>Email:</strong> ${data.email}</p>
-        ${data.phone ? `<p><strong>Telefoon:</strong> ${data.phone}</p>` : ''}
-        ${data.orderNumber ? `<p><strong>Ordernummer:</strong> ${data.orderNumber}</p>` : ''}
-        <p><strong>Onderwerp:</strong> ${data.subject}</p>
-        <hr>
-        <p><strong>Bericht:</strong></p>
-        <p>${data.message.replace(/\n/g, '<br>')}</p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            h2 { color: #d6ad61; }
+            .field { margin-bottom: 15px; }
+            .field strong { display: inline-block; width: 120px; }
+            hr { border: none; border-top: 2px solid #e9c356; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2>📬 Nieuw Contactformulier Bericht</h2>
+            <div class="field"><strong>Naam:</strong> ${data.name}</div>
+            <div class="field"><strong>Email:</strong> ${data.email}</div>
+            ${data.phone ? `<div class="field"><strong>Telefoon:</strong> ${data.phone}</div>` : ''}
+            ${data.orderNumber ? `<div class="field"><strong>Ordernummer:</strong> ${data.orderNumber}</div>` : ''}
+            <div class="field"><strong>Onderwerp:</strong> ${data.subject}</div>
+            <hr>
+            <h3>Bericht:</h3>
+            <p>${data.message.replace(/\n/g, '<br>')}</p>
+          </div>
+        </body>
+        </html>
       `,
-      text: `
-        Nieuw contactformulier bericht
-        
-        Naam: ${data.name}
-        Email: ${data.email}
-        ${data.phone ? `Telefoon: ${data.phone}\n` : ''}
-        ${data.orderNumber ? `Ordernummer: ${data.orderNumber}\n` : ''}
-        Onderwerp: ${data.subject}
-        
-        Bericht:
-        ${data.message}
-      `,
+      text: `Nieuw contactformulier bericht\n\nNaam: ${data.name}\nEmail: ${data.email}\n${data.phone ? `Telefoon: ${data.phone}\n` : ''}${data.orderNumber ? `Ordernummer: ${data.orderNumber}\n` : ''}Onderwerp: ${data.subject}\n\nBericht:\n${data.message}`,
       headers: {
         'Reply-To': data.email
       },
@@ -67,21 +74,44 @@ async function sendEmailViaMandrill(data: ContactFormData) {
     }
   };
 
+  console.log('📧 Mandrill payload ready, API key present:', !!MANDRILL_API_KEY);
+
+  console.log('📧 Sending email via Mandrill to:', ADMIN_EMAIL);
+  
   const response = await fetch(MANDRILL_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(message),
+    body: JSON.stringify(payload),
   });
 
+  const responseData = await response.json();
+  
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error('Mandrill API error:', errorData);
-    throw new Error('Failed to send email via Mandrill');
+    console.error('❌ Mandrill API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: responseData
+    });
+    throw new Error(`Mandrill API error: ${responseData.message || response.statusText}`);
   }
 
-  return await response.json();
+  // Check for Mandrill specific errors in successful response
+  if (Array.isArray(responseData) && responseData[0]) {
+    const result = responseData[0];
+    if (result.status === 'rejected' || result.status === 'invalid') {
+      console.error('❌ Mandrill rejected email:', result);
+      throw new Error(`Email rejected: ${result.reject_reason || 'Unknown reason'}`);
+    }
+    console.log('✅ Mandrill email sent:', {
+      status: result.status,
+      id: result._id,
+      recipient: result.email
+    });
+  }
+
+  return responseData;
 }
 
 export async function POST(request: NextRequest) {
