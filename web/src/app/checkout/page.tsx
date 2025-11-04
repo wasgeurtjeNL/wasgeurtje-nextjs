@@ -5968,7 +5968,7 @@ export default function CheckoutPage() {
                                         });
                                       }}
                                       className="px-3 py-1.5 bg-gradient-to-r from-[#d7aa43] via-[#e8b960] to-[#c29635] text-white text-xs font-semibold rounded-lg hover:shadow-lg hover:shadow-[#d7aa43]/40 hover:scale-105 hover:from-[#e8b960] hover:to-[#d7aa43] transition-all duration-300 shadow-md border border-[#f5d68a]/30 hover:border-[#f5d68a]/50"
-                                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}
+                                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}
                                     >
                                       Toevoegen
                                     </button>
