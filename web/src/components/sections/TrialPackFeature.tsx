@@ -224,12 +224,9 @@ export default function TrialPackFeature() {
                 ? "text-[16px]"
                 : "text-[18px]"
             } leading-[1.6] max-w-[1040px] w-full`}
-            dangerouslySetInnerHTML={{
-              __html:
-                product.description ||
-                "Niet zeker welke geur je moet kiezen? Vind je favoriet met ons best verkochte proefpakket.",
-            }}
-          />
+          >
+            Niet zeker welke geur je moet kiezen? Vind je favoriet met ons best verkochte proefpakket.
+          </div>
 
           <div className="w-full">
             <HorizontalLine />
@@ -273,7 +270,7 @@ export default function TrialPackFeature() {
                 : "text-[14px]"
             } leading-[1.6] break-words`}
           >
-            *2-4 washes per bottle, depending on your preferred scent strength.*
+            *2-4 wasbeurten per flesje, afhankelijk van jouw gewenste geursterkte.*
           </div>
         </div>
 
