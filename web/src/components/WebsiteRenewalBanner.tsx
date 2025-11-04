@@ -115,16 +115,24 @@ export default function WebsiteRenewalBanner() {
                     <h3 className="font-bold text-blue-900 mb-1 text-base sm:text-lg leading-tight">
                       Vragen of Problemen?
                     </h3>
-                    <p className="text-blue-800 text-xs sm:text-sm mb-2 leading-relaxed">
+                    <p className="text-blue-800 text-xs sm:text-sm mb-3 leading-relaxed">
                       Ons team staat voor je klaar!
                     </p>
-                    <a
-                      href="mailto:info@wasgeurtje.nl"
-                      className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors text-sm sm:text-base break-all"
-                    >
-                      <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="truncate">info@wasgeurtje.nl</span>
-                    </a>
+                    <div className="flex flex-col gap-2">
+                      <a
+                        href="/contact"
+                        className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors text-sm sm:text-base"
+                      >
+                        📝 Ga naar contactformulier
+                      </a>
+                      <a
+                        href="mailto:info@wasgeurtje.nl"
+                        className="inline-flex items-center gap-1.5 sm:gap-2 text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-colors text-xs sm:text-sm break-all"
+                      >
+                        <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">info@wasgeurtje.nl</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
