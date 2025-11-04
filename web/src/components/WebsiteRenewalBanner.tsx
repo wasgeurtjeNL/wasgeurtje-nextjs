@@ -42,17 +42,16 @@ export default function WebsiteRenewalBanner() {
 
   return (
     <>
-      {/* Backdrop overlay */}
+      {/* Backdrop overlay - allow clicks through to content below */}
       <div 
-        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998] transition-opacity duration-300 pointer-events-none ${
           isAnimatingOut ? 'opacity-0' : 'opacity-100'
         }`}
-        onClick={handleClose}
       />
 
-      {/* Banner */}
+      {/* Banner - re-enable pointer events on banner itself */}
       <div
-        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[95%] sm:w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto transition-all duration-300 ${
+        className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[95%] sm:w-[90%] max-w-2xl max-h-[90vh] overflow-y-auto transition-all duration-300 pointer-events-auto ${
           isAnimatingOut 
             ? 'opacity-0 scale-95' 
             : 'opacity-100 scale-100'
