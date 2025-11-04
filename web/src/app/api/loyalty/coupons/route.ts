@@ -50,7 +50,8 @@ export async function GET(request: NextRequest) {
     // DEBUG: Fetching loyalty coupons for: ${email}`);
     
     // Fetch all coupons from WooCommerce
-    const response = await fetch('https://wasgeurtje.nl/wp-json/wc/v3/coupons?per_page=100&orderby=date&order=desc', {
+    const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
+    const response = await fetch(`${WORDPRESS_API_URL}/wp-json/wc/v3/coupons?per_page=100&orderby=date&order=desc`, {
       headers: {
         'Authorization': getWooCommerceAuthHeader(),
         'Content-Type': 'application/json'
@@ -155,7 +156,8 @@ export async function DELETE(request: NextRequest) {
     // DEBUG: Invalidating coupon ${couponId} for ${email}`);
     
     // Set usage limit to 0 to effectively disable the coupon
-    const response = await fetch(`https://wasgeurtje.nl/wp-json/wc/v3/coupons/${couponId}`, {
+    const WORDPRESS_API_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl';
+    const response = await fetch(`${WORDPRESS_API_URL}/wp-json/wc/v3/coupons/${couponId}`, {
       method: 'PUT',
       headers: {
         'Authorization': getWooCommerceAuthHeader(),
