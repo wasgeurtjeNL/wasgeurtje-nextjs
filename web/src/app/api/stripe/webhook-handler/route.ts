@@ -204,6 +204,9 @@ export async function POST(request: NextRequest) {
     const event = body;
 
     console.log('📡 Received webhook event:', event.type, event.data?.object?.id);
+    
+    // Add webhook processing timestamp for debugging
+    const webhookStartTime = Date.now();
 
     // Handle payment_intent.succeeded event
     if (event.type === 'payment_intent.succeeded') {
@@ -250,7 +253,90 @@ export async function POST(request: NextRequest) {
           totals
         });
 
-        // Create WooCommerce order
+        // 🎯 NEW APPROACH: Check if order was pre-created
+        const orderNumber = metadata.woocommerce_order_number;
+        const orderId = metadata.woocommerce_order_id;
+        
+        if (orderNumber && orderId) {
+          // Order was pre-created, just update status to completed
+          console.log(`🔄 Updating pre-created order #${orderNumber} to completed status`);
+          
+          const updateResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
+            method: 'PUT',
+            headers: wcHeaders(),
+            body: JSON.stringify({
+              status: 'completed',
+              set_paid: true,
+              transaction_id: paymentIntent.id,
+              payment_method_title: 'Stripe (Completed)',
+              meta_data: [
+                {
+                  key: '_stripe_payment_intent_id',
+                  value: paymentIntent.id,
+                },
+                {
+                  key: '_payment_completed_at',
+                  value: new Date().toISOString(),
+                },
+                {
+                  key: '_webhook_processed_at',
+                  value: new Date().toISOString(),
+                }
+              ]
+            })
+          });
+          
+          if (updateResponse.ok) {
+            const updatedOrder = await updateResponse.json();
+            const processingTime = Date.now() - webhookStartTime;
+            
+            console.log(`✅ Order #${orderNumber} updated to completed in ${processingTime}ms`);
+            
+            return NextResponse.json({
+              success: true,
+              orderId: updatedOrder.id,
+              orderNumber: updatedOrder.number,
+              paymentIntentId: paymentIntent.id,
+              simulation: isSimulation,
+              processingTime,
+              message: `Pre-created order #${orderNumber} updated to completed in ${processingTime}ms`,
+              approach: 'pre_order_update'
+            });
+          } else {
+            console.error(`⚠️ Failed to update pre-created order #${orderNumber}, falling back to creation`);
+          }
+        }
+        
+        // FALLBACK: Check for existing orders (duplicate prevention)
+        const existingOrderCheck = await fetch(
+          `${WC_API_URL}/orders?meta_key=_stripe_payment_intent_id&meta_value=${paymentIntent.id}&per_page=1`,
+          {
+            method: 'GET',
+            headers: wcHeaders(),
+          }
+        );
+        
+        if (existingOrderCheck.ok) {
+          const existingOrders = await existingOrderCheck.json();
+          if (existingOrders && existingOrders.length > 0) {
+            const existingOrder = existingOrders[0];
+            console.log(`✅ Order already exists: #${existingOrder.number} (ID: ${existingOrder.id}) - skipping creation`);
+            
+            return NextResponse.json({
+              success: true,
+              orderId: existingOrder.id,
+              orderNumber: existingOrder.number,
+              paymentIntentId: paymentIntent.id,
+              simulation: isSimulation,
+              message: `Existing order found (duplicate prevention) - #${existingOrder.number}`,
+              processingTime: Date.now() - webhookStartTime,
+              approach: 'existing_order_found'
+            });
+          }
+        }
+
+        // Create WooCommerce order (only if doesn't exist)
+        console.log('🏪 Creating new WooCommerce order...');
         const order = await createWooCommerceOrder(
           paymentIntent.id,
           lineItems,
@@ -280,9 +366,12 @@ export async function POST(request: NextRequest) {
           // Don't fail the whole process if this update fails
         }
 
+        const processingTime = Date.now() - webhookStartTime;
         console.log('🎉 Order processing completed successfully:', {
           paymentIntentId: paymentIntent.id,
           wooCommerceOrderId: order.id,
+          orderNumber: order.number,
+          processingTime: `${processingTime}ms`,
           simulation: isSimulation
         });
 
@@ -292,7 +381,9 @@ export async function POST(request: NextRequest) {
           orderNumber: order.number,
           paymentIntentId: paymentIntent.id,
           simulation: isSimulation,
-          message: `Order created successfully ${isSimulation ? '(simulated)' : '(real webhook)'}`
+          processingTime,
+          message: `Order #${order.number} created successfully ${isSimulation ? '(simulated)' : '(real webhook)'} in ${processingTime}ms`,
+          approach: 'new_order_creation'
         });
 
       } catch (error) {

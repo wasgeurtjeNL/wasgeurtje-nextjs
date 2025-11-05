@@ -125,54 +125,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if order already exists to prevent duplicates
-    // DEBUG: 🔍 Checking for existing order with payment intent:', paymentIntentId);
-    // try {
-    //   const existingResponse = await fetch(
-    //     `${WC_API_URL}/orders?meta_key=_stripe_payment_intent_id&meta_value=${paymentIntentId}&per_page=1`,
-    //     {
-    //       method: "GET",
-    //       headers: wcHeaders(),
-    //     }
-    //   );
-
-    //   if (existingResponse.ok) {
-    //     const existingOrders = await existingResponse.json();
-    //     if (existingOrders && existingOrders.length > 0) {
-    //       const existingOrder = existingOrders[0];
-    //       // DEBUG: ✅ Found existing order, returning it instead of creating duplicate:', existingOrder.id);
-
-    //       return NextResponse.json({
-    //         success: true,
-    //         orderId: existingOrder.id,
-    //         orderNumber: existingOrder.number,
-    //         paymentIntentId: paymentIntentId,
-    //         message: "Existing order found (duplicate prevention)",
-    //         order: {
-    //           id: existingOrder.id,
-    //           number: existingOrder.number,
-    //           status: existingOrder.status,
-    //           total: existingOrder.total,
-    //           date_created: existingOrder.date_created,
-    //         },
-    //       });
-    //     }
-    //   }
-    // } catch (checkError) {
-    //   console.log(
-    //     "⚠️ Could not check for existing orders, proceeding with creation:",
-    //     checkError
-    //   );
-    // }
-
-    // 🟢 FIXED VERSION - Just check but don't block order creation
-    console.log(
-      "🔍 Checking for existing orders with payment intent:",
-      paymentIntentId
-    );
+    // 🛡️ ENHANCED RACE CONDITION PREVENTION
+    console.log(`🔍 Checking for existing orders with payment intent: ${paymentIntentId}`);
+    
     try {
+      // Use a more specific search to find orders
       const existingResponse = await fetch(
-        `${WC_API_URL}/orders?meta_key=_stripe_payment_intent_id&meta_value=${paymentIntentId}&per_page=1`,
+        `${WC_API_URL}/orders?meta_key=_stripe_payment_intent_id&meta_value=${paymentIntentId}&per_page=10`,
         {
           method: "GET",
           headers: wcHeaders(),
@@ -181,26 +140,45 @@ export async function POST(request: NextRequest) {
 
       if (existingResponse.ok) {
         const existingOrders = await existingResponse.json();
-        console.log("🔍 Found existing orders:", existingOrders?.length || 0);
+        const orderCount = existingOrders?.length || 0;
+        
+        console.log(`🔍 Found ${orderCount} existing orders for payment intent ${paymentIntentId}`);
 
-        if (existingOrders && existingOrders.length > 0) {
-          console.log("⚠️ Existing orders found but creating new one anyway");
-          // Log the existing orders but continue to create new order
+        if (orderCount > 0) {
+          const existingOrder = existingOrders[0];
+          
+          // Log all existing orders for debugging
           existingOrders.forEach((order: any, index: number) => {
-            console.log(
-              `  ${index + 1}. Order ${order.id} - Total: ${
-                order.total
-              } - Status: ${order.status}`
-            );
+            console.log(`  ${index + 1}. Order #${order.number} (ID: ${order.id}) - Total: €${order.total} - Status: ${order.status} - Created: ${order.date_created}`);
+          });
+          
+          // Return the existing order instead of creating duplicate
+          console.log(`✅ Returning existing order #${existingOrder.number} to prevent duplicate`);
+          
+          return NextResponse.json({
+            success: true,
+            orderId: existingOrder.id,
+            orderNumber: existingOrder.number,
+            paymentIntentId: paymentIntentId,
+            message: `Existing order found (duplicate prevention) - #${existingOrder.number}`,
+            order: {
+              id: existingOrder.id,
+              number: existingOrder.number,
+              status: existingOrder.status,
+              total: existingOrder.total,
+              date_created: existingOrder.date_created,
+            },
+            duplicateCount: orderCount,
+            approach: 'duplicate_prevention'
           });
         }
       }
     } catch (checkError) {
-      console.log("⚠️ Could not check for existing orders:", checkError);
+      console.log("⚠️ Could not check for existing orders, proceeding with creation:", checkError);
     }
 
-    // 🟢 CONTINUE WITH ORDER CREATION REGARDLESS
-    console.log("🚀 Proceeding with new order creation...");
+    // 🟢 PROCEED WITH ORDER CREATION (only if no existing order found)
+    console.log("🚀 No existing order found, proceeding with new order creation...");
 
     // Prepare line items for WooCommerce
     // const wcLineItems = lineItems.map(item => ({
@@ -412,7 +390,7 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       orderNumber: order.number,
       paymentIntentId: paymentIntentId,
-      message: "Bestelling succesvol aangemaakt in WooCommerce",
+      message: `Bestelling succesvol aangemaakt in WooCommerce - Order #${order.number}`,
       order: {
         id: order.id,
         number: order.number,
@@ -420,6 +398,8 @@ export async function POST(request: NextRequest) {
         total: order.total,
         date_created: order.date_created,
       },
+      approach: 'direct_api_creation',
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
     console.error("❌ CRITICAL ERROR in WooCommerce order creation:", error);

@@ -45,9 +45,16 @@ export async function GET(request: NextRequest) {
     }
 
     const orders = await response.json();
-    // DEBUG: 📋 Found ${orders.length} orders for payment intent ${paymentIntentId}`);
+    console.log(`📋 Found ${orders.length} orders for payment intent ${paymentIntentId}`);
 
-    return NextResponse.json(orders);
+    return NextResponse.json({
+      success: true,
+      orders: orders,
+      count: orders.length,
+      paymentIntentId,
+      duplicatesDetected: orders.length > 1,
+      timestamp: new Date().toISOString()
+    });
 
   } catch (error) {
     console.error('Error searching orders:', error);
