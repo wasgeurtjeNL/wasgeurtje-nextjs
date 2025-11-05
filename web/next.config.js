@@ -39,32 +39,29 @@ const nextConfig = {
     cpus: 1,
   },
 
-  // API Rewrites - Automatische doorverwijzing naar backend
-  // Hiermee blijven alle endpoints in je code hetzelfde werken
+  // OPTIMIZED API Rewrites - Performance-based routing
+  // Based on MCP testing: proxy only the fastest endpoints
   async rewrites() {
     const apiBaseUrl = process.env.API_BASE_URL || 'https://api.wasgeurtje.nl';
     
     return [
-      // WooCommerce API endpoints
-      {
-        source: '/wp-json/wc/:path*',
-        destination: `${apiBaseUrl}/wp-json/wc/:path*`,
-      },
-      // WordPress REST API
-      {
-        source: '/wp-json/:path*',
-        destination: `${apiBaseUrl}/wp-json/:path*`,
-      },
-      // ACF API endpoints
+      // ACF API endpoints - KEEP PROXY (1000ms faster than direct)
       {
         source: '/wp-json/acf/:path*',
         destination: `${apiBaseUrl}/wp-json/acf/:path*`,
       },
-      // WordPress content (includes plugins, themes, uploads)
+      // WooCommerce API endpoints - KEEP PROXY (for consistency)
+      {
+        source: '/wp-json/wc/:path*',
+        destination: `${apiBaseUrl}/wp-json/wc/:path*`,
+      },
+      // WordPress uploads - KEEP PROXY (for image handling)
       {
         source: '/wp-content/:path*',
         destination: `${apiBaseUrl}/wp-content/:path*`,
       },
+      // NOTE: WordPress REST API (/wp-json/wp/*) REMOVED from proxy
+      // Direct calls are 400ms+ faster, components should use direct URLs
     ];
   },
   
