@@ -259,18 +259,18 @@ export async function POST(request: NextRequest) {
         const orderId = metadata.woocommerce_order_id;
         
         if (orderNumber && orderId) {
-          // Order was pre-created, just update status to completed
-          console.log(`🔄 [STEP 3] Updating pre-created order #${orderNumber} to completed status`);
+          // Order was pre-created, just update status to processing
+          console.log(`🔄 [STEP 3] Updating pre-created order #${orderNumber} to processing status`);
           
           const updateStart = Date.now();
           const updateResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
             method: 'PUT',
             headers: wcHeaders(),
             body: JSON.stringify({
-              status: 'completed',
+              status: 'processing', // 🔧 CORRECT: processing, not completed
               set_paid: true,
               transaction_id: paymentIntent.id,
-              payment_method_title: 'Stripe (Completed)',
+              payment_method_title: 'Stripe (Processing)',
               meta_data: [
                 {
                   key: '_stripe_payment_intent_id',
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
           if (updateResponse.ok) {
             const updatedOrder = await updateResponse.json();
             
-            console.log(`✅ [STEP 3] Pre-created order #${orderNumber} updated to completed in ${updateTime}ms (total: ${totalProcessingTime}ms)`);
+            console.log(`✅ [STEP 3] Pre-created order #${orderNumber} updated to processing in ${updateTime}ms (total: ${totalProcessingTime}ms)`);
             
             return NextResponse.json({
               success: true,
@@ -304,7 +304,7 @@ export async function POST(request: NextRequest) {
               simulation: isSimulation,
               processingTime: totalProcessingTime,
               updateTime,
-              message: `Pre-created order #${orderNumber} updated to completed in ${totalProcessingTime}ms`,
+              message: `Pre-created order #${orderNumber} updated to processing in ${totalProcessingTime}ms`,
               approach: 'pre_order_update'
             });
           } else {

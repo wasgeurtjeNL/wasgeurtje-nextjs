@@ -26,12 +26,12 @@ export async function POST(request: NextRequest) {
     
     console.log(`🔧 Fixing order #${orderId} with PaymentIntent ${paymentIntentId}`);
     
-    // Update the order to completed status
+    // Update the order to PROCESSING status (correct status after payment)
     const updateResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
       method: 'PUT',
       headers: wcHeaders(),
       body: JSON.stringify({
-        status: 'completed',
+        status: 'processing', // 🔧 CORRECT: processing, not completed
         set_paid: true,
         transaction_id: paymentIntentId,
         payment_method: 'stripe',
