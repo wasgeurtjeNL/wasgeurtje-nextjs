@@ -263,29 +263,66 @@ export async function POST(request: NextRequest) {
           console.log(`🔄 [STEP 3] Updating pre-created order #${orderNumber} to processing status`);
           
           const updateStart = Date.now();
+          // 🔧 ENHANCED: Get current order data first to preserve meta_data
+          console.log(`📋 [STEP 3] Fetching current order data for #${orderNumber}...`);
+          const currentOrderResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
+            method: 'GET',
+            headers: wcHeaders()
+          });
+          
+          let existingMetaData = [];
+          if (currentOrderResponse.ok) {
+            const currentOrder = await currentOrderResponse.json();
+            existingMetaData = currentOrder.meta_data || [];
+            console.log(`📋 [STEP 3] Current order status: ${currentOrder.status}, payment_method: ${currentOrder.payment_method}`);
+          } else {
+            console.warn(`⚠️ [STEP 3] Could not fetch current order data, proceeding without merge`);
+          }
+          
+          // Merge existing meta_data with new payment data
+          const newMetaData = [
+            ...existingMetaData.filter((meta: any) => 
+              !['_stripe_payment_intent_id', '_payment_completed_at', '_paid_date', '_transaction_id', '_webhook_processed_at'].includes(meta.key)
+            ),
+            {
+              key: '_stripe_payment_intent_id',
+              value: paymentIntent.id,
+            },
+            {
+              key: '_payment_completed_at',
+              value: new Date().toISOString(),
+            },
+            {
+              key: '_paid_date',
+              value: Math.floor(Date.now() / 1000).toString(), // Unix timestamp for WooCommerce
+            },
+            {
+              key: '_transaction_id',
+              value: paymentIntent.id,
+            },
+            {
+              key: '_webhook_processed_at',
+              value: new Date().toISOString(),
+            }
+          ];
+          
+          const completeUpdateData = {
+            status: 'processing',
+            set_paid: true,
+            payment_method: 'stripe', // ✅ CRITICAL: Remove '_pending' suffix
+            payment_method_title: 'Stripe',
+            transaction_id: paymentIntent.id, // ✅ CRITICAL: Link PaymentIntent
+            date_paid: new Date().toISOString(), // ✅ CRITICAL: Set paid date
+            date_completed: null, // Keep null for processing status
+            meta_data: newMetaData // ✅ CRITICAL: Merged meta data
+          };
+          
+          console.log(`🔧 [STEP 3] Updating pre-created order with complete data:`, JSON.stringify(completeUpdateData, null, 2));
+          
           const updateResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
             method: 'PUT',
             headers: wcHeaders(),
-            body: JSON.stringify({
-              status: 'processing', // 🔧 CORRECT: processing, not completed
-              set_paid: true,
-              transaction_id: paymentIntent.id,
-              payment_method_title: 'Stripe (Processing)',
-              meta_data: [
-                {
-                  key: '_stripe_payment_intent_id',
-                  value: paymentIntent.id,
-                },
-                {
-                  key: '_payment_completed_at',
-                  value: new Date().toISOString(),
-                },
-                {
-                  key: '_webhook_processed_at',
-                  value: new Date().toISOString(),
-                }
-              ]
-            })
+            body: JSON.stringify(completeUpdateData)
           });
           
           const updateTime = Date.now() - updateStart;

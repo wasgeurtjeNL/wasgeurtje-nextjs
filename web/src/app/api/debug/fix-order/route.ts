@@ -26,36 +26,70 @@ export async function POST(request: NextRequest) {
     
     console.log(`🔧 Fixing order #${orderId} with PaymentIntent ${paymentIntentId}`);
     
-    // Update the order to PROCESSING status (correct status after payment)
+    // STEP 1: Get current order data to preserve existing meta_data
+    console.log(`📋 Fetching current order data for #${orderId}...`);
+    const currentOrderResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
+      method: 'GET',
+      headers: wcHeaders()
+    });
+    
+    if (!currentOrderResponse.ok) {
+      throw new Error(`Cannot fetch current order: ${currentOrderResponse.status}`);
+    }
+    
+    const currentOrder = await currentOrderResponse.json();
+    console.log(`📋 Current order status: ${currentOrder.status}, payment_method: ${currentOrder.payment_method}`);
+    
+    // STEP 2: Merge existing meta_data with new payment data
+    const existingMetaData = currentOrder.meta_data || [];
+    const newMetaData = [
+      ...existingMetaData.filter((meta: any) => 
+        !['_stripe_payment_intent_id', '_payment_completed_at', '_paid_date', '_transaction_id', '_manual_fix_applied', '_manual_fix_timestamp'].includes(meta.key)
+      ),
+      {
+        key: '_stripe_payment_intent_id',
+        value: paymentIntentId,
+      },
+      {
+        key: '_payment_completed_at',
+        value: new Date().toISOString(),
+      },
+      {
+        key: '_paid_date',
+        value: Math.floor(Date.now() / 1000).toString(), // Unix timestamp for WooCommerce
+      },
+      {
+        key: '_transaction_id',
+        value: paymentIntentId,
+      },
+      {
+        key: '_manual_fix_applied',
+        value: 'true',
+      },
+      {
+        key: '_manual_fix_timestamp',
+        value: new Date().toISOString(),
+      }
+    ];
+    
+    // STEP 3: Complete order update with all required fields
+    const updateData = {
+      status: 'processing',
+      set_paid: true,
+      payment_method: 'stripe', // ✅ CRITICAL: Remove '_pending' suffix
+      payment_method_title: 'Stripe',
+      transaction_id: paymentIntentId, // ✅ CRITICAL: Link PaymentIntent
+      date_paid: new Date().toISOString(), // ✅ CRITICAL: Set paid date
+      date_completed: null, // Keep null for processing status
+      meta_data: newMetaData // ✅ CRITICAL: Merged meta data
+    };
+    
+    console.log(`🔧 Updating order with complete data:`, JSON.stringify(updateData, null, 2));
+    
     const updateResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
       method: 'PUT',
       headers: wcHeaders(),
-      body: JSON.stringify({
-        status: 'processing', // 🔧 CORRECT: processing, not completed
-        set_paid: true,
-        transaction_id: paymentIntentId,
-        payment_method: 'stripe',
-        payment_method_title: 'Stripe (Manual Fix)',
-        date_paid: new Date().toISOString(),
-        meta_data: [
-          {
-            key: '_stripe_payment_intent_id',
-            value: paymentIntentId,
-          },
-          {
-            key: '_payment_completed_at',
-            value: new Date().toISOString(),
-          },
-          {
-            key: '_manual_fix_applied',
-            value: 'true',
-          },
-          {
-            key: '_manual_fix_timestamp',
-            value: new Date().toISOString(),
-          }
-        ]
-      })
+      body: JSON.stringify(updateData)
     });
     
     if (!updateResponse.ok) {
@@ -74,10 +108,27 @@ export async function POST(request: NextRequest) {
       success: true,
       orderId: updatedOrder.id,
       orderNumber: updatedOrder.number,
-      previousStatus: 'pending',
+      previousStatus: currentOrder.status,
       newStatus: updatedOrder.status,
       paymentIntentId,
-      message: `Order #${updatedOrder.number} successfully marked as completed`,
+      message: `Order #${updatedOrder.number} completely fixed with all WooCommerce fields`,
+      changes: {
+        status: `${currentOrder.status} → ${updatedOrder.status}`,
+        payment_method: `${currentOrder.payment_method} → ${updatedOrder.payment_method}`,
+        transaction_id: `"${currentOrder.transaction_id || 'empty'}" → "${updatedOrder.transaction_id}"`,
+        date_paid: `${currentOrder.date_paid || 'null'} → ${updatedOrder.date_paid}`,
+        set_paid: `${currentOrder.set_paid || false} → ${updatedOrder.set_paid || true}`
+      },
+      order: {
+        id: updatedOrder.id,
+        number: updatedOrder.number,
+        status: updatedOrder.status,
+        payment_method: updatedOrder.payment_method,
+        transaction_id: updatedOrder.transaction_id,
+        date_paid: updatedOrder.date_paid,
+        total: updatedOrder.total,
+        meta_data_count: newMetaData.length
+      },
       timestamp: new Date().toISOString()
     });
     
