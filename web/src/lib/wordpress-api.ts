@@ -1,5 +1,5 @@
 // WordPress REST API Client voor Wasgeurtje.nl
-const WORDPRESS_BASE_URL = "https://wasgeurtje.nl";
+const WORDPRESS_BASE_URL = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || "https://api.wasgeurtje.nl";
 const API_BASE = `${WORDPRESS_BASE_URL}/wp-json`;
 
 // WooCommerce API credentials
