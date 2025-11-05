@@ -254,7 +254,65 @@ export async function POST(request: NextRequest) {
           paymentIntentId: paymentIntent.id
         });
 
-        // 🛡️ STEP 2: Enhanced duplicate detection
+        // 🎯 STEP 3: Check if order was pre-created (new approach)
+        const orderNumber = metadata.woocommerce_order_number;
+        const orderId = metadata.woocommerce_order_id;
+        
+        if (orderNumber && orderId) {
+          // Order was pre-created, just update status to completed
+          console.log(`🔄 [STEP 3] Updating pre-created order #${orderNumber} to completed status`);
+          
+          const updateStart = Date.now();
+          const updateResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
+            method: 'PUT',
+            headers: wcHeaders(),
+            body: JSON.stringify({
+              status: 'completed',
+              set_paid: true,
+              transaction_id: paymentIntent.id,
+              payment_method_title: 'Stripe (Completed)',
+              meta_data: [
+                {
+                  key: '_stripe_payment_intent_id',
+                  value: paymentIntent.id,
+                },
+                {
+                  key: '_payment_completed_at',
+                  value: new Date().toISOString(),
+                },
+                {
+                  key: '_webhook_processed_at',
+                  value: new Date().toISOString(),
+                }
+              ]
+            })
+          });
+          
+          const updateTime = Date.now() - updateStart;
+          const totalProcessingTime = Date.now() - webhookStartTime;
+          
+          if (updateResponse.ok) {
+            const updatedOrder = await updateResponse.json();
+            
+            console.log(`✅ [STEP 3] Pre-created order #${orderNumber} updated to completed in ${updateTime}ms (total: ${totalProcessingTime}ms)`);
+            
+            return NextResponse.json({
+              success: true,
+              orderId: updatedOrder.id,
+              orderNumber: updatedOrder.number,
+              paymentIntentId: paymentIntent.id,
+              simulation: isSimulation,
+              processingTime: totalProcessingTime,
+              updateTime,
+              message: `Pre-created order #${orderNumber} updated to completed in ${totalProcessingTime}ms`,
+              approach: 'pre_order_update'
+            });
+          } else {
+            console.error(`⚠️ [STEP 3] Failed to update pre-created order #${orderNumber}, falling back to duplicate check`);
+          }
+        }
+        
+        // 🛡️ FALLBACK: Enhanced duplicate detection (STEP 2)
         console.log('🔍 [STEP 2] Checking for existing orders to prevent duplicates...');
         
         const duplicateCheckStart = Date.now();

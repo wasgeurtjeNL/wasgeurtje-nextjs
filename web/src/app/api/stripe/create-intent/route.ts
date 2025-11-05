@@ -80,6 +80,150 @@ function mapCartIdToWooCommerceId(cartId: string): string {
   return idMapping[cartId] || cartId;
 }
 
+// 🏪 STEP 3: Create pending WooCommerce order before payment
+async function createPendingWooCommerceOrder(orderData: {
+  lineItems: Array<{ id: string; originalId: string; quantity: number }>;
+  customer: Customer;
+  appliedDiscount?: AppliedDiscount;
+  totals: {
+    subtotal: number;
+    discountAmount: number;
+    volumeDiscount: number;
+    bundleDiscount?: number;
+    shippingCost: number;
+    finalTotal: number;
+  };
+}) {
+  try {
+    const { lineItems, customer, appliedDiscount, totals } = orderData;
+
+    console.log('🏪 [STEP 3] Preparing pending order data...');
+
+    // Prepare billing address
+    const billingAddress = {
+      first_name: customer.firstName,
+      last_name: customer.lastName,
+      company: customer.companyName || '',
+      address_1: `${customer.address} ${customer.houseNumber}${customer.houseAddition ? ' ' + customer.houseAddition : ''}`,
+      address_2: '',
+      city: customer.city,
+      state: '',
+      postcode: customer.postcode,
+      country: customer.country?.toUpperCase() || 'NL',
+      email: customer.email,
+      phone: customer.phone,
+    };
+
+    // Prepare shipping address
+    const shippingAddress = customer.useShippingAddress ? {
+      first_name: customer.firstName,
+      last_name: customer.lastName,
+      company: customer.companyName || '',
+      address_1: `${customer.shippingAddress} ${customer.shippingHouseNumber}${customer.shippingHouseAddition ? ' ' + customer.shippingHouseAddition : ''}`,
+      address_2: '',
+      city: customer.shippingCity,
+      state: '',
+      postcode: customer.shippingPostcode,
+      country: customer.country?.toUpperCase() || 'NL',
+    } : billingAddress;
+
+    // Prepare line items
+    const wcLineItems = lineItems.map(item => ({
+      product_id: parseInt(item.id),
+      quantity: item.quantity,
+    }));
+
+    // Prepare coupon lines
+    const couponLines = [];
+    if (appliedDiscount) {
+      couponLines.push({
+        code: appliedDiscount.coupon_code,
+      });
+    }
+
+    // Prepare fee lines for discounts
+    const feeLines = [];
+    if (totals.volumeDiscount > 0) {
+      feeLines.push({
+        name: "Volume korting (10%)",
+        total: (-totals.volumeDiscount).toString(),
+      });
+    }
+    if (totals.bundleDiscount && totals.bundleDiscount > 0) {
+      feeLines.push({
+        name: "Bundle korting",
+        total: (-totals.bundleDiscount).toString(),
+      });
+    }
+
+    // Prepare shipping lines
+    const shippingLines = [];
+    if (totals.shippingCost > 0) {
+      shippingLines.push({
+        method_id: "flat_rate",
+        method_title: "Standaard verzending",
+        total: totals.shippingCost.toString(),
+      });
+    } else {
+      shippingLines.push({
+        method_id: "free_shipping",
+        method_title: "Gratis verzending",
+        total: "0.00",
+      });
+    }
+
+    // Create pending WooCommerce order
+    const pendingOrderData = {
+      status: 'pending', // 🎯 PENDING until payment confirmed
+      payment_method: 'stripe',
+      payment_method_title: 'Stripe (Pending Payment)',
+      set_paid: false, // 🎯 NOT PAID yet
+      billing: billingAddress,
+      shipping: shippingAddress,
+      line_items: wcLineItems,
+      coupon_lines: couponLines,
+      fee_lines: feeLines,
+      shipping_lines: shippingLines,
+      meta_data: [
+        {
+          key: '_payment_method',
+          value: 'stripe_pending',
+        },
+        {
+          key: '_order_created_via',
+          value: 'pre_payment_creation',
+        },
+        {
+          key: '_order_created_at',
+          value: new Date().toISOString(),
+        },
+      ],
+    };
+
+    console.log("🏪 [STEP 3] Creating pending order in WooCommerce...");
+    const response = await fetch(`${WC_API_URL}/orders`, {
+      method: 'POST',
+      headers: wcHeaders(),
+      body: JSON.stringify(pendingOrderData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ [STEP 3] Failed to create pending order:', response.status, errorText);
+      throw new Error(`WooCommerce pending order creation failed: ${response.status} - ${errorText}`);
+    }
+
+    const order = await response.json();
+    console.log(`✅ [STEP 3] Pending order created successfully: #${order.number} (ID: ${order.id})`);
+    
+    return order;
+
+  } catch (error) {
+    console.error('💥 [STEP 3] Error creating pending WooCommerce order:', error);
+    throw error;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { lineItems, customer, appliedDiscount, totals } = (await request.json()) as {
@@ -130,9 +274,19 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
       }));
 
-      // Generate a unique order reference for tracking
-      const orderReference = `WG-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      console.log("📝 Generated order reference:", orderReference);
+      // 🏪 STEP 3: Create pending WooCommerce order BEFORE payment
+      console.log("🏪 [STEP 3] Creating pending WooCommerce order before payment...");
+      const preOrderStart = Date.now();
+      
+      const pendingOrder = await createPendingWooCommerceOrder({
+        lineItems: mappedLineItems,
+        customer,
+        appliedDiscount,
+        totals
+      });
+      
+      const preOrderTime = Date.now() - preOrderStart;
+      console.log(`✅ [STEP 3] Pending order created: #${pendingOrder.number} (ID: ${pendingOrder.id}) in ${preOrderTime}ms`);
 
       // Initialize Stripe
       const stripe = initializeStripe();
@@ -158,18 +312,29 @@ export async function POST(request: NextRequest) {
           volume_discount: totals.volumeDiscount.toString(),
           shipping_cost: totals.shippingCost.toString(),
           final_total: totals.finalTotal.toString(),
-          order_reference: orderReference,
+          // 🎯 STEP 3: Include WooCommerce order info for instant access
+          woocommerce_order_id: pendingOrder.id.toString(),
+          woocommerce_order_number: pendingOrder.number.toString(),
+          order_status: 'pending_payment',
+          order_created_at: new Date().toISOString(),
+          pre_order_creation_time: preOrderTime.toString(),
         },
-        description: `Wasgeurtje - Bestelling ${orderReference}`,
+        description: `Order #${pendingOrder.number} - Wasgeurtje`,
         receipt_email: customer.email,
       });
 
-      console.log("📤 Returning success response...");
+      console.log("📤 [STEP 3] Returning success response with pre-created order info...");
       return NextResponse.json({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
         amount: finalTotal,
         currency: "eur",
+        // 🎯 STEP 3: Return order info immediately
+        orderNumber: pendingOrder.number,
+        orderId: pendingOrder.id,
+        orderStatus: 'pending_payment',
+        preOrderCreationTime: preOrderTime,
+        message: `Order #${pendingOrder.number} created and ready for payment (${preOrderTime}ms)`
       });
     }
 
