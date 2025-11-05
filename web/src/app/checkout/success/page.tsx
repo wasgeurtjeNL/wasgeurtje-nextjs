@@ -133,7 +133,8 @@ const SuccessPageWrapper = () => {
 
     if (paymentIntentId && !paymentVerified.current) {
       paymentVerified.current = true;
-      verifyPaymentStatus(paymentIntentId);
+      // 🚀 STEP 1 OPTIMIZATION: Check existing order first for faster loading
+      checkExistingOrderFirst(paymentIntentId);
       return;
     }
   }, [searchParams]);
@@ -205,6 +206,59 @@ const SuccessPageWrapper = () => {
     }
   }, [orderDetails.status, orderDetails.orderId, orderDetails.orderData, orderDetails.amount, trackPurchase]);
 
+  // 🚀 STEP 1: Check existing order first for instant loading
+  const checkExistingOrderFirst = async (paymentIntentId: string) => {
+    try {
+      console.log(`🔍 STEP 1: Checking if order already exists for ${paymentIntentId}`);
+      
+      // FAST CHECK: See if order already exists in WooCommerce
+      const orderSearchResponse = await fetch(`/api/woocommerce/orders/search?payment_intent=${paymentIntentId}`);
+      const orderSearchData = await orderSearchResponse.json();
+      
+      if (orderSearchData.success && orderSearchData.orders?.length > 0) {
+        // 🚀 FAST PATH: Order exists, show success immediately!
+        const existingOrder = orderSearchData.orders[0];
+        
+        console.log(`✅ STEP 1: Existing order found #${existingOrder.number} - showing success immediately`);
+        
+        setOrderDetails({
+          orderNumber: existingOrder.number,
+          orderId: existingOrder.id,
+          paymentIntentId,
+          status: "completed",
+          amount: parseFloat(existingOrder.total),
+          customerEmail: existingOrder.billing?.email,
+        });
+        
+        // Get session data for product details if available
+        const successDataStr = sessionStorage.getItem("successOrderData");
+        if (successDataStr) {
+          try {
+            const successData = JSON.parse(successDataStr);
+            if (successData.orderData?.lineItems) {
+              fetchProductDetails(successData.orderData.lineItems);
+            }
+          } catch (e) {
+            console.warn('Could not parse session data for product details');
+          }
+        }
+        
+        setLoading(false);
+        return;
+      }
+      
+      // FALLBACK: No existing order found, use original flow
+      console.log(`⚠️ STEP 1: No existing order found, falling back to original payment verification`);
+      verifyPaymentStatus(paymentIntentId);
+      
+    } catch (error) {
+      console.error('Error in STEP 1 existing order check:', error);
+      // Fallback to original flow on error
+      verifyPaymentStatus(paymentIntentId);
+    }
+  };
+
+  // ORIGINAL: Keep existing payment verification as fallback
   const verifyPaymentStatus = async (paymentIntentId: string) => {
     try {
       const response = await fetch(
