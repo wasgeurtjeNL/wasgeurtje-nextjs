@@ -2682,9 +2682,9 @@ export default function ProductTemplate({
                           className="object-contain h-full w-auto transition-transform group-hover:scale-110"
                         />
                       </div>
-                      <div className="p-3 md:p-4">
+                      <div className="p-[10px] md:p-4">
                         <h3
-                          className="text-center font-medium mb-1 text-sm md:text-base"
+                          className="text-center font-medium mb-1 text-[13px] md:text-base"
                           style={{ color: "#333333" }}
                         >
                           {relProduct.title}

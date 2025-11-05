@@ -121,7 +121,7 @@ export default function FancyProductSection({
                         src={product.images[0].src}
                         alt={product.images[0].alt || product.name}
                         fill
-                        className="object-contain p-3 !w-[90%] mx-auto"
+                        className="object-contain p-3 !w-[90%] md:!w-[70%] md:!h-[70%] mx-auto"
                         sizes="(max-width: 768px) 50vw, 33vw"
                         priority
                       />
