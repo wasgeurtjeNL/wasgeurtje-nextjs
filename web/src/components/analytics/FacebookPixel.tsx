@@ -3,7 +3,6 @@
 import Script from 'next/script';
 import { useEffect } from 'react';
 import { analyticsConfig, isTrackingEnabled } from '@/lib/analytics/config';
-import { hashEmail, hashNormalizedPhone, hashPersonalData } from '@/lib/analytics/dataHasher';
 
 /**
  * Facebook Pixel Component
@@ -16,6 +15,15 @@ export default function FacebookPixel() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.fbq && isTrackingEnabled()) {
+      // ✅ PREVENT DUPLICATE INITIALIZATION: Check if pixel is already initialized
+      const pixelKey = `fb_pixel_init_${facebookPixel.id}`;
+      if (sessionStorage.getItem(pixelKey)) {
+        if (debug) {
+          console.log('[FB Pixel] ⚠️ Already initialized, skipping duplicate init');
+        }
+        return;
+      }
+      
       // ✅ ADVANCED MATCHING: Get user data from localStorage (if available)
       const getUserData = () => {
         const email = localStorage.getItem('user_email');
@@ -29,15 +37,15 @@ export default function FacebookPixel() {
         
         const userData: any = {};
         
-        // ✅ FIXED: Hash PII data to match server-side (prevents 58% email duplication)
-        if (email) userData.em = hashEmail(email);
-        if (phone) userData.ph = hashNormalizedPhone(phone, '31');
-        if (firstName) userData.fn = hashPersonalData(firstName);
-        if (lastName) userData.ln = hashPersonalData(lastName);
-        if (city) userData.ct = hashPersonalData(city);
-        if (state) userData.st = hashPersonalData(state);
-        if (zipCode) userData.zp = hashPersonalData(zipCode);
-        if (country) userData.country = hashPersonalData(country);
+        // ✅ FIXED: Facebook automatically hashes these for Advanced Matching (don't hash client-side)
+        if (email) userData.em = email;
+        if (phone) userData.ph = phone;
+        if (firstName) userData.fn = firstName;
+        if (lastName) userData.ln = lastName;
+        if (city) userData.ct = city;
+        if (state) userData.st = state;
+        if (zipCode) userData.zp = zipCode;
+        if (country) userData.country = country;
         
         return Object.keys(userData).length > 0 ? userData : undefined;
       };
@@ -56,6 +64,9 @@ export default function FacebookPixel() {
           console.log('[FB Pixel] ⚠️ Initialized WITHOUT Advanced Matching (no user data available)');
         }
       }
+      
+      // Mark as initialized to prevent duplicates
+      sessionStorage.setItem(pixelKey, 'true');
       
       // Track PageView
       window.fbq('track', 'PageView');
