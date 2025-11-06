@@ -179,11 +179,20 @@ const SuccessPageWrapper = () => {
         google_business_vertical: 'retail',     // Google Shopping classification
       }));
       
+      // ✅ FACEBOOK FIX: Ensure Purchase value is never 0 (fixes 17% Purchase errors)
+      const calculateTotalValue = (items: AnalyticsItem[]): number => {
+        return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      };
+      
+      const purchaseValue = orderDetails.amount && orderDetails.amount > 0 
+        ? orderDetails.amount 
+        : calculateTotalValue(items);
+      
       // Track purchase to all platforms (GTM, Klaviyo, FB Pixel, FB Conversions API, GA4)
       trackPurchase(
         orderDetails.orderId,
         items,
-        orderDetails.amount || 0,
+        purchaseValue,
         {
           tax: orderDetails.orderData.tax || 0,
           shipping: orderDetails.orderData.shipping || 0,
@@ -200,8 +209,10 @@ const SuccessPageWrapper = () => {
       
       console.log('[Success Page] Purchase tracked:', {
         orderId: orderDetails.orderId,
-        amount: orderDetails.amount,
+        originalAmount: orderDetails.amount,
+        purchaseValue: purchaseValue,
         items: items.length,
+        valueSource: orderDetails.amount && orderDetails.amount > 0 ? 'orderDetails' : 'calculated'
       });
     }
   }, [orderDetails.status, orderDetails.orderId, orderDetails.orderData, orderDetails.amount, trackPurchase]);

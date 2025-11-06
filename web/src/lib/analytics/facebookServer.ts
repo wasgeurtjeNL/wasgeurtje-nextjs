@@ -237,6 +237,21 @@ export const trackServerPurchase = (
     externalId?: string | number; // Customer ID for logged-in users
   }
 ) => {
+  // ✅ FACEBOOK FIX: Ensure value is never 0 (prevents Facebook Purchase errors)
+  const safeValue = totalValue && totalValue > 0 
+    ? totalValue 
+    : items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  if (safeValue <= 0) {
+    console.warn('[FB Server] ⚠️ Purchase value is 0 or negative, skipping event:', {
+      orderId,
+      originalValue: totalValue,
+      calculatedValue: safeValue,
+      itemsCount: items.length
+    });
+    return;
+  }
+  
   const userData: Record<string, any> = {};
   
   if (options?.userEmail) userData.email = options.userEmail;
@@ -257,7 +272,7 @@ export const trackServerPurchase = (
         quantity: item.quantity,
       })),
       num_items: items.reduce((sum, item) => sum + item.quantity, 0),
-      value: totalValue,
+      value: safeValue,
       currency: 'EUR',
     },
     userData,

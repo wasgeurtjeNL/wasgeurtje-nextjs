@@ -117,6 +117,21 @@ export const trackFacebookPurchase = (
   items: AnalyticsItem[],
   value: number
 ) => {
+  // ✅ FACEBOOK FIX: Ensure value is never 0 (prevents Facebook Purchase errors)
+  const safeValue = value && value > 0 
+    ? value 
+    : items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  if (safeValue <= 0) {
+    console.warn('[FB Pixel] ⚠️ Purchase value is 0 or negative, skipping event:', {
+      orderId,
+      originalValue: value,
+      calculatedValue: safeValue,
+      itemsCount: items.length
+    });
+    return;
+  }
+  
   // Use standardized Purchase event ID (orderId-based for deduplication)
   const eventId = generateEventId('Purchase', orderId);
   
@@ -132,7 +147,7 @@ export const trackFacebookPurchase = (
       id: String(i.item_id),
       quantity: i.quantity,
     })),
-    value: value,
+    value: safeValue,
     currency: 'EUR',
     num_items: items.length,
   }, {
