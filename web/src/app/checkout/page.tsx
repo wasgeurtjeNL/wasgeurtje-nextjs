@@ -9,6 +9,7 @@ import { useAuth, Address } from "@/context/AuthContext";
 import CheckoutLoyaltyInfo from "@/components/CheckoutLoyaltyInfo";
 import CheckoutAuthPopup from "@/components/CheckoutAuthPopup";
 import LoyaltyRedemptionPopup from "@/components/LoyaltyRedemptionPopup";
+import { useLoyaltyCouponValidation } from "@/context/LoyaltyCouponValidationContext";
 import { z } from "zod";
 import emailSpellChecker from "@zootools/email-spell-checker";
 import PaymentPage from "./payment/page";
@@ -68,6 +69,19 @@ export default function CheckoutPage() {
     updateQuantity,
   } = useCart();
   const { user, isLoggedIn, orders, fetchOrders, fetchLoyaltyPointsByUserEmail } = useAuth();
+  
+  // 🎯 NEW: Loyalty coupon validation context
+  const { 
+    activeLoyaltyCoupons, 
+    loyaltyValidationMessage, 
+    addLoyaltyCoupon, 
+    removeLoyaltyCoupon,
+    isLoyaltyCoupon,
+    getLoyaltyDiscountTotal,
+    clearLoyaltyValidationMessage,
+    getMaxAllowedLoyaltyCoupons,
+    getProductCount
+  } = useLoyaltyCouponValidation();
   
   // Track if we've already fetched orders/loyalty in this checkout session
   const hasFetchedOrdersRef = useRef(false);
@@ -260,6 +274,207 @@ export default function CheckoutPage() {
     setDiscountCode("");
     setShouldAutoApplyCoupon(false);
     setCouponToAutoApply(null);
+  };
+
+  // 🎯 NEW: Helper functions for shipping status with loyalty coupons
+  const hasReachedFreeShipping = () => {
+    const regularDiscount = calculateDiscount();
+    const loyaltyDiscount = getLoyaltyDiscountTotal();
+    const volumeDiscount = calculateVolumeDiscount();
+    const bundleDiscount = calculateBundleDiscount();
+    
+    const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    return subtotalAfterDiscounts >= 40;
+  };
+
+  const getShippingProgress = () => {
+    const regularDiscount = calculateDiscount();
+    const loyaltyDiscount = getLoyaltyDiscountTotal();
+    const volumeDiscount = calculateVolumeDiscount();
+    const bundleDiscount = calculateBundleDiscount();
+    
+    const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    return Math.min((subtotalAfterDiscounts / 40) * 100, 100);
+  };
+
+  const getRemainingForFreeShipping = () => {
+    const regularDiscount = calculateDiscount();
+    const loyaltyDiscount = getLoyaltyDiscountTotal();
+    const volumeDiscount = calculateVolumeDiscount();
+    const bundleDiscount = calculateBundleDiscount();
+    
+    const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    return Math.max(0, 40 - subtotalAfterDiscounts);
+  };
+
+  // 🎯 NEW: Loyalty validation message component - IMPROVED UX
+  const LoyaltyValidationMessage = () => {
+    if (!loyaltyValidationMessage) return null;
+    
+    const isError = loyaltyValidationMessage.includes('te veel') || loyaltyValidationMessage.includes('pas geldig');
+    const isSuccess = loyaltyValidationMessage.includes('✅');
+    
+    return (
+      <div className={`mb-4 p-4 rounded-lg border-2 ${
+        isError ? 'bg-orange-50 border-orange-300' :
+        isSuccess ? 'bg-green-50 border-green-300' :
+        'bg-blue-50 border-blue-300'
+      }`}>
+        <div className="flex items-start gap-3">
+          <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+            isError ? 'bg-orange-200' :
+            isSuccess ? 'bg-green-200' :
+            'bg-blue-200'
+          }`}>
+            {isError && <span className="text-2xl">⚠️</span>}
+            {isSuccess && <span className="text-2xl">🎉</span>}
+            {!isError && !isSuccess && <span className="text-2xl">💡</span>}
+          </div>
+          <div className="flex-1">
+            <p className={`text-base font-bold mb-1 ${
+              isError ? 'text-orange-900' :
+              isSuccess ? 'text-green-900' :
+              'text-blue-900'
+            }`}>
+              {isError && '🎯 Loyaliteitspunten regel'}
+              {isSuccess && '🎉 Geweldig!'}
+              {!isError && !isSuccess && '💡 Tip'}
+            </p>
+            <p className={`text-sm leading-relaxed ${
+              isError ? 'text-orange-800' :
+              isSuccess ? 'text-green-800' :
+              'text-blue-800'
+            }`}>
+              {loyaltyValidationMessage}
+            </p>
+          </div>
+          <button 
+            onClick={clearLoyaltyValidationMessage}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Sluiten"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 🎯 NEW: Active loyalty coupons display component - IMPROVED UX
+  const ActiveLoyaltyCoupons = () => {
+    if (activeLoyaltyCoupons.length === 0) return null;
+    
+    const totalLoyaltyDiscount = getLoyaltyDiscountTotal();
+    const productCount = getProductCount();
+    const maxAllowed = getMaxAllowedLoyaltyCoupons();
+    
+    return (
+      <div className="mb-4 p-4 bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-xl shadow-sm">
+        {/* Header met samenvatting */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center shadow-md">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-amber-900">
+                Loyaliteitskortingen Actief
+              </h4>
+              <p className="text-xs text-amber-700">
+                Je bespaart €{totalLoyaltyDiscount.toFixed(2)} met {activeLoyaltyCoupons.length} code{activeLoyaltyCoupons.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-green-600">
+              -€{totalLoyaltyDiscount.toFixed(2)}
+            </div>
+          </div>
+        </div>
+
+        {/* Info bar over de regel */}
+        <div className="mb-3 p-2 bg-white/60 rounded-lg border border-amber-200">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="flex-shrink-0">📋</span>
+            <span className="text-amber-800">
+              <strong>Regel:</strong> Minimaal 2 producten per loyaliteitskorting
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-xs mt-1">
+            <span className="flex-shrink-0">📦</span>
+            <span className="text-amber-700">
+              Je hebt <strong>{productCount} product{productCount !== 1 ? 'en' : ''}</strong> = 
+              max <strong>{maxAllowed} loyaliteitskorting{maxAllowed !== 1 ? 'en' : ''}</strong> toegestaan
+            </span>
+          </div>
+        </div>
+
+        {/* Actieve coupons lijst */}
+        <div className="space-y-2">
+          {activeLoyaltyCoupons.map((coupon, index) => (
+            <div key={coupon.code} className="flex items-center justify-between p-3 bg-white rounded-lg border border-amber-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-amber-700">#{index + 1}</span>
+                </div>
+                <div>
+                  <p className="font-mono text-sm font-semibold text-amber-900">{coupon.code}</p>
+                  <p className="text-xs text-amber-600">€{coupon.amount.toFixed(2)} korting</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => removeLoyaltyCoupon(coupon.code)}
+                className="flex items-center gap-1 text-xs text-red-600 hover:text-red-800 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Verwijder
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // 🎯 NEW: Shipping explanation component
+  const ShippingExplanation = ({ inline = false }: { inline?: boolean }) => {
+    const regularDiscount = calculateDiscount();
+    const loyaltyDiscount = getLoyaltyDiscountTotal();
+    const volumeDiscount = calculateVolumeDiscount();
+    const bundleDiscount = calculateBundleDiscount();
+    const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    const shippingCost = calculateShipping();
+    
+    if (shippingCost === 0) {
+      return inline ? (
+        <span className="text-xs text-green-600 ml-1">
+          (Bedrag na kortingen: €{subtotalAfterDiscounts.toFixed(2)} ≥ €40)
+        </span>
+      ) : null;
+    }
+    
+    // Only show explanation if discounts were applied
+    if (totalDiscount > 0) {
+      return (
+        <div className="mt-1 text-xs text-gray-600 italic">
+          ℹ️ Verzendkosten worden berekend op je totaal ná kortingen: 
+          €{subtotal.toFixed(2)} - €{totalDiscount.toFixed(2)} = €{subtotalAfterDiscounts.toFixed(2)} 
+          {subtotalAfterDiscounts < 40 && ` (nog €${(40 - subtotalAfterDiscounts).toFixed(2)} tot gratis verzending)`}
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   // Load bundle discount from localStorage
@@ -1793,12 +2008,72 @@ export default function CheckoutPage() {
 
       const couponData = await response.json();
 
-      // Apply the discount
-      setAppliedDiscount({
-        code: codeValue,
-        amount: couponData.discount_amount,
-        type: couponData.discount_type === "percent" ? "percentage" : "fixed",
-      });
+      // 🎯 NEW: Check if it's a loyalty coupon
+      if (isLoyaltyCoupon(codeValue)) {
+        // Use loyalty validation system
+        const success = addLoyaltyCoupon({
+          code: codeValue,
+          amount: couponData.discount_amount,
+          type: couponData.discount_type === "percent" ? "percentage" : "fixed"
+        });
+        
+        if (!success) {
+          // Validation message is automatically set by context
+          return;
+        }
+        
+        // Show success message for loyalty coupon
+        const newCount = activeLoyaltyCoupons.length + 1;
+        const maxAllowed = getMaxAllowedLoyaltyCoupons();
+        const productCount = getProductCount();
+        
+        // Friendly success notification
+        const notification = document.createElement("div");
+        notification.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-xl shadow-2xl z-50 max-w-md";
+        notification.style.animation = "slideDown 0.3s ease-out";
+        notification.innerHTML = `
+          <div class="flex items-start gap-3">
+            <div class="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p class="font-bold">Loyaliteitskorting toegepast! 🎉</p>
+              <p class="text-sm mt-1">Je bespaart €${couponData.discount_amount.toFixed(2)} met deze code.</p>
+              ${newCount < maxAllowed ? 
+                `<p class="text-xs mt-1 opacity-90">💡 Je kunt nog ${maxAllowed - newCount} loyaliteitskorting${maxAllowed - newCount !== 1 ? 'en' : ''} toevoegen met ${productCount} producten.</p>` :
+                newCount === maxAllowed && productCount >= (newCount + 1) * 2 ?
+                `<p class="text-xs mt-1 opacity-90">💡 Voeg 2 producten toe om nog een loyaliteitskorting te kunnen gebruiken!</p>` :
+                `<p class="text-xs mt-1 opacity-90">✅ Je gebruikt het maximum aantal loyaliteitskortingen voor ${productCount} producten.</p>`
+              }
+            </div>
+          </div>
+        `;
+        document.body.appendChild(notification);
+        
+        // Add animation
+        if (!document.querySelector("#slideDownAnimation")) {
+          const style = document.createElement("style");
+          style.id = "slideDownAnimation";
+          style.textContent = `
+            @keyframes slideDown {
+              from { opacity: 0; transform: translate(-50%, -20px); }
+              to { opacity: 1; transform: translate(-50%, 0); }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        setTimeout(() => notification.remove(), 5000);
+      } else {
+        // 🎯 REGULAR DISCOUNT CODES: Use existing logic (UNCHANGED)
+        setAppliedDiscount({
+          code: codeValue,
+          amount: couponData.discount_amount,
+          type: couponData.discount_type === "percent" ? "percentage" : "fixed",
+        });
+      }
 
       setDiscountCode("");
     } catch (error) {
@@ -2103,8 +2378,18 @@ export default function CheckoutPage() {
     loadProducts();
   }, [isLoggedIn, user, orders, items]);
 
+  // 🎯 UPDATED: Calculate shipping AFTER all discounts (including loyalty coupons)
   const calculateShipping = () => {
-    return subtotal >= 40 ? 0 : 4.95;
+    const regularDiscount = calculateDiscount(); // Regular discount codes
+    const loyaltyDiscount = getLoyaltyDiscountTotal(); // Loyalty coupons
+    const volumeDiscount = calculateVolumeDiscount();
+    const bundleDiscount = calculateBundleDiscount();
+    
+    const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    
+    // Free shipping if amount AFTER discounts >= €40
+    return subtotalAfterDiscounts >= 40 ? 0 : 4.95;
   };
 
   const calculateVolumeDiscount = () => {
@@ -2134,32 +2419,42 @@ export default function CheckoutPage() {
     }
   };
 
+  // 🎯 UPDATED: Calculate total with loyalty coupons and correct shipping logic
   const calculateTotal = () => {
-    const shipping = calculateShipping();
-    const discount = calculateDiscount();
+    const regularDiscount = calculateDiscount(); // Regular discount codes
+    const loyaltyDiscount = getLoyaltyDiscountTotal(); // Loyalty coupons
     const volumeDiscount = calculateVolumeDiscount();
-    const bundle = calculateBundleDiscount();
-    return Math.max(0, subtotal + shipping - discount - volumeDiscount - bundle);
+    const bundleDiscount = calculateBundleDiscount();
+    
+    const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    
+    // Shipping is calculated on subtotal AFTER discounts
+    const shipping = subtotalAfterDiscounts >= 40 ? 0 : 4.95;
+    
+    return Math.max(0, subtotalAfterDiscounts + shipping);
   };
 
   // Memoize orderData to prevent infinite re-renders in PaymentPage
   const memoizedOrderData = useMemo(() => {
-    // Calculate discount inline
-    const discountAmount = appliedDiscount
+    // Calculate all discounts
+    const regularDiscountAmount = appliedDiscount
       ? appliedDiscount.type === "percentage"
         ? (subtotal * appliedDiscount.amount) / 100
         : appliedDiscount.amount
       : 0;
 
-    // Calculate volume discount inline
+    const loyaltyDiscountAmount = getLoyaltyDiscountTotal(); // Loyalty coupons
     const volumeDiscount = subtotal >= 150 ? subtotal * 0.1 : 0;
     const bundle = calculateBundleDiscount();
 
-    // Calculate shipping inline
-    const shippingCost = subtotal >= 40 ? 0 : 4.95;
+    // 🎯 UPDATED: Calculate shipping AFTER all discounts
+    const totalDiscount = regularDiscountAmount + loyaltyDiscountAmount + volumeDiscount + bundle;
+    const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+    const shippingCost = subtotalAfterDiscounts >= 40 ? 0 : 4.95;
 
     // Calculate final total inline
-    const finalTotal = Math.max(0, subtotal + shippingCost - discountAmount - volumeDiscount - bundle);
+    const finalTotal = Math.max(0, subtotalAfterDiscounts + shippingCost);
 
     // Convert appliedDiscount to API format
     const apiDiscount = appliedDiscount
@@ -2167,7 +2462,7 @@ export default function CheckoutPage() {
           coupon_code: appliedDiscount.code,
           discount_type:
             appliedDiscount.type === "percentage" ? "percent" : "fixed_cart",
-          discount_amount: discountAmount,
+          discount_amount: regularDiscountAmount,
         }
       : undefined;
 
@@ -2175,7 +2470,9 @@ export default function CheckoutPage() {
       hasAppliedDiscount: !!appliedDiscount,
       appliedDiscount: appliedDiscount,
       apiDiscount: apiDiscount,
-      discountAmount: discountAmount,
+      regularDiscountAmount: regularDiscountAmount,
+      loyaltyDiscountAmount: loyaltyDiscountAmount,
+      totalDiscount: totalDiscount,
       finalTotal: finalTotal,
       currentStep: currentStep,
     });
@@ -2207,7 +2504,8 @@ export default function CheckoutPage() {
       appliedDiscount: apiDiscount,
       totals: {
         subtotal: subtotal,
-      discountAmount: discountAmount,
+        discountAmount: regularDiscountAmount,
+        loyaltyDiscount: loyaltyDiscountAmount,
       volumeDiscount: volumeDiscount,
       bundleDiscount: bundle,
         shippingCost: shippingCost,
@@ -2240,6 +2538,9 @@ export default function CheckoutPage() {
     items,
     subtotal,
     appliedDiscount,
+    activeLoyaltyCoupons, // 🎯 NEW: Include loyalty coupons in dependencies
+    bundleDiscount,
+    bundleDiscountMeta,
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2346,13 +2647,22 @@ export default function CheckoutPage() {
       // Calculate final total for display
       const finalTotal = calculateTotal();
 
-      // Calculate totals for API
+      // 🎯 UPDATED: Calculate totals for API with loyalty coupons and correct shipping
+      const regularDiscount = calculateDiscount();
+      const loyaltyDiscount = getLoyaltyDiscountTotal();
+      const volumeDiscount = calculateVolumeDiscount();
+      const bundleDiscount = calculateBundleDiscount();
+      
+      const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
+      const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
+      
       const totals = {
         subtotal: subtotal,
-        discountAmount: calculateDiscount(),
-        volumeDiscount: calculateVolumeDiscount(),
-        bundleDiscount: calculateBundleDiscount(),
-        shippingCost: subtotal >= 40 ? 0 : 4.95,
+        discountAmount: regularDiscount,
+        loyaltyDiscount: loyaltyDiscount, // NEW: Track loyalty discounts separately
+        volumeDiscount: volumeDiscount,
+        bundleDiscount: bundleDiscount,
+        shippingCost: subtotalAfterDiscounts >= 40 ? 0 : 4.95, // 🎯 FIXED: Shipping after discounts
         finalTotal: finalTotal,
       };
 
@@ -2548,7 +2858,7 @@ export default function CheckoutPage() {
             {/* Shipping Bar - Alternates with personalized suggestion */}
             {(!personalizedSuggestion || !showPersonalizedBanner || bannerInteracted) && (
               <div className={`transition-all duration-500 ${personalizedSuggestion && !bannerInteracted && showPersonalizedBanner ? 'opacity-0 absolute inset-0' : 'opacity-100'}`}>
-                {subtotal < 40 ? (
+                        {!hasReachedFreeShipping() ? (
                   // Progress bar when working towards free shipping
                   <div className="bg-gradient-to-r from-[#d7aa43] via-[#e8b960] to-[#c29635] text-white px-3 py-3 shadow-xl shadow-[#d7aa43]/40 border-b-2 border-[#f5d68a]/30">
                     <div className="flex items-start justify-between gap-2">
@@ -2564,10 +2874,10 @@ export default function CheckoutPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-1">
                             <p className="text-[13px] font-semibold leading-snug">
-                              Nog €{(40 - subtotal).toFixed(2)} voor GRATIS verzending!
+                              Nog €{getRemainingForFreeShipping().toFixed(2)} voor GRATIS verzending!
                             </p>
                             <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-semibold leading-tight">
-                              {Math.round((subtotal / 40) * 100)}%
+                              {Math.round(getShippingProgress())}%
                             </span>
                           </div>
                           
@@ -2575,7 +2885,7 @@ export default function CheckoutPage() {
                           <div className="relative w-full bg-white/30 rounded-full h-1.5 overflow-hidden shadow-inner">
                             <div 
                               className="absolute inset-0 bg-gradient-to-r from-white via-white to-white/80 h-1.5 rounded-full transition-all duration-500 ease-out shadow-sm"
-                              style={{ width: `${Math.min((subtotal / 40) * 100, 100)}%` }}
+                              style={{ width: `${getShippingProgress()}%` }}
                             >
                               <div className="absolute inset-0 bg-white/40 animate-pulse"></div>
                             </div>
@@ -2777,7 +3087,7 @@ export default function CheckoutPage() {
               className="w-full p-4 flex items-center justify-between hover:bg-green-100/50 transition-colors relative z-10"
             >
               <div className="flex items-center gap-3">
-                {subtotal >= 40 ? (
+                {hasReachedFreeShipping() ? (
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg
                       className="w-5 h-5 text-white"
@@ -2804,10 +3114,10 @@ export default function CheckoutPage() {
                 )}
                 <div className="text-left">
                   <h3 className="text-sm sm:text-base font-bold text-gray-900">
-                    {subtotal >= 40 ? "Gratis verzending behaald! 🌟" : `Nog €${(40 - subtotal).toFixed(2)} voor GRATIS verzending!`}
+                    {hasReachedFreeShipping() ? "Gratis verzending behaald! 🌟" : `Nog €${getRemainingForFreeShipping().toFixed(2)} voor GRATIS verzending!`}
                   </h3>
                   <p className="text-xs text-gray-600">
-                    {subtotal >= 40 ? "Ontdek meer geweldige producten" : "Voeg producten toe en bespaar €4,95"}
+                    {hasReachedFreeShipping() ? "Ontdek meer geweldige producten" : "Voeg producten toe en bespaar €4,95"}
                   </p>
                 </div>
               </div>
@@ -4591,23 +4901,23 @@ export default function CheckoutPage() {
                         </div>
 
                         {/* Free Shipping Progress Bar */}
-                        {subtotal < 40 && (
+                        {!hasReachedFreeShipping() && (
                           <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-blue-900">
-                                🚚 Nog €{(40 - subtotal).toFixed(2)} voor gratis verzending!
+                                🚚 Nog €{getRemainingForFreeShipping().toFixed(2)} voor gratis verzending!
                               </span>
                             </div>
                             <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
                               <div
                                 className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-500 ease-out"
-                                style={{ width: `${Math.min((subtotal / 40) * 100, 100)}%` }}
+                                style={{ width: `${getShippingProgress()}%` }}
                               />
                             </div>
                           </div>
                         )}
 
-                        {subtotal >= 40 && (
+                        {hasReachedFreeShipping() && (
                           <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-3 border-b border-green-100">
                             <div className="flex items-center justify-center gap-2">
                               <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -5013,6 +5323,25 @@ export default function CheckoutPage() {
                               <span>-€{calculateDiscount().toFixed(2)}</span>
                             </div>
                           )}
+                          {activeLoyaltyCoupons.map(coupon => (
+                            <div key={coupon.code} className="flex flex-wrap justify-between text-sm text-green-600">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <svg
+                                  className="w-4 h-4 text-green-500"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <span>Korting ({coupon.code})</span>
+                              </div>
+                              <span>-€{coupon.amount.toFixed(2)}</span>
+                            </div>
+                          ))}
                           {calculateBundleDiscount() > 0 && (
                             <div className="flex flex-wrap justify-between text-sm text-green-600">
                               <span>Bundle korting</span>
@@ -5440,6 +5769,25 @@ export default function CheckoutPage() {
                               <span>-€{calculateDiscount().toFixed(2)}</span>
                             </div>
                           )}
+                          {activeLoyaltyCoupons.map(coupon => (
+                            <div key={coupon.code} className="flex flex-wrap justify-between text-sm text-green-600">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <svg
+                                  className="w-4 h-4 text-green-500"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                <span>Korting ({coupon.code})</span>
+                              </div>
+                              <span>-€{coupon.amount.toFixed(2)}</span>
+                            </div>
+                          ))}
                           {FeatureFlags.ENABLE_VOLUME_DISCOUNT && subtotal >= 75 && (
                             <div className="flex flex-wrap justify-between text-sm text-purple-600">
                               <span>Volume korting (10%)</span>
@@ -6016,69 +6364,16 @@ export default function CheckoutPage() {
                         Kies een betaalmethode
                       </h2> */}
 
-                      {/* Discount Code Section */}
-                      {/* <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">
-                          Kortingscode gebruiken
-                        </h3>
+                      {/* Discount Code Section - OLD VERSION (COMMENTED OUT)
+                      This section has been replaced by the new details/summary accordion below
+                      The old version had issues with JSX comments so it's fully removed.
+                      */}
+                      {/* 🎯 NEW: Loyalty validation messages */}
+                      <LoyaltyValidationMessage />
+                      
+                      {/* 🎯 NEW: Active loyalty coupons display */}
+                      <ActiveLoyaltyCoupons />
 
-                        {!appliedDiscount ? (
-                          <>
-                            <div className="flex flex-wrap gap-2">
-                              <input
-                                type="text"
-                                value={discountCode}
-                                onChange={(e) =>
-                                  setDiscountCode(e.target.value)
-                                }
-                                placeholder="Voer kortingscode in"
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#d7aa43] focus:border-transparent"
-                                onKeyPress={(e) =>
-                                  e.key === "Enter" && applyDiscountCode()
-                                }
-                              />
-                              <button
-                                type="button"
-                                onClick={applyDiscountCode}
-                                disabled={
-                                  isApplyingDiscount || !discountCode.trim()
-                                }
-                                className="px-4 py-2 bg-[#0071CE] text-white rounded-lg hover:bg-[#0063B8] disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium">
-                                {isApplyingDiscount
-                                  ? "Toepassen..."
-                                  : "Toepassen"}
-                              </button>
-                            </div>
-
-                            {discountError && (
-                              <div className="mt-2 text-sm text-red-600">
-                                {discountError}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="flex flex-wrap items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-                            <div>
-                              <p className="text-sm font-medium text-green-800">
-                                Kortingscode "{appliedDiscount.code}" toegepast
-                              </p>
-                              <p className="text-xs text-green-600">
-                                {appliedDiscount.type === "percentage"
-                                  ? `${appliedDiscount.amount}% korting`
-                                  : `€${appliedDiscount.amount.toFixed(
-                                      2
-                                    )} korting`}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={removeDiscount}
-                              className="text-red-600 hover:text-red-800 text-sm">
-                              Verwijderen
-                            </button>
-                          </div>
-                        )}
-                      </div> */}
                       <details className="group mb-6 rounded-lg border border-gray-200 bg-gray-50">
                         <summary className="flex cursor-pointer list-none items-center justify-between p-4">
                           <h3 className="text-base font-semibold text-gray-900">
@@ -6100,6 +6395,27 @@ export default function CheckoutPage() {
                         </summary>
 
                         <div className="px-4 pb-4 pt-0">
+                          {/* 🎯 NEW: Uitleg loyaliteitspunten regel */}
+                          {isLoggedIn && user?.loyalty && (
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <span className="text-lg">ℹ️</span>
+                                <div className="text-sm text-blue-800">
+                                  <p className="font-semibold mb-1">Loyaliteitspunten regel:</p>
+                                  <p className="mb-2">Je kunt <strong>1 loyaliteitskorting gebruiken per 2 producten</strong> in je winkelwagen.</p>
+                                  <div className="bg-white/50 p-2 rounded text-xs space-y-1">
+                                    <p>📦 <strong>2 producten</strong> = 1 loyaliteitskorting toegestaan</p>
+                                    <p>📦 <strong>4 producten</strong> = 2 loyaliteitskortingen toegestaan</p>
+                                    <p>📦 <strong>6 producten</strong> = 3 loyaliteitskortingen toegestaan</p>
+                                  </div>
+                                  <p className="text-xs mt-2 text-blue-600">
+                                    💡 Reguliere kortingscodes (zoals SUMMER20) hebben geen limiet!
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           {!appliedDiscount ? (
                             <>
                               <div className="flex flex-wrap gap-2">
@@ -6135,6 +6451,12 @@ export default function CheckoutPage() {
                                   {discountError}
                                 </div>
                               )}
+                              
+                              {/* 🎯 NEW: Loyalty validation messages - Mobile */}
+                              <LoyaltyValidationMessage />
+                              
+                              {/* 🎯 NEW: Active loyalty coupons display - Mobile */}
+                              <ActiveLoyaltyCoupons />
                               <button
                                 onClick={handleOpenRedemptionPopup}
                                 className="mt-5 rounded-xl bg-gradient-to-r from-[#d7aa43] via-[#e8b960] to-[#c29635] px-5 py-2.5 text-sm font-bold text-white hover:shadow-xl hover:shadow-[#d7aa43]/40 hover:scale-105 hover:from-[#e8b960] hover:to-[#d7aa43] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:opacity-50 transition-all duration-400 shadow-lg shadow-[#d7aa43]/30 tracking-wide border border-[#f5d68a]/30 hover:border-[#f5d68a]/50 disabled:shadow-none disabled:border-none"
@@ -6302,11 +6624,11 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Free Shipping Progress Bar */}
-                  {subtotal < 40 && (
+                  {!hasReachedFreeShipping() && (
                     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-blue-900">
-                          🚚 Nog €{(40 - subtotal).toFixed(2)} voor gratis verzending!
+                          🚚 Nog €{getRemainingForFreeShipping().toFixed(2)} voor gratis verzending!
                         </span>
                       </div>
                       <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
@@ -6679,8 +7001,12 @@ export default function CheckoutPage() {
                           {calculateShipping() === 0
                             ? "Gratis! 🎉"
                             : `€${calculateShipping().toFixed(2)}`}
+                          <ShippingExplanation inline={true} />
                         </span>
                       </div>
+                      
+                      {/* 🎯 NEW: Uitleg verzendkosten na kortingen */}
+                      <ShippingExplanation inline={false} />
 
                       {appliedDiscount && (
                         <div className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
@@ -6693,6 +7019,18 @@ export default function CheckoutPage() {
                           <span className="text-sm text-green-700 font-bold">-€{calculateDiscount().toFixed(2)}</span>
                         </div>
                       )}
+                      
+                      {activeLoyaltyCoupons.map(coupon => (
+                        <div key={coupon.code} className="flex justify-between items-center py-2 px-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center gap-1.5">
+                            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm text-green-800 font-medium">Korting ({coupon.code})</span>
+                          </div>
+                          <span className="text-sm text-green-700 font-bold">-€{coupon.amount.toFixed(2)}</span>
+                        </div>
+                      ))}
 
                       {FeatureFlags.ENABLE_VOLUME_DISCOUNT && subtotal >= 75 && (
                         <div className="flex justify-between items-center py-2 px-3 bg-purple-50 rounded-lg border border-purple-200">
@@ -7120,6 +7458,25 @@ export default function CheckoutPage() {
                         <span>-€{calculateDiscount().toFixed(2)}</span>
                       </div>
                     )}
+                    {activeLoyaltyCoupons.map(coupon => (
+                      <div key={coupon.code} className="flex flex-wrap justify-between text-sm text-green-600">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <svg
+                            className="w-4 h-4 text-green-500"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span>Korting ({coupon.code})</span>
+                        </div>
+                        <span>-€{coupon.amount.toFixed(2)}</span>
+                      </div>
+                    ))}
                     {calculateBundleDiscount() > 0 && (
                       <div className="flex flex-wrap justify-between text-sm text-green-600">
                         <span>Bundle korting</span>

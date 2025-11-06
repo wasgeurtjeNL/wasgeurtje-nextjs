@@ -30,42 +30,6 @@ async function updateOrderToProcessing(orderId: string, paymentIntentId: string)
   try {
     console.log(`🔄 [SIMPLE] Updating order #${orderId} to processing status`);
     
-    // Get current order first to preserve data
-    const currentResponse = await fetch(`${WC_API_URL}/orders/${orderId}`, {
-      method: 'GET',
-      headers: wcHeaders()
-    });
-    
-    let existingMetaData = [];
-    if (currentResponse.ok) {
-      const currentOrder = await currentResponse.json();
-      existingMetaData = currentOrder.meta_data || [];
-      console.log(`📋 [SIMPLE] Current status: ${currentOrder.status}, payment_method: ${currentOrder.payment_method}`);
-    }
-    
-    // Merge meta data properly
-    const newMetaData = [
-      ...existingMetaData.filter((meta: any) => 
-        !['_stripe_payment_intent_id', '_payment_completed_at', '_paid_date', '_transaction_id'].includes(meta.key)
-      ),
-      {
-        key: '_stripe_payment_intent_id',
-        value: paymentIntentId,
-      },
-      {
-        key: '_payment_completed_at',
-        value: new Date().toISOString(),
-      },
-      {
-        key: '_paid_date',
-        value: Math.floor(Date.now() / 1000).toString(),
-      },
-      {
-        key: '_transaction_id',
-        value: paymentIntentId,
-      }
-    ];
-    
     const updateData = {
       status: 'processing',
       set_paid: true,
@@ -73,10 +37,21 @@ async function updateOrderToProcessing(orderId: string, paymentIntentId: string)
       payment_method_title: 'Stripe',
       transaction_id: paymentIntentId,
       date_paid: new Date().toISOString(),
-      meta_data: newMetaData
+      meta_data: [
+        {
+          key: '_stripe_payment_intent_id',
+          value: paymentIntentId,
+        },
+        {
+          key: '_payment_completed_at',
+          value: new Date().toISOString(),
+        },
+        {
+          key: '_paid_date',
+          value: Math.floor(Date.now() / 1000).toString(),
+        }
+      ]
     };
-    
-    console.log(`🔧 [SIMPLE] Updating order with complete data...`);
     
     const response = await fetch(`${WC_API_URL}/orders/${orderId}`, {
       method: 'PUT',
@@ -86,12 +61,11 @@ async function updateOrderToProcessing(orderId: string, paymentIntentId: string)
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ [SIMPLE] Update failed:`, response.status, errorText);
       throw new Error(`WooCommerce update failed: ${response.status} - ${errorText}`);
     }
     
     const updatedOrder = await response.json();
-    console.log(`✅ [SIMPLE] Order #${updatedOrder.number} updated successfully`);
+    console.log(`✅ [SIMPLE] Order #${orderId} updated to processing successfully`);
     
     return updatedOrder;
     
@@ -101,32 +75,12 @@ async function updateOrderToProcessing(orderId: string, paymentIntentId: string)
   }
 }
 
-// 🔍 SIMPLE: Find order by PaymentIntent ID or pre-created order ID
-async function findOrderForPayment(paymentIntent: Stripe.PaymentIntent) {
+// 🔍 SIMPLE: Find order by PaymentIntent ID
+async function findOrderByPaymentIntent(paymentIntentId: string) {
   try {
-    const paymentIntentId = paymentIntent.id;
-    const metadata = paymentIntent.metadata;
+    console.log(`🔍 [SIMPLE] Searching for order with PaymentIntent: ${paymentIntentId}`);
     
-    // Method 1: Check for pre-created order
-    if (metadata?.woocommerce_order_id) {
-      console.log(`🔍 [SIMPLE] Checking pre-created order ID: ${metadata.woocommerce_order_id}`);
-      
-      const response = await fetch(`${WC_API_URL}/orders/${metadata.woocommerce_order_id}`, {
-        method: 'GET',
-        headers: wcHeaders()
-      });
-      
-      if (response.ok) {
-        const order = await response.json();
-        console.log(`✅ [SIMPLE] Found pre-created order #${order.number}`);
-        return { order, method: 'pre_created' };
-      }
-    }
-    
-    // Method 2: Search by PaymentIntent ID in meta data
-    console.log(`🔍 [SIMPLE] Searching for existing order with PaymentIntent: ${paymentIntentId}`);
-    
-    const searchResponse = await fetch(
+    const response = await fetch(
       `${WC_API_URL}/orders?meta_key=_stripe_payment_intent_id&meta_value=${paymentIntentId}&per_page=1`,
       {
         method: 'GET',
@@ -134,19 +88,15 @@ async function findOrderForPayment(paymentIntent: Stripe.PaymentIntent) {
       }
     );
     
-    if (searchResponse.ok) {
-      const orders = await searchResponse.json();
-      if (orders && orders.length > 0) {
-        console.log(`✅ [SIMPLE] Found existing order #${orders[0].number}`);
-        return { order: orders[0], method: 'existing_search' };
-      }
+    if (!response.ok) {
+      throw new Error(`Order search failed: ${response.status}`);
     }
     
-    console.log(`⚠️ [SIMPLE] No existing order found for PaymentIntent ${paymentIntentId}`);
-    return null;
+    const orders = await response.json();
+    return orders && orders.length > 0 ? orders[0] : null;
     
   } catch (error) {
-    console.error(`❌ [SIMPLE] Error finding order:`, error);
+    console.error(`❌ [SIMPLE] Error searching for order:`, error);
     return null;
   }
 }
@@ -157,16 +107,10 @@ async function createOrderFromMetadata(paymentIntent: Stripe.PaymentIntent) {
     console.log(`🏪 [SIMPLE] Creating order from PaymentIntent metadata`);
     
     const metadata = paymentIntent.metadata;
+    const lineItems = JSON.parse(metadata.cart || '[]');
+    const customer = JSON.parse(metadata.customer_data || '{}');
     
-    if (!metadata?.cart || !metadata?.customer_data) {
-      throw new Error('Missing required metadata: cart or customer_data');
-    }
-    
-    const lineItems = JSON.parse(metadata.cart);
-    const customer = JSON.parse(metadata.customer_data);
-    const finalTotal = parseFloat(metadata.final_total || '0');
-    
-    // Simple order creation with all required fields
+    // Simple order creation
     const orderData = {
       status: 'processing',
       set_paid: true,
@@ -179,34 +123,20 @@ async function createOrderFromMetadata(paymentIntent: Stripe.PaymentIntent) {
         last_name: customer.lastName || '',
         email: customer.email || '',
         phone: customer.phone || '',
-        address_1: `${customer.address || ''} ${customer.houseNumber || ''}`.trim(),
+        address_1: `${customer.address || ''} ${customer.houseNumber || ''}`,
         city: customer.city || '',
         postcode: customer.postcode || '',
-        country: customer.country?.toUpperCase() || 'NL',
-      },
-      shipping: {
-        first_name: customer.firstName || '',
-        last_name: customer.lastName || '',
-        address_1: `${customer.address || ''} ${customer.houseNumber || ''}`.trim(),
-        city: customer.city || '',
-        postcode: customer.postcode || '',
-        country: customer.country?.toUpperCase() || 'NL',
+        country: customer.country || 'NL',
       },
       line_items: lineItems.map((item: any) => ({
         product_id: parseInt(item.id),
         quantity: item.quantity,
       })),
-      shipping_lines: finalTotal >= 40 ? [
+      shipping_lines: [
         {
           method_id: 'free_shipping',
           method_title: 'Gratis verzending',
           total: '0.00',
-        }
-      ] : [
-        {
-          method_id: 'flat_rate',
-          method_title: 'Standaard verzending',
-          total: '4.95',
         }
       ],
       meta_data: [
@@ -221,19 +151,9 @@ async function createOrderFromMetadata(paymentIntent: Stripe.PaymentIntent) {
         {
           key: '_paid_date',
           value: Math.floor(Date.now() / 1000).toString(),
-        },
-        {
-          key: '_transaction_id',
-          value: paymentIntent.id,
-        },
-        {
-          key: '_order_created_via',
-          value: 'simple_webhook',
         }
       ]
     };
-    
-    console.log(`🏪 [SIMPLE] Creating order with data:`, JSON.stringify(orderData, null, 2));
     
     const response = await fetch(`${WC_API_URL}/orders`, {
       method: 'POST',
@@ -246,7 +166,6 @@ async function createOrderFromMetadata(paymentIntent: Stripe.PaymentIntent) {
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ [SIMPLE] Order creation failed:`, response.status, errorText);
       throw new Error(`Order creation failed: ${response.status} - ${errorText}`);
     }
     
@@ -307,38 +226,65 @@ export async function POST(request: NextRequest) {
     
     console.log(`💳 [SIMPLE] Processing payment: ${paymentIntent.id}`);
     
-    // Find existing order
-    const orderResult = await findOrderForPayment(paymentIntent);
+    // STEP 1: Check if we have pre-created order info in metadata
+    const metadata = paymentIntent.metadata;
+    const preCreatedOrderId = metadata?.woocommerce_order_id;
     
-    if (orderResult) {
-      // Update existing order
-      console.log(`🔄 [SIMPLE] Updating existing order #${orderResult.order.number} (method: ${orderResult.method})`);
+    if (preCreatedOrderId) {
+      // 🎯 PRE-CREATED ORDER: Just update status
+      console.log(`🔄 [SIMPLE] Found pre-created order ID: ${preCreatedOrderId}`);
       
       try {
-        const updatedOrder = await updateOrderToProcessing(orderResult.order.id, paymentIntent.id);
+        const updatedOrder = await updateOrderToProcessing(preCreatedOrderId, paymentIntent.id);
         
         const processingTime = Date.now() - webhookStart;
-        console.log(`✅ [SIMPLE] Order updated in ${processingTime}ms`);
+        console.log(`✅ [SIMPLE] Pre-created order updated in ${processingTime}ms`);
         
         return NextResponse.json({
           success: true,
           orderId: updatedOrder.id,
           orderNumber: updatedOrder.number,
           paymentIntentId: paymentIntent.id,
-          approach: orderResult.method,
+          approach: 'pre_order_update',
           processingTime,
-          simulation: isSimulation,
-          message: `Order #${updatedOrder.number} updated to processing via ${orderResult.method}`
+          simulation: isSimulation
         });
         
       } catch (updateError) {
-        console.error(`⚠️ [SIMPLE] Update failed, will create new order:`, updateError);
+        console.error(`⚠️ [SIMPLE] Pre-order update failed, creating new order:`, updateError);
         // Fall through to create new order
       }
     }
     
-    // Create new order if no existing order or update failed
-    console.log(`🏪 [SIMPLE] Creating new order from PaymentIntent metadata`);
+    // STEP 2: Check if order already exists
+    const existingOrder = await findOrderByPaymentIntent(paymentIntent.id);
+    
+    if (existingOrder) {
+      console.log(`✅ [SIMPLE] Found existing order #${existingOrder.number}, updating status`);
+      
+      try {
+        const updatedOrder = await updateOrderToProcessing(existingOrder.id, paymentIntent.id);
+        
+        const processingTime = Date.now() - webhookStart;
+        
+        return NextResponse.json({
+          success: true,
+          orderId: updatedOrder.id,
+          orderNumber: updatedOrder.number,
+          paymentIntentId: paymentIntent.id,
+          approach: 'existing_order_update',
+          processingTime,
+          simulation: isSimulation
+        });
+        
+      } catch (updateError) {
+        console.error(`⚠️ [SIMPLE] Existing order update failed:`, updateError);
+        // Continue to create new order
+      }
+    }
+    
+    // STEP 3: Create new order from metadata
+    console.log(`🏪 [SIMPLE] No existing order found, creating new order`);
     
     try {
       const newOrder = await createOrderFromMetadata(paymentIntent);
@@ -352,8 +298,7 @@ export async function POST(request: NextRequest) {
         paymentIntentId: paymentIntent.id,
         approach: 'new_order_creation',
         processingTime,
-        simulation: isSimulation,
-        message: `Order #${newOrder.number} created successfully in ${processingTime}ms`
+        simulation: isSimulation
       });
       
     } catch (createError) {
@@ -361,7 +306,7 @@ export async function POST(request: NextRequest) {
       
       return NextResponse.json({
         success: false,
-        error: 'Order processing failed',
+        error: 'All order processing methods failed',
         paymentIntentId: paymentIntent.id,
         details: createError instanceof Error ? createError.message : 'Unknown error',
         simulation: isSimulation
@@ -381,9 +326,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    message: 'Simple & Reliable Stripe Webhook Handler',
+    message: 'Simple Stripe Webhook Handler',
     status: 'active',
-    version: '2.0-simple',
     timestamp: new Date().toISOString()
   });
 }

@@ -9,6 +9,7 @@ import "./product-typography.css";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { LoyalityProvider } from "@/context/LoyalityContext";
+import { LoyaltyCouponValidationProvider } from "@/context/LoyaltyCouponValidationContext";
 import FigmaHeader from "@/components/sections/FigmaHeader";
 import FooterLayer from "@/components/sections/FooterLayer";
 
@@ -132,17 +133,19 @@ export default function RootLayout({
             {/* Cart Tracker - Must be inside CartProvider to access cart context */}
             <CartTracker />
             
-            <LoyalityProvider>
-              <ResponsiveInit />
-              <CustomerIntelligenceTracker />
-              <EngagementTracker />
-              <GlobalBundleOfferManager />
-              <WebsiteRenewalBanner />
-              <FigmaHeader />
-              {children}
-              <FooterLayer />
-              <CartSidebar />
-            </LoyalityProvider>
+            <LoyaltyCouponValidationProvider>
+              <LoyalityProvider>
+                <ResponsiveInit />
+                <CustomerIntelligenceTracker />
+                <EngagementTracker />
+                <GlobalBundleOfferManager />
+                <WebsiteRenewalBanner />
+                <FigmaHeader />
+                {children}
+                <FooterLayer />
+                <CartSidebar />
+              </LoyalityProvider>
+            </LoyaltyCouponValidationProvider>
           </CartProvider>
         </AuthProvider>
         {/* Vercel Speed Insights - Real User Monitoring for Core Web Vitals */}
