@@ -328,13 +328,7 @@ export default function PerfumeFinder() {
           (product: any) => product.stock_status !== 'outofstock'
         );
         
-        // Alleen tonen als er daadwerkelijk producten én geuren zijn
-        const productsWithScents = inStockProducts.filter(
-          (product: any) =>
-            Array.isArray(product.scents) && product.scents.length > 0
-        );
-
-        if (productsWithScents.length > 0) {
+        if (inStockProducts.length > 0) {
           // Display up to 4 products for consistent layout
           const displayProducts = inStockProducts.slice(0, 4);
           setProducts(displayProducts);

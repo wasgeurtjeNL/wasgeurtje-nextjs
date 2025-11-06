@@ -77,21 +77,24 @@ export async function GET(request: NextRequest) {
     const productsWithACF = await Promise.all(
       products.map(async (product) => {
         try {
-          // Fetch ACF data for this product
-          const acfUrl = `${WC_API_URL}/wp-json/acf/v3/product/${product.id}?acf_format=standard`;
-          
-          const acfResponse = await fetch(acfUrl, {
-            headers: {
-              'Accept': 'application/json'
-            },
-            next: { revalidate: 300 }, // Cache for 5 minutes
-          });
-
+          // Try to fetch ACF data for this product
           let acfData: ACFResponse = {};
-          if (acfResponse.ok) {
-            acfData = await acfResponse.json();
-          } else {
-            console.warn(`ACF data not found for product ${product.id}, status: ${acfResponse.status}`);
+          try {
+            const acfUrl = `${WC_API_URL}/wp-json/wp/v2/product/${product.id}`;
+            
+            const acfResponse = await fetch(acfUrl, {
+              headers: wcHeaders(),
+              next: { revalidate: 300 }, // Cache for 5 minutes
+            });
+
+            if (acfResponse.ok) {
+              const wpData = await acfResponse.json();
+              acfData = { acf: wpData.acf || {} };
+            } else {
+              console.warn(`ACF data not available for product ${product.id}, status: ${acfResponse.status}`);
+            }
+          } catch (acfError) {
+            console.warn(`Failed to fetch ACF data for product ${product.id}:`, acfError);
           }
 
           // Transform to our Product interface
@@ -102,7 +105,7 @@ export async function GET(request: NextRequest) {
             price: product.price ? `€${product.price}` : '€0,00',
             image: product.images?.[0]?.src || null,
             description: product.short_description || product.description || '',
-            scents: acfData.acf?.parfum_tags || [], // Use ACF data only, no fallback
+            scents: acfData.acf?.parfum_tags || ['Fris', 'Bloemig'], // Fallback scents if ACF data is unavailable
             stock_status: product.stock_status,
             stock_quantity: product.stock_quantity,
             categories: product.categories?.map(cat => cat.name) || [],
@@ -118,7 +121,7 @@ export async function GET(request: NextRequest) {
             price: product.price ? `€${product.price}` : '€0,00',
             image: product.images?.[0]?.src || null,
             description: product.short_description || product.description || '',
-            scents: [], // No fallback scents - ACF data only
+            scents: ['Fris', 'Bloemig'], // Fallback scents when ACF data fails
             stock_status: product.stock_status,
             stock_quantity: product.stock_quantity,
             categories: product.categories?.map(cat => cat.name) || [],
