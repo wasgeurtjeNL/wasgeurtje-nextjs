@@ -292,6 +292,7 @@ export async function POST(request: NextRequest) {
       const stripe = initializeStripe();
 
       // Create PaymentIntent with frontend totals
+      console.log("💳 [STEP 3] Creating PaymentIntent...");
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amountInCents,
         currency: "eur",
@@ -323,6 +324,59 @@ export async function POST(request: NextRequest) {
         receipt_email: customer.email,
       });
 
+      // 🔗 CRITICAL TWO-STEP LINKING: Link PaymentIntent to pre-order
+      console.log(`🔗 [STEP 3] Linking PaymentIntent ${paymentIntent.id} to order #${pendingOrder.number}...`);
+      const linkStart = Date.now();
+      
+      try {
+        // Get current order meta_data
+        const currentOrderResponse = await fetch(`${WC_API_URL}/orders/${pendingOrder.id}`, {
+          method: 'GET',
+          headers: wcHeaders()
+        });
+        
+        if (currentOrderResponse.ok) {
+          const currentOrder = await currentOrderResponse.json();
+          const existingMetaData = currentOrder.meta_data || [];
+          
+          // Add PaymentIntent ID to existing meta_data
+          const updatedMetaData = [
+            ...existingMetaData,
+            {
+              key: '_stripe_payment_intent_id',
+              value: paymentIntent.id,
+            },
+            {
+              key: '_payment_intent_created_at',
+              value: new Date().toISOString(),
+            }
+          ];
+          
+          // Update order with PaymentIntent ID
+          const linkResponse = await fetch(`${WC_API_URL}/orders/${pendingOrder.id}`, {
+            method: 'PUT',
+            headers: wcHeaders(),
+            body: JSON.stringify({
+              transaction_id: paymentIntent.id, // Set transaction ID
+              meta_data: updatedMetaData
+            })
+          });
+          
+          const linkTime = Date.now() - linkStart;
+          
+          if (linkResponse.ok) {
+            console.log(`✅ [STEP 3] PaymentIntent linked to order #${pendingOrder.number} in ${linkTime}ms`);
+          } else {
+            console.error(`⚠️ [STEP 3] Failed to link PaymentIntent to order (${linkResponse.status}), but continuing...`);
+          }
+        } else {
+          console.error(`⚠️ [STEP 3] Could not fetch current order for linking, but continuing...`);
+        }
+      } catch (linkError) {
+        console.error(`⚠️ [STEP 3] Error linking PaymentIntent to order:`, linkError);
+        // Don't fail the whole process, continue
+      }
+
       console.log("📤 [STEP 3] Returning success response with pre-created order info...");
       return NextResponse.json({
         clientSecret: paymentIntent.client_secret,
@@ -334,7 +388,8 @@ export async function POST(request: NextRequest) {
         orderId: pendingOrder.id,
         orderStatus: 'pending_payment',
         preOrderCreationTime: preOrderTime,
-        message: `Order #${pendingOrder.number} created and ready for payment (${preOrderTime}ms)`
+        paymentIntentLinked: true,
+        message: `Order #${pendingOrder.number} created and linked to PaymentIntent (${preOrderTime}ms)`
       });
     }
 

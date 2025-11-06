@@ -337,8 +337,46 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Create new order if no existing order or update failed
-    console.log(`🏪 [SIMPLE] Creating new order from PaymentIntent metadata`);
+    // 🛡️ FINAL CHECK: One more search before creating new order (prevent duplicates)
+    console.log(`🛡️ [SIMPLE] Final duplicate check before creating new order...`);
+    
+    // Broad search: Check ALL orders with this PaymentIntent (up to 5)
+    try {
+      const broadSearchResponse = await fetch(
+        `${WC_API_URL}/orders?meta_key=_stripe_payment_intent_id&meta_value=${paymentIntent.id}&per_page=5`,
+        {
+          method: 'GET',
+          headers: wcHeaders(),
+        }
+      );
+      
+      if (broadSearchResponse.ok) {
+        const allOrders = await broadSearchResponse.json();
+        if (allOrders && allOrders.length > 0) {
+          console.log(`🚨 [SIMPLE] DUPLICATE PREVENTION: Found ${allOrders.length} existing orders!`);
+          console.log(`✅ [SIMPLE] Returning first existing order #${allOrders[0].number}`);
+          
+          const processingTime = Date.now() - webhookStart;
+          
+          return NextResponse.json({
+            success: true,
+            orderId: allOrders[0].id,
+            orderNumber: allOrders[0].number,
+            paymentIntentId: paymentIntent.id,
+            approach: 'duplicate_prevention_final',
+            processingTime,
+            simulation: isSimulation,
+            duplicatesFound: allOrders.length,
+            message: `Prevented duplicate! Returned existing order #${allOrders[0].number}`
+          });
+        }
+      }
+    } catch (finalCheckError) {
+      console.error(`⚠️ [SIMPLE] Final duplicate check failed:`, finalCheckError);
+    }
+    
+    // Create new order if no existing order or update failed (ONLY after all checks)
+    console.log(`🏪 [SIMPLE] Creating new order from PaymentIntent metadata (no duplicates found)`);
     
     try {
       const newOrder = await createOrderFromMetadata(paymentIntent);
