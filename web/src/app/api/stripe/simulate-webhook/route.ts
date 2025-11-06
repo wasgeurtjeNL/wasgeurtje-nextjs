@@ -18,14 +18,35 @@ export async function POST(request: NextRequest) {
 
     console.log('🧪 Simulating webhook for payment intent:', paymentIntentId);
 
-    // First, get the payment details from Stripe
-    const paymentStatusResponse = await fetch(`${request.nextUrl.origin}/api/stripe/payment-status?payment_intent=${paymentIntentId}`);
-    
-    if (!paymentStatusResponse.ok) {
-      throw new Error('Failed to get payment status');
-    }
+    // First, get the payment details from Stripe (with better error handling)
+    let paymentStatus;
+    try {
+      const paymentStatusResponse = await fetch(`${request.nextUrl.origin}/api/stripe/payment-status?payment_intent=${paymentIntentId}`);
+      
+      if (!paymentStatusResponse.ok) {
+        const errorText = await paymentStatusResponse.text();
+        console.error(`❌ Payment status API failed: ${paymentStatusResponse.status} - ${errorText}`);
+        throw new Error(`Failed to get payment status: ${paymentStatusResponse.status}`);
+      }
 
-    const paymentStatus = await paymentStatusResponse.json();
+      paymentStatus = await paymentStatusResponse.json();
+      
+      if (!paymentStatus) {
+        throw new Error('Empty payment status response');
+      }
+      
+    } catch (fetchError) {
+      console.error(`❌ Error fetching payment status:`, fetchError);
+      return NextResponse.json(
+        { 
+          error: 'Webhook simulation failed', 
+          details: 'Failed to get payment status',
+          paymentIntentId,
+          originalError: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
     console.log('📋 Payment status:', paymentStatus);
 
     // For development testing, allow test payments or simulations
