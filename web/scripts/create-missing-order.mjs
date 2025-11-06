@@ -56,7 +56,7 @@ async function createOrder() {
       {
         method_id: "flat_rate",
         method_title: "PostNL Track&Trace",
-        total: "4.95",
+        total: "1.95",
       },
     ],
     meta_data: [

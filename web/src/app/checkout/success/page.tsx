@@ -410,7 +410,7 @@ const SuccessPageWrapper = () => {
         subtotal: orderData.finalTotal || 0,
         discountAmount: appliedDiscount?.discount_amount || 0,
         volumeDiscount: 0,
-        shippingCost: (orderData.finalTotal || 0) >= 40 ? 0 : 4.95,
+        shippingCost: (orderData.finalTotal || 0) >= 29 ? 0 : 1.95,
         finalTotal: orderData.finalTotal || 0,
       };
 

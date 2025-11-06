@@ -43,7 +43,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const FREE_SHIPPING_THRESHOLD = 40; // €40 voor gratis verzending
+const FREE_SHIPPING_THRESHOLD = 29; // €29 voor gratis verzending
 
 // ============================================================================
 // PRODUCT IDS - Dopjes en Flesjes

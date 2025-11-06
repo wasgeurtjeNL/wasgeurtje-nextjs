@@ -320,7 +320,7 @@ export default function ProductTemplate({
   promises = {
     title: "Wij beloven je",
     items: [
-      "Gratis verzending boven €40 in NL & BE 📦",
+      "Gratis verzending boven €29 in NL & BE 📦",
       "Uitzonderlijke kwaliteit wasgeur",
       "Bestel voor 23:59 - vandaag verzonden 🚀",
       "Gemaakt van milieuvriendelijke en duurzame materialen",
@@ -1097,14 +1097,14 @@ export default function ProductTemplate({
               <div className="flex items-center space-x-2">
                 {!hasReachedFreeShipping && (
                   <span className="text-xs px-4 py-1 rounded-full bg-[#FCCE4E] text-[#814E1E] font-bold animate-pulse">
-                    BESPAAR €4,95
+                    BESPAAR €1,95
                   </span>
                 )}
                 <span
                   className="text-sm font-bold"
                   style={{ color: "#D6AD61" }}
                 >
-                  Gratis vanaf €40
+                  Gratis vanaf €29
                 </span>
               </div>
             </div>
@@ -1308,7 +1308,7 @@ export default function ProductTemplate({
                       (info.text_2?.toLowerCase().includes('verzending') || info.text_2?.toLowerCase().includes('gratis'));
                     
                     const displayText1 = isShippingText ? 'Gratis verzending' : info.text_1;
-                    const displayText2 = isShippingText ? 'vanaf €40' : info.text_2;
+                    const displayText2 = isShippingText ? 'vanaf €29' : info.text_2;
 
                     return (
                       <div key={index} className="flex items-center space-x-2">
@@ -1948,10 +1948,10 @@ export default function ProductTemplate({
                           (lowerText.includes('gratis') && lowerText.includes('verzending')) ||
                           (lowerText.includes('track') && lowerText.includes('trace'))
                         ) {
-                          // Als het alleen "Gratis verzending" is zonder "boven €40"
-                          if (!lowerText.includes('40') && !lowerText.includes('vanaf')) {
+                          // Als het alleen "Gratis verzending" is zonder "boven €29"
+                          if (!lowerText.includes('29') && !lowerText.includes('vanaf')) {
                             // CRO-geoptimaliseerd: focus op het voordeel
-                            displayText = 'Gratis verzending vanaf €40 📦';
+                            displayText = 'Gratis verzending vanaf €29 📦';
                           }
                         }
                         
@@ -2049,7 +2049,7 @@ export default function ProductTemplate({
                         </h2>
                         <ul className="space-y-1">
                           <li>
-                            • Gratis verzending vanaf €40 in Nederland en België
+                            • Gratis verzending vanaf €29 in Nederland en België
                           </li>
                           <li>• Bestel voor 23:59, vandaag verzonden</li>
                           <li>• Levertijd: 1-2 werkdagen</li>
@@ -2162,7 +2162,7 @@ export default function ProductTemplate({
                           </h2>
                           <ul className="space-y-2">
                             <li>
-                              • Gratis verzending vanaf €40 in Nederland en
+                              • Gratis verzending vanaf €29 in Nederland en
                               België
                             </li>
                             <li>• Bestel voor 23:59, vandaag verzonden</li>
@@ -2746,7 +2746,7 @@ export default function ProductTemplate({
                         <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                         <path d="M3 4a1 1 0 00-1 1v1a1 1 0 001 1h1l1.68 5.39A3 3 0 008.62 15h5.76a3 3 0 002.94-2.61L18 7H6.41l-.77-3H3z" />
                       </svg>
-                      Gratis verzending vanaf €40
+                      Gratis verzending vanaf €29
                       <svg
                         className="w-3 h-3 ml-1 transition-transform group-hover:translate-x-0.5"
                         fill="none"
@@ -2789,12 +2789,12 @@ export default function ProductTemplate({
                                     subtotal + productPrice;
                                   const remaining = Math.max(
                                     0,
-                                    40 - totalWithProduct
+                                    29 - totalWithProduct
                                   );
 
                                   if (hasReachedFreeShipping) {
                                     return "Je hebt al gratis verzending! 🎉";
-                                  } else if (totalWithProduct >= 40) {
+                                  } else if (totalWithProduct >= 29) {
                                     return (
                                       <>
                                         Met dit product krijg je{" "}

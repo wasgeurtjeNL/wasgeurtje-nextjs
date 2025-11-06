@@ -39,7 +39,7 @@ const defaultHowItWorks = {
 const defaultPromises = {
   title: "Wij beloven je",
   items: [
-    "Gratis verzending boven €40 in NL & BE 📦",
+    "Gratis verzending boven €29 in NL & BE 📦",
     "Uitzonderlijke kwaliteit wasgeur",
     "Bestel voor 23:59 - vandaag verzonden 🚀",
     "Gemaakt van milieuvriendelijke en duurzame materialen",

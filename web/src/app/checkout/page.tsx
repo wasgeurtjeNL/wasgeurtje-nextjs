@@ -285,7 +285,7 @@ export default function CheckoutPage() {
     
     const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
     const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
-    return subtotalAfterDiscounts >= 40;
+    return subtotalAfterDiscounts >= 29;
   };
 
   const getShippingProgress = () => {
@@ -307,7 +307,7 @@ export default function CheckoutPage() {
     
     const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
     const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
-    return Math.max(0, 40 - subtotalAfterDiscounts);
+    return Math.max(0, 29 - subtotalAfterDiscounts);
   };
 
   // 🎯 NEW: Loyalty validation message component - IMPROVED UX
@@ -458,7 +458,7 @@ export default function CheckoutPage() {
     if (shippingCost === 0) {
       return inline ? (
         <span className="text-xs text-green-600 ml-1">
-          (Bedrag na kortingen: €{subtotalAfterDiscounts.toFixed(2)} ≥ €40)
+          (Bedrag na kortingen: €{subtotalAfterDiscounts.toFixed(2)} ≥ €29)
         </span>
       ) : null;
     }
@@ -1292,7 +1292,7 @@ export default function CheckoutPage() {
   // Fetch purchase history and generate personalized product suggestion
   useEffect(() => {
     // If free shipping is reached, clear the suggestion
-    if (subtotal >= 40) {
+    if (subtotal >= 29) {
       setPersonalizedSuggestion(null);
       return;
     }
@@ -2388,8 +2388,8 @@ export default function CheckoutPage() {
     const totalDiscount = regularDiscount + loyaltyDiscount + volumeDiscount + bundleDiscount;
     const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
     
-    // Free shipping if amount AFTER discounts >= €40
-    return subtotalAfterDiscounts >= 40 ? 0 : 4.95;
+    // Free shipping if amount AFTER discounts >= €29
+    return subtotalAfterDiscounts >= 29 ? 0 : 1.95;
   };
 
   const calculateVolumeDiscount = () => {
@@ -2430,7 +2430,7 @@ export default function CheckoutPage() {
     const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
     
     // Shipping is calculated on subtotal AFTER discounts
-    const shipping = subtotalAfterDiscounts >= 40 ? 0 : 4.95;
+    const shipping = subtotalAfterDiscounts >= 29 ? 0 : 1.95;
     
     return Math.max(0, subtotalAfterDiscounts + shipping);
   };
@@ -2451,7 +2451,7 @@ export default function CheckoutPage() {
     // 🎯 UPDATED: Calculate shipping AFTER all discounts
     const totalDiscount = regularDiscountAmount + loyaltyDiscountAmount + volumeDiscount + bundle;
     const subtotalAfterDiscounts = Math.max(0, subtotal - totalDiscount);
-    const shippingCost = subtotalAfterDiscounts >= 40 ? 0 : 4.95;
+    const shippingCost = subtotalAfterDiscounts >= 29 ? 0 : 1.95;
 
     // Calculate final total inline
     const finalTotal = Math.max(0, subtotalAfterDiscounts + shippingCost);
@@ -2662,7 +2662,7 @@ export default function CheckoutPage() {
         loyaltyDiscount: loyaltyDiscount, // NEW: Track loyalty discounts separately
         volumeDiscount: volumeDiscount,
         bundleDiscount: bundleDiscount,
-        shippingCost: subtotalAfterDiscounts >= 40 ? 0 : 4.95, // 🎯 FIXED: Shipping after discounts
+        shippingCost: subtotalAfterDiscounts >= 29 ? 0 : 1.95, // 🎯 FIXED: Shipping after discounts
         finalTotal: finalTotal,
       };
 
@@ -2874,7 +2874,7 @@ export default function CheckoutPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-1">
                             <p className="text-[13px] font-semibold leading-snug">
-                              Nog €{getRemainingForFreeShipping().toFixed(2)} voor GRATIS verzending!
+                              Nog maar €{getRemainingForFreeShipping().toFixed(2)} - voeg een extra flesje toe voor GRATIS verzending!
                             </p>
                             <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-semibold leading-tight">
                               {Math.round(getShippingProgress())}%
@@ -2898,7 +2898,7 @@ export default function CheckoutPage() {
                       <div className="flex items-start gap-1.5">
                         {/* Savings Badge */}
                         <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1 text-center flex-shrink-0 border border-white/30">
-                          <p className="text-xs font-bold whitespace-nowrap leading-tight">€4,95</p>
+                          <p className="text-xs font-bold whitespace-nowrap leading-tight">€1,95</p>
                           <p className="text-[9px] font-semibold opacity-90 leading-tight">bespaar</p>
                         </div>
                         
@@ -2933,7 +2933,7 @@ export default function CheckoutPage() {
                               Gratis verzending! 🎉
                             </p>
                             <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-semibold leading-tight">
-                              €4,95 voordeel
+                              €1,95 voordeel
                             </span>
                           </div>
                           <p className="text-[11px] opacity-90 mt-0.5 leading-tight">
@@ -3114,17 +3114,17 @@ export default function CheckoutPage() {
                 )}
                 <div className="text-left">
                   <h3 className="text-sm sm:text-base font-bold text-gray-900">
-                    {hasReachedFreeShipping() ? "Gratis verzending behaald! 🌟" : `Nog €${getRemainingForFreeShipping().toFixed(2)} voor GRATIS verzending!`}
+                    {hasReachedFreeShipping() ? "Gratis verzending behaald! 🌟" : `Nog maar €${getRemainingForFreeShipping().toFixed(2)} - voeg een extra product toe voor GRATIS verzending!`}
                   </h3>
                   <p className="text-xs text-gray-600">
-                    {hasReachedFreeShipping() ? "Ontdek meer geweldige producten" : "Voeg producten toe en bespaar €4,95"}
+                    {hasReachedFreeShipping() ? "Ontdek meer geweldige producten" : "Voeg producten toe en bespaar €1,95"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {subtotal >= 40 && (
+                {subtotal >= 29 && (
                   <p className="text-xs text-green-600 font-medium hidden sm:block">
-                    €4,95 bespaard
+                    €1,95 bespaard
                   </p>
                 )}
                 <svg
@@ -3147,8 +3147,8 @@ export default function CheckoutPage() {
 
             {/* Dropdown Content */}
             {isProductSuggestionsOpen && (
-              <div className={`relative z-10 border-t border-green-200 ${subtotal >= 40 ? "p-4" : "p-6"}`}>
-              {subtotal < 40 && (
+              <div className={`relative z-10 border-t border-green-200 ${subtotal >= 29 ? "p-4" : "p-6"}`}>
+              {subtotal < 29 && (
                 // Full layout when working towards free shipping
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
@@ -3164,12 +3164,12 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-gray-900 mb-1">
-                      Nog maar €{(40 - subtotal).toFixed(2)} voor GRATIS
+                      Nog maar €{(29 - subtotal).toFixed(2)} voor GRATIS
                       verzending!
                     </h3>
                     <p className="text-sm text-gray-700 mb-3">
                       Voeg nog een klein item toe aan je bestelling en bespaar
-                      €4,95 op verzendkosten
+                      €1,95 op verzendkosten
                     </p>
 
                     {/* Progress bar */}
@@ -3177,7 +3177,7 @@ export default function CheckoutPage() {
                       <div className="flex justify-between text-xs text-gray-600 mb-1">
                         <span>€{subtotal.toFixed(2)}</span>
                         <span className="font-semibold">
-                          €40.00 (Gratis verzending)
+                          €29.00 (Gratis verzending)
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-3 relative">
@@ -3198,7 +3198,7 @@ export default function CheckoutPage() {
               {/* Dynamic Product Suggestions */}
               <div
                 className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${
-                  subtotal >= 40 ? "mt-3" : "mt-0"
+                  subtotal >= 29 ? "mt-3" : "mt-0"
                 }`}
               >
                 {isLoadingProducts
@@ -4905,7 +4905,7 @@ export default function CheckoutPage() {
                           <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-sm font-medium text-blue-900">
-                                🚚 Nog €{getRemainingForFreeShipping().toFixed(2)} voor gratis verzending!
+                                🚚 Nog maar €{getRemainingForFreeShipping().toFixed(2)} - één flesje erbij en je verzending is gratis!
                               </span>
                             </div>
                             <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
@@ -6628,7 +6628,7 @@ export default function CheckoutPage() {
                     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-blue-100">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-blue-900">
-                          🚚 Nog €{getRemainingForFreeShipping().toFixed(2)} voor gratis verzending!
+                          🚚 Nog maar €{getRemainingForFreeShipping().toFixed(2)} - voeg een product toe en bespaar €1,95!
                         </span>
                       </div>
                       <div className="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
@@ -6640,7 +6640,7 @@ export default function CheckoutPage() {
                     </div>
                   )}
 
-                  {subtotal >= 40 && (
+                  {subtotal >= 29 && (
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-3 border-b border-green-100">
                       <div className="flex items-center justify-center gap-2">
                         <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -7052,7 +7052,7 @@ export default function CheckoutPage() {
                               {(
                                 (appliedDiscount ? calculateDiscount() : 0) +
                                 (FeatureFlags.ENABLE_VOLUME_DISCOUNT && subtotal >= 75 ? calculateVolumeDiscount() : 0) +
-                                (subtotal >= 40 ? 4.95 : 0)
+                                (subtotal >= 29 ? 1.95 : 0)
                               ).toFixed(2)}
                             </span>
                           </div>

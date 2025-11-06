@@ -196,7 +196,7 @@ async function createOrderFromMetadata(paymentIntent: Stripe.PaymentIntent) {
         product_id: parseInt(item.id),
         quantity: item.quantity,
       })),
-      shipping_lines: finalTotal >= 40 ? [
+      shipping_lines: finalTotal >= 29 ? [
         {
           method_id: 'free_shipping',
           method_title: 'Gratis verzending',
@@ -206,7 +206,7 @@ async function createOrderFromMetadata(paymentIntent: Stripe.PaymentIntent) {
         {
           method_id: 'flat_rate',
           method_title: 'Standaard verzending',
-          total: '4.95',
+          total: '1.95',
         }
       ],
       meta_data: [

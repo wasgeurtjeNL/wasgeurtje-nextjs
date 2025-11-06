@@ -495,10 +495,10 @@ export async function POST(request: NextRequest) {
       // DEBUG: 📦 No volume discount (subtotal €${subtotal} < €75)`);
     }
 
-    // Calculate shipping (free if subtotal >= €40)
-    const shippingCost = subtotal >= 40 ? 0 : 4.95;
+    // Calculate shipping (free if subtotal >= €29)
+    const shippingCost = subtotal >= 29 ? 0 : 1.95;
     console.log(
-      `🚚 Shipping cost: €${shippingCost} (${subtotal >= 40 ? "FREE" : "PAID"})`
+      `🚚 Shipping cost: €${shippingCost} (${subtotal >= 29 ? "FREE" : "PAID"})`
     );
 
     // Calculate final total

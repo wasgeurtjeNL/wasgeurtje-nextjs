@@ -54,7 +54,7 @@ const verkooppunten = [
   },
   {
     name: "Online - Wasgeurtje.nl",
-    description: "Bestel direct online met gratis verzending vanaf €40",
+    description: "Bestel direct online met gratis verzending vanaf €29",
     type: "Webshop",
     icon: "🌐",
   },
@@ -185,7 +185,7 @@ export default async function VerkooppuntenPage() {
                     De beschikbaarheid kan per vestiging verschillen. We raden aan om vooraf
                     telefonisch contact op te nemen met de winkel om te controleren of Wasgeurtje
                     producten op voorraad zijn. Of bestel direct online via onze webshop met
-                    <strong> gratis verzending vanaf €40</strong>!
+                    <strong> gratis verzending vanaf €29</strong>!
                   </p>
                 </div>
               </div>

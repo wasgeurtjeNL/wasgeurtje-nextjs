@@ -252,8 +252,8 @@ export async function POST(request: NextRequest) {
       volumeDiscount = subtotal * 0.1;
     }
 
-    // Calculate shipping (free if subtotal >= €40)
-    const shippingCost = subtotal >= 40 ? 0 : 4.95;
+    // Calculate shipping (free if subtotal >= €29)
+    const shippingCost = subtotal >= 29 ? 0 : 1.95;
 
     // Calculate final total
     const finalTotal =

@@ -159,10 +159,10 @@ const ProductInfo: React.FC<ProductDetailsCustomProps> = ({ productInfo }) => {
                     (lowerText.includes('gratis') && lowerText.includes('verzending')) ||
                     (lowerText.includes('track') && lowerText.includes('trace'))
                   ) {
-                    // Als het alleen "Gratis verzending" is zonder "boven €40"
-                    if (!lowerText.includes('40') && !lowerText.includes('vanaf')) {
+                    // Als het alleen "Gratis verzending" is zonder "boven €29"
+                    if (!lowerText.includes('29') && !lowerText.includes('vanaf')) {
                       // CRO-geoptimaliseerd: focus op het voordeel
-                      displayText = 'Gratis verzending vanaf €40 📦';
+                            displayText = 'Gratis verzending vanaf €29 📦';
                     }
                   }
                   

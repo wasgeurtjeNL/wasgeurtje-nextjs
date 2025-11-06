@@ -57,7 +57,7 @@ export default function TestWebhookConsolidation() {
                 subtotal: '15.95',
                 discount_amount: '0',
                 volume_discount: '0',
-                shipping_cost: '4.95',
+                shipping_cost: '1.95',
                 final_total: '20.90'
               }
             }

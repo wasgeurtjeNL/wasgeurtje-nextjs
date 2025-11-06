@@ -8,7 +8,7 @@ import ShopGrid from "@/components/ShopGrid";
 export const metadata: Metadata = {
   title: "Shop | Wasgeurtje",
   description:
-    "Shop onze complete collectie wasparfums, wasgeurtjes en meer. Gratis verzending vanaf €40.",
+    "Shop onze complete collectie wasparfums, wasgeurtjes en meer. Gratis verzending vanaf €29.",
 };
 
 const WOOCOMMERCE_API_URL = "https://api.wasgeurtje.nl/wp-json/wc/v3";
@@ -113,7 +113,7 @@ export default async function ShopPage() {
           <div className="text-center p-4 bg-white rounded-lg shadow-sm">
             <div className="text-2xl mb-1">🚚</div>
             <p className="text-sm font-medium" style={{ color: "#814E1E" }}>
-              Gratis verzending vanaf €40
+              Gratis verzending vanaf €29
             </p>
           </div>
           <div className="text-center p-4 bg-white rounded-lg shadow-sm">

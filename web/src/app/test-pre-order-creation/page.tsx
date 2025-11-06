@@ -34,7 +34,7 @@ export default function TestPreOrderCreation() {
             subtotal: 15.95,
             discountAmount: 0,
             volumeDiscount: 0,
-            shippingCost: 4.95,
+            shippingCost: 1.95,
             finalTotal: 20.90
           }
         };
@@ -108,7 +108,7 @@ export default function TestPreOrderCreation() {
                 subtotal: '15.95',
                 discount_amount: '0',
                 volume_discount: '0',
-                shipping_cost: '4.95',
+                shipping_cost: '1.95',
                 final_total: '20.90',
                 // 🎯 STEP 3: Simulate pre-created order metadata
                 woocommerce_order_id: '348759',

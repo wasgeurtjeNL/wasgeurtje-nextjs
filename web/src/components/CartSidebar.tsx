@@ -263,7 +263,7 @@ export default function CartSidebar() {
     const computeAndFetchUpsells = async () => {
       try {
         // Stop showing upsells if free shipping is reached
-        if (subtotal >= 40) {
+        if (subtotal >= 29) {
           setUpsellProducts([]);
           return;
         }
@@ -858,7 +858,7 @@ export default function CartSidebar() {
                   €
                   {(
                     subtotal +
-                    (!hasReachedFreeShipping ? 4.95 : 0) -
+                    (!hasReachedFreeShipping ? 1.95 : 0) -
                     (isPromoApplied ? subtotal * 0.1 : 0)
                   ).toFixed(2)}
                 </span>
@@ -939,7 +939,7 @@ export default function CartSidebar() {
                     <div className="flex justify-between text-sm font-medium">
                       <span className="text-gray-700">Verzending</span>
                       <span className="text-[#814E1E] font-semibold">
-                        €4,95
+                        €1,95
                       </span>
                     </div>
                   )}
