@@ -1,5 +1,6 @@
 import { analyticsConfig, isTrackingEnabled } from './config';
 import type { AnalyticsItem } from './types';
+import { generateEventId } from './eventIdGenerator';
 
 /**
  * Facebook Pixel Direct Tracking Utilities
@@ -34,8 +35,8 @@ export const trackFacebookEvent = (
  * ✅ WITH EVENT ID for deduplication
  */
 export const trackFacebookAddToCart = (item: AnalyticsItem, quantity: number) => {
-  // Generate unique event ID for deduplication
-  const eventId = `add_to_cart_${item.item_id}_${Date.now()}`;
+  // Generate standardized event ID for deduplication
+  const eventId = generateEventId('AddToCart', item.item_id);
   
   // Store for server-side deduplication
   if (typeof window !== 'undefined') {
@@ -48,7 +49,7 @@ export const trackFacebookAddToCart = (item: AnalyticsItem, quantity: number) =>
     content_name: item.item_name,
     content_type: 'product',
     value: item.price * quantity,
-    currency: item.currency || 'EUR',
+    currency: 'EUR',
   }, {
     eventID: eventId
   });
@@ -59,8 +60,8 @@ export const trackFacebookAddToCart = (item: AnalyticsItem, quantity: number) =>
  * ✅ WITH EVENT ID for deduplication
  */
 export const trackFacebookViewContent = (item: AnalyticsItem) => {
-  // Generate unique event ID for deduplication
-  const eventId = `view_content_${item.item_id}_${Date.now()}`;
+  // Generate standardized event ID for deduplication
+  const eventId = generateEventId('ViewContent', item.item_id);
   
   // Store for server-side deduplication
   if (typeof window !== 'undefined') {
@@ -73,7 +74,7 @@ export const trackFacebookViewContent = (item: AnalyticsItem) => {
     content_name: item.item_name,
     content_type: 'product',
     value: item.price,
-    currency: item.currency || 'EUR',
+    currency: 'EUR',
   }, {
     eventID: eventId
   });
@@ -84,8 +85,8 @@ export const trackFacebookViewContent = (item: AnalyticsItem) => {
  * ✅ WITH EVENT ID for deduplication
  */
 export const trackFacebookCheckout = (items: AnalyticsItem[], value: number) => {
-  // Generate unique event ID for deduplication
-  const eventId = `initiate_checkout_${Date.now()}`;
+  // Generate standardized event ID for deduplication
+  const eventId = generateEventId('InitiateCheckout');
   
   // Store for server-side deduplication
   if (typeof window !== 'undefined') {
@@ -116,8 +117,8 @@ export const trackFacebookPurchase = (
   items: AnalyticsItem[],
   value: number
 ) => {
-  // Use orderId for deduplication (same as server-side)
-  const eventId = `purchase_${orderId}`;
+  // Use standardized Purchase event ID (orderId-based for deduplication)
+  const eventId = generateEventId('Purchase', orderId);
   
   // Store for server-side deduplication
   if (typeof window !== 'undefined') {

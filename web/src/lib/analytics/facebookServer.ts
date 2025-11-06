@@ -1,5 +1,6 @@
 import { analyticsConfig, isTrackingEnabled } from './config';
 import type { AnalyticsItem } from './types';
+import { generateEventId } from './eventIdGenerator';
 
 /**
  * Facebook Conversions API (Server-Side Tracking) Utilities
@@ -93,7 +94,7 @@ async function sendServerEvent(
     const payload = {
       eventName,
       eventData: {
-        eventId: finalEventId || `${eventName}_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        eventId: finalEventId || generateEventId(eventName),
         eventSourceUrl: window.location.href,
       },
       customData,
@@ -138,8 +139,8 @@ export const trackServerViewContent = (item: AnalyticsItem) => {
     content_ids: [String(item.item_id)],
     content_name: item.item_name,
     content_type: 'product',
-    value: item.price * item.quantity,
-    currency: item.currency || 'EUR',
+    value: item.price,
+    currency: 'EUR',
   });
 };
 
@@ -152,7 +153,7 @@ export const trackServerAddToCart = (item: AnalyticsItem, quantity: number = 1) 
     content_name: item.item_name,
     content_type: 'product',
     value: item.price * quantity,
-    currency: item.currency || 'EUR',
+    currency: 'EUR',
   });
 };
 
@@ -181,7 +182,7 @@ export const trackServerInitiateCheckout = (
       })),
       num_items: items.reduce((sum, item) => sum + item.quantity, 0),
       value: totalValue,
-      currency: items[0]?.currency || 'EUR',
+      currency: 'EUR',
     },
     userData,
     undefined, // eventId
@@ -209,7 +210,7 @@ export const trackServerAddPaymentInfo = (
     {
       content_ids: items.map(item => String(item.item_id)),
       value: totalValue,
-      currency: items[0]?.currency || 'EUR',
+      currency: 'EUR',
     },
     userData,
     undefined, // eventId
@@ -257,10 +258,10 @@ export const trackServerPurchase = (
       })),
       num_items: items.reduce((sum, item) => sum + item.quantity, 0),
       value: totalValue,
-      currency: items[0]?.currency || 'EUR',
+      currency: 'EUR',
     },
     userData,
-    `purchase_${orderId}`, // Use orderId for deduplication between client and server
+    generateEventId('Purchase', orderId), // Use standardized Purchase event ID
     options?.externalId // Pass customer ID
   );
 };

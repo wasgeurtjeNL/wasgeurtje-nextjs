@@ -3,6 +3,7 @@
 import Script from 'next/script';
 import { useEffect } from 'react';
 import { analyticsConfig, isTrackingEnabled } from '@/lib/analytics/config';
+import { hashEmail, hashNormalizedPhone, hashPersonalData } from '@/lib/analytics/dataHasher';
 
 /**
  * Facebook Pixel Component
@@ -28,15 +29,15 @@ export default function FacebookPixel() {
         
         const userData: any = {};
         
-        // Facebook automatically hashes these parameters
-        if (email) userData.em = email;
-        if (phone) userData.ph = phone;
-        if (firstName) userData.fn = firstName;
-        if (lastName) userData.ln = lastName;
-        if (city) userData.ct = city;
-        if (state) userData.st = state;
-        if (zipCode) userData.zp = zipCode;
-        if (country) userData.country = country;
+        // ✅ FIXED: Hash PII data to match server-side (prevents 58% email duplication)
+        if (email) userData.em = hashEmail(email);
+        if (phone) userData.ph = hashNormalizedPhone(phone, '31');
+        if (firstName) userData.fn = hashPersonalData(firstName);
+        if (lastName) userData.ln = hashPersonalData(lastName);
+        if (city) userData.ct = hashPersonalData(city);
+        if (state) userData.st = hashPersonalData(state);
+        if (zipCode) userData.zp = hashPersonalData(zipCode);
+        if (country) userData.country = hashPersonalData(country);
         
         return Object.keys(userData).length > 0 ? userData : undefined;
       };

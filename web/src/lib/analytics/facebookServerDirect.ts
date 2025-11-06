@@ -11,6 +11,7 @@
  */
 
 import crypto from 'crypto';
+import { generateEventId } from './eventIdGenerator';
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || '834004417164714';
 const ACCESS_TOKEN = process.env.FACEBOOK_CONVERSION_API_ACCESS_TOKEN;
@@ -183,7 +184,7 @@ export async function sendFacebookEventDirect(options: FacebookEventOptions): Pr
     const event = {
       event_name: eventName,
       event_time: Math.floor(Date.now() / 1000), // Use seconds (not milliseconds) for better deduplication
-      event_id: eventId || `${eventName}_${Math.floor(Date.now() / 1000)}_${Math.random().toString(36).substring(7)}`,
+      event_id: eventId || generateEventId(eventName),
       event_source_url: eventSourceUrl || 'https://wasgeurtje-nextjs.vercel.app',
       action_source: 'website',
       user_data,
