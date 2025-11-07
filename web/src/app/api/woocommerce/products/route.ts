@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Build WooCommerce API URL
-    const url = new URL(`${WC_API_URL}/wp-json/wc/v3/products`);
+    // Ensure we don't double-add the path if WC_API_URL already contains it
+    const baseUrl = WC_API_URL.includes('/wp-json') ? WC_API_URL : `${WC_API_URL}/wp-json/wc/v3`;
+    const url = new URL(`${baseUrl}/products`);
     url.searchParams.append('per_page', per_page);
     url.searchParams.append('status', 'publish');
     

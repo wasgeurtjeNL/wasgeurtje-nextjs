@@ -56,7 +56,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch products from WooCommerce
-    const productsUrl = `${WC_API_URL}/wp-json/wc/v3/products?include=${productIds}&per_page=20`;
+    // Ensure we don't double-add the path if WC_API_URL already contains it
+    const baseUrl = WC_API_URL.includes('/wp-json') ? WC_API_URL : `${WC_API_URL}/wp-json/wc/v3`;
+    const productsUrl = `${baseUrl}/products?include=${productIds}&per_page=20`;
+    
+    console.log(`[Products-ACF] Fetching from: ${productsUrl}`);
     
     const productsResponse = await fetch(productsUrl, {
       headers: wcHeaders(),
@@ -80,7 +84,9 @@ export async function GET(request: NextRequest) {
           // Try to fetch ACF data for this product
           let acfData: ACFResponse = {};
           try {
-            const acfUrl = `${WC_API_URL}/wp-json/wp/v2/product/${product.id}`;
+            // WordPress product endpoint (different from WooCommerce)
+            const wpBaseUrl = WC_API_URL.replace('/wp-json/wc/v3', '').replace(/\/+$/, '');
+            const acfUrl = `${wpBaseUrl}/wp-json/wp/v2/product/${product.id}`;
             
             const acfResponse = await fetch(acfUrl, {
               headers: wcHeaders(),

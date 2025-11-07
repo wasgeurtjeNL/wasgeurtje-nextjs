@@ -142,7 +142,7 @@ export default async function DynamicPage({ params }: PageProps) {
   try {
     const { slug } = await params;
     const slugPath = slug.join("/");
-    
+
     // Cache busting: Force fresh fetch after deployment
 
     // Fetch page directly from WordPress API instead of through internal API route
