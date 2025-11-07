@@ -22,9 +22,14 @@ export async function generateMetadata({
     // Fetch page for metadata from WordPress API directly
     const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
     const response = await fetch(
-      `${WP_API_URL}/pages?slug=${slugPath}&_fields=id,title,yoast_head_json,date,modified`
+      `${WP_API_URL}/pages?slug=${slugPath}&_fields=id,title,yoast_head_json,date,modified`,
+      {
+        next: { revalidate: 3600 },
+        cache: 'no-store', // Disable cache to prevent stuck metadata
+      }
     );
     if (!response.ok) {
+      console.error(`[Metadata] WordPress API error: ${response.status} for slug: ${slugPath}`);
       return {
         title: "Page Not Found",
         description: "The requested page could not be found.",
@@ -35,6 +40,7 @@ export async function generateMetadata({
     const pageData = Array.isArray(pages) ? pages[0] : pages;
     
     if (!pageData) {
+      console.error(`[Metadata] No page data for slug: ${slugPath}`);
       return {
         title: "Page Not Found",
         description: "The requested page could not be found.",
@@ -44,7 +50,7 @@ export async function generateMetadata({
     // Transform WordPress response to match our format
     const page = {
       id: pageData.id,
-      title: pageData.title?.rendered || '',
+      title: pageData.title?.rendered || pageData.title || '',
       yoast_head_json: pageData.yoast_head_json || {},
       date: pageData.date,
       modified: pageData.modified,
@@ -143,43 +149,48 @@ export default async function DynamicPage({ params }: PageProps) {
     // This avoids dependency on NEXT_PUBLIC_SITE_URL being set correctly
     const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
     
+    console.log(`[DynamicPage] Fetching: ${WP_API_URL}/pages?slug=${slugPath}`);
+    
     const response = await fetch(
       `${WP_API_URL}/pages?slug=${slugPath}&acf_format=standard&_fields=id,title,content,excerpt,slug,date,modified,status,featured_media,acf,yoast_head_json`,
       {
         next: { revalidate: 3600 },
-        cache: 'force-cache', // Fix for Next.js 15 streaming error
+        cache: 'no-store', // Disable cache to prevent stuck pages
       }
-    ).catch((error) => {
-      console.error('Fetch error:', error);
-      notFound();
-      return null as never;
-    });
+    );
 
-    if (!response || !response.ok) {
+    console.log(`[DynamicPage] Response status: ${response.status}`);
+
+    if (!response.ok) {
+      console.error(`[DynamicPage] WordPress API error: ${response.status}`);
       notFound();
     }
 
     const pages = await response.json();
-
+    console.log(`[DynamicPage] Pages received:`, Array.isArray(pages) ? pages.length : 'single object');
+    
     // WordPress API returns an array when querying by slug
     const pageData = Array.isArray(pages) ? pages[0] : pages;
 
     if (!pageData) {
+      console.error(`[DynamicPage] No page data found for slug: ${slugPath}`);
       notFound();
     }
 
     // Transform WordPress response to match our format
     const page = {
       id: pageData.id,
-      title: pageData.title?.rendered || '',
-      content: pageData.content?.rendered || '',
-      excerpt: pageData.excerpt?.rendered || '',
+      title: pageData.title?.rendered || pageData.title || '',
+      content: pageData.content?.rendered || pageData.content || '',
+      excerpt: pageData.excerpt?.rendered || pageData.excerpt || '',
       og_image: pageData.yoast_head_json?.og_image?.[0]?.url || '',
       acf: pageData.acf || {},
       yoast_head_json: pageData.yoast_head_json || {},
       date: pageData.date,
       modified: pageData.modified,
     };
+    
+    console.log(`[DynamicPage] Page transformed successfully: ${page.title}`);
 
     // Transform ACF flexible content to components
     // The field name is 'page_builder' as seen in WordPress ACF setup
