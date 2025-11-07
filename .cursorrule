@@ -91,6 +91,20 @@ api_data_rules:
     - "Transform API data naar TypeScript interfaces"
     - "Bij ACF product refs: eerst ACF data, dan WooCommerce data ophalen"
     
+  static_generation:
+    - "KRITIEK: generateStaticParams MOET alle WordPress pages ophalen bij build time"
+    - "Lege array [] in generateStaticParams → alle pages zijn ISR fallback → cached 404s!"
+    - "Fetch minimaal 100 pages: /wp-json/wp/v2/pages?per_page=100&_fields=slug"
+    - "Transform slugs naar array: page.slug.split('/').filter(Boolean)"
+    - "Voeg ALTIJD dynamicParams=true toe voor fallback van nieuwe pages"
+    - "Voorbeeld implementatie:"
+    - "  export async function generateStaticParams() {"
+    - "    const res = await fetch('https://api.wasgeurtje.nl/wp-json/wp/v2/pages?per_page=100');"
+    - "    const pages = await res.json();"
+    - "    return pages.map(p => ({ slug: p.slug.split('/').filter(Boolean) }));"
+    - "  }"
+    - "  export const dynamicParams = true; // VERPLICHT voor [...slug] routes"
+    
   common_pitfalls:
     - "FOUT: fetch('https://wasgeurtje.nl/wp-json/...') → 404"
     - "GOED: fetch('https://api.wasgeurtje.nl/wp-json/...')"
