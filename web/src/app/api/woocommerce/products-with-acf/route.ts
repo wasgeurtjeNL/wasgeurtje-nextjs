@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const WC_API_URL = 'https://wasgeurtje.nl';
+const WC_API_URL = process.env.WOOCOMMERCE_API_URL || 'https://api.wasgeurtje.nl';
 const CK = process.env.WOOCOMMERCE_CONSUMER_KEY!;
 const CS = process.env.WOOCOMMERCE_CONSUMER_SECRET!;
 

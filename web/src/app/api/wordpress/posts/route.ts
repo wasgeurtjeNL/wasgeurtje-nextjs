@@ -4,10 +4,16 @@ const WORDPRESS_API_URL = process.env.WORDPRESS_API_URL || 'https://api.wasgeurt
 
 // Headers for WordPress API
 function wpHeaders() {
-  return {
-    'Authorization': `Bearer ${process.env.WORDPRESS_API_TOKEN}`,
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
+  
+  // Only add Authorization if token is set
+  if (process.env.WORDPRESS_API_TOKEN) {
+    headers['Authorization'] = `Bearer ${process.env.WORDPRESS_API_TOKEN}`;
+  }
+  
+  return headers;
 }
 
 export async function GET(request: NextRequest) {
