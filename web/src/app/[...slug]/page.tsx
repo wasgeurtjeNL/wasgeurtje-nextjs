@@ -19,16 +19,25 @@ export async function generateMetadata({
     const { slug } = await params;
     const slugPath = slug.join("/");
 
+    console.log(`[Metadata] 🏷️  Generating metadata for: ${slugPath}`);
+
     // Fetch page for metadata from WordPress API directly
     const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
+    console.log(`[Metadata] 📡 Fetching: ${WP_API_URL}/pages?slug=${slugPath}`);
+    
     const response = await fetch(
       `${WP_API_URL}/pages?slug=${slugPath}&_fields=id,title,yoast_head_json,date,modified`,
       {
         next: { revalidate: 60 }, // Short revalidation for fresh metadata
       }
     );
+    
+    console.log(`[Metadata] 📥 Response: ${response.status} ${response.statusText}`);
+    
     if (!response.ok) {
-      console.error(`[Metadata] WordPress API error: ${response.status} for slug: ${slugPath}`);
+      console.error(`[Metadata] ❌ WordPress API error: ${response.status} for slug: ${slugPath}`);
+      const errorText = await response.text();
+      console.error(`[Metadata] ❌ Error response:`, errorText);
       return {
         title: "Page Not Found",
         description: "The requested page could not be found.",
@@ -36,15 +45,20 @@ export async function generateMetadata({
     }
 
     const pages = await response.json();
+    console.log(`[Metadata] 📦 Pages received:`, Array.isArray(pages) ? `${pages.length} pages` : 'single object');
+    
     const pageData = Array.isArray(pages) ? pages[0] : pages;
     
     if (!pageData) {
-      console.error(`[Metadata] No page data for slug: ${slugPath}`);
+      console.error(`[Metadata] ❌ No page data for slug: ${slugPath}`);
       return {
         title: "Page Not Found",
         description: "The requested page could not be found.",
       };
     }
+    
+    console.log(`[Metadata] ✅ Metadata extracted for: ${pageData.title?.rendered || pageData.title}`);
+
 
     // Transform WordPress response to match our format
     const page = {
@@ -106,6 +120,12 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
+    console.error("❌❌❌ [Metadata] CRITICAL ERROR generating metadata:", error);
+    console.error("❌ Metadata error details:", {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+    });
     return {
       title: "Page Not Found",
       description: "The requested page could not be found.",
@@ -145,11 +165,13 @@ export default async function DynamicPage({ params }: PageProps) {
     const { slug } = await params;
     const slugPath = slug.join("/");
     
+    console.log(`[DynamicPage] 🚀 Loading page: ${slugPath}`);
+    
     // Block WordPress core files and suspicious paths (exact match or starts with)
     if (slug.length > 0 && slug[0]) {
       const firstSlug = String(slug[0]).toLowerCase();
       if (INVALID_SLUGS.some(invalid => firstSlug === invalid || firstSlug.startsWith(invalid))) {
-        console.log(`[DynamicPage] Blocked invalid slug: ${slugPath}`);
+        console.log(`[DynamicPage] ❌ Blocked invalid slug: ${slugPath}`);
         notFound();
       }
     }
@@ -160,7 +182,7 @@ export default async function DynamicPage({ params }: PageProps) {
     // This avoids dependency on NEXT_PUBLIC_SITE_URL being set correctly
     const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
     
-    console.log(`[DynamicPage] Fetching: ${WP_API_URL}/pages?slug=${slugPath}`);
+    console.log(`[DynamicPage] 📡 Fetching from API: ${WP_API_URL}/pages?slug=${slugPath}`);
     
     const response = await fetch(
       `${WP_API_URL}/pages?slug=${slugPath}&acf_format=standard&_fields=id,title,content,excerpt,slug,date,modified,status,featured_media,acf,yoast_head_json`,
@@ -169,23 +191,38 @@ export default async function DynamicPage({ params }: PageProps) {
       }
     );
 
-    console.log(`[DynamicPage] Response status: ${response.status}`);
+    console.log(`[DynamicPage] 📥 Response status: ${response.status} ${response.statusText}`);
 
     if (!response.ok) {
-      console.error(`[DynamicPage] WordPress API error: ${response.status}`);
+      console.error(`[DynamicPage] ❌ WordPress API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`[DynamicPage] ❌ Error response body:`, errorText);
       notFound();
     }
 
     const pages = await response.json();
-    console.log(`[DynamicPage] Pages received:`, Array.isArray(pages) ? pages.length : 'single object');
+    console.log(`[DynamicPage] 📦 Pages received:`, Array.isArray(pages) ? `${pages.length} pages` : 'single object');
+    
+    if (Array.isArray(pages) && pages.length > 0) {
+      console.log(`[DynamicPage] 📄 First page data:`, {
+        id: pages[0]?.id,
+        title: pages[0]?.title?.rendered || pages[0]?.title,
+        slug: pages[0]?.slug,
+        has_acf: !!pages[0]?.acf,
+        has_page_builder: !!pages[0]?.acf?.page_builder,
+        page_builder_count: pages[0]?.acf?.page_builder?.length || 0
+      });
+    }
     
     // WordPress API returns an array when querying by slug
     const pageData = Array.isArray(pages) ? pages[0] : pages;
 
     if (!pageData) {
-      console.error(`[DynamicPage] No page data found for slug: ${slugPath}`);
+      console.error(`[DynamicPage] ❌ No page data found for slug: ${slugPath}`);
       notFound();
     }
+
+    console.log(`[DynamicPage] 🔄 Transforming page data...`);
 
     // Transform WordPress response to match our format
     const page = {
@@ -200,16 +237,30 @@ export default async function DynamicPage({ params }: PageProps) {
       modified: pageData.modified,
     };
     
-    console.log(`[DynamicPage] Page transformed successfully: ${page.title}`);
+    console.log(`[DynamicPage] ✅ Page transformed successfully:`, {
+      title: page.title,
+      hasContent: !!page.content,
+      contentLength: page.content?.length || 0,
+      hasACF: !!page.acf,
+      acfKeys: Object.keys(page.acf || {}),
+    });
 
     // Transform ACF flexible content to components
     // The field name is 'page_builder' as seen in WordPress ACF setup
+    console.log(`[DynamicPage] 🧩 Checking for ACF page_builder...`);
     const components = page.acf?.page_builder
       ? transformFlexibleContent(page.acf.page_builder)
       : [];
 
+    console.log(`[DynamicPage] 🎨 Components generated:`, {
+      count: components.length,
+      types: components.map(c => c.component)
+    });
+
     // If no ACF content, render the standard content
     const hasACFContent = components.length > 0;
+    console.log(`[DynamicPage] 📋 Rendering mode:`, hasACFContent ? 'ACF Components' : 'Standard Content');
+    
     const seoData = extractSEOData(page);
 
     // Create structured data for the page
@@ -390,7 +441,12 @@ export default async function DynamicPage({ params }: PageProps) {
       </>
     );
   } catch (error) {
-    console.error("Error loading page:", error);
+    console.error("❌❌❌ [DynamicPage] CRITICAL ERROR loading page:", error);
+    console.error("❌ Error details:", {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+    });
     notFound();
   }
 }

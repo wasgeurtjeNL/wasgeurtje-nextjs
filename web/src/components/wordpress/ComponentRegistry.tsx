@@ -29,28 +29,44 @@ interface ComponentRendererProps {
 }
 
 export function ComponentRenderer({ components }: ComponentRendererProps) {
+  console.log(`[ComponentRenderer] 🎨 Rendering ${components?.length || 0} components`);
+  
   if (!components || !Array.isArray(components)) {
+    console.warn(`[ComponentRenderer] ⚠️  Invalid components data:`, typeof components);
     return null;
   }
 
   return (
     <>
       {components.map((componentData, index) => {
+        console.log(`[ComponentRenderer] 🔧 Component ${index + 1}/${components.length}:`, {
+          type: componentData.component,
+          hasProps: !!componentData.props,
+          propsKeys: componentData.props ? Object.keys(componentData.props) : []
+        });
+        
         const Component = componentMap[componentData.component];
 
         if (!Component) {
-          console.warn(
-            `Component "${componentData.component}" not found in registry`
+          console.error(
+            `❌ [ComponentRenderer] Component "${componentData.component}" not found in registry. Available:`,
+            Object.keys(componentMap)
           );
           return null;
         }
 
-        return (
-          <Component
-            key={`${componentData.component}-${index}`}
-            {...componentData.props}
-          />
-        );
+        try {
+          console.log(`[ComponentRenderer] ✅ Rendering ${componentData.component}`);
+          return (
+            <Component
+              key={`${componentData.component}-${index}`}
+              {...componentData.props}
+            />
+          );
+        } catch (error) {
+          console.error(`❌ [ComponentRenderer] Error rendering ${componentData.component}:`, error);
+          return null;
+        }
       })}
     </>
   );

@@ -103,11 +103,20 @@ export async function fetchPosts(page = 1, perPage = 10, category?: string) {
 
 // Transform ACF Flexible Content to component props
 export function transformFlexibleContent(flexibleContent: any[]): any[] {
-  if (!Array.isArray(flexibleContent)) return [];
+  console.log(`[transformFlexibleContent] 🔄 Transforming ${flexibleContent?.length || 0} sections`);
+  
+  if (!Array.isArray(flexibleContent)) {
+    console.warn(`[transformFlexibleContent] ⚠️  Invalid flexibleContent:`, typeof flexibleContent);
+    return [];
+  }
 
   return flexibleContent
-    .map((section) => {
+    .map((section, index) => {
       const layout = section.acf_fc_layout;
+      console.log(`[transformFlexibleContent] 🧩 Section ${index + 1}:`, {
+        layout,
+        keys: Object.keys(section)
+      });
 
       switch (layout) {
         case "text_content":
@@ -337,11 +346,16 @@ export function transformFlexibleContent(flexibleContent: any[]): any[] {
           };
 
         default:
-          console.warn(`Unknown ACF layout: ${layout}`);
+          console.error(`❌ [transformFlexibleContent] Unknown ACF layout: "${layout}". Section data:`, section);
           return null;
       }
     })
-    .filter(Boolean);
+    .filter((item) => {
+      if (!item) {
+        console.warn(`[transformFlexibleContent] ⚠️  Filtered out null/undefined component`);
+      }
+      return Boolean(item);
+    });
 }
 
 // Fetch menu by location
