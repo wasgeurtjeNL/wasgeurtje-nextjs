@@ -22,11 +22,11 @@ export async function fetchPage(slugOrId: string | number) {
     ? `${WP_API_URL}/pages/${slugOrId}?acf_format=standard&_embed`
     : `${WP_API_URL}/pages?slug=${slugOrId}&acf_format=standard&_embed`;
 
+  console.log(`[fetchPage] Fetching: ${endpoint}`);
+
   // WordPress pages are publicly accessible, no auth needed for GET requests
+  // NOTE: Do NOT send Content-Type header on GET requests - causes 415 errors
   const response = await fetch(endpoint, {
-    headers: {
-      "Content-Type": "application/json",
-    },
     next: { revalidate: 3600 }, // 1 hour cache
   });
 
@@ -50,12 +50,10 @@ export async function fetchPage(slugOrId: string | number) {
 // Fetch all pages
 export async function fetchAllPages() {
   // WordPress pages are publicly accessible, no auth needed for GET requests
+  // NOTE: Do NOT send Content-Type header on GET requests - causes 415 errors
   const response = await fetch(
     `${WP_API_URL}/pages?per_page=100&acf_format=standard`,
     {
-      headers: {
-        "Content-Type": "application/json",
-      },
       next: { revalidate: 3600 },
     }
   );
@@ -73,13 +71,9 @@ export async function fetchPosts(page = 1, perPage = 10, category?: string) {
 
   if (category) {
     // First get category ID from slug
+    // NOTE: Do NOT send Content-Type header on GET requests - causes 415 errors
     const catResponse = await fetch(
-      `${WP_API_URL}/categories?slug=${category}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `${WP_API_URL}/categories?slug=${category}`
     );
 
     if (catResponse.ok) {
@@ -91,10 +85,8 @@ export async function fetchPosts(page = 1, perPage = 10, category?: string) {
   }
 
   // WordPress posts are publicly accessible, no auth needed for GET requests
+  // NOTE: Do NOT send Content-Type header on GET requests - causes 415 errors
   const response = await fetch(endpoint, {
-    headers: {
-      "Content-Type": "application/json",
-    },
     next: { revalidate: 300 }, // 5 minutes cache for blog posts
   });
 

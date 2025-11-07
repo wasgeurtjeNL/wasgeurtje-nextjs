@@ -126,6 +126,9 @@ api_data_rules:
     - "GOED: Check eerst of WC_API_URL al '/wp-json' bevat"
     - "FOUT: cache: 'no-store' in pages → build timeout"
     - "GOED: next: { revalidate: 60 } voor snelle builds"
+    - "FOUT: Content-Type header bij GET request → 415 Unsupported Media Type"
+    - "GOED: Alleen headers toevoegen bij POST/PUT/PATCH, NIET bij GET"
+    - "KRITIEK: WordPress REST API accepteert GEEN Content-Type bij GET!"
     
   forbidden:
     - "GEEN hardcoded product prijzen in code"
