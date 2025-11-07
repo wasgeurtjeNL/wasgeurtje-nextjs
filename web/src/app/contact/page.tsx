@@ -5,7 +5,8 @@ import { fetchPage, extractSEOData } from "@/utils/wordpress-api";
 
 // Force this page to be dynamic to prevent build timeout
 export const dynamic = 'force-dynamic';
-export const revalidate = 60;
+export const dynamicParams = true;
+export const revalidate = false; // Disable ISR completely for this page
 
 // Generate metadata for SEO
 export async function generateMetadata(): Promise<Metadata> {
