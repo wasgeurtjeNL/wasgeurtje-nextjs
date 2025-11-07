@@ -137,11 +137,20 @@ const cleanHTMLContent = (html: any) => {
   );
 };
 
+// Invalid slugs that should not be rendered
+const INVALID_SLUGS = ['wp-login.php', 'wp-admin', 'xmlrpc.php', 'wp-content', 'wp-includes', 'wp-config.php'];
+
 export default async function DynamicPage({ params }: PageProps) {
   try {
     const { slug } = await params;
     const slugPath = slug.join("/");
-
+    
+    // Block WordPress core files and suspicious paths
+    if (slug.length > 0 && INVALID_SLUGS.some(invalid => slug[0].includes(invalid))) {
+      console.log(`[DynamicPage] Blocked invalid slug: ${slugPath}`);
+      notFound();
+    }
+    
     // Cache busting: Force fresh fetch after deployment
 
     // Fetch page directly from WordPress API instead of through internal API route
@@ -383,6 +392,9 @@ export default async function DynamicPage({ params }: PageProps) {
   }
 }
 
+// Invalid slugs that should not be rendered
+const INVALID_SLUGS_FILTER = ['wp-login', 'wp-admin', 'xmlrpc', 'wp-content', 'wp-includes', 'wp-config'];
+
 // Generate static params for known pages
 export async function generateStaticParams() {
   try {
@@ -406,10 +418,15 @@ export async function generateStaticParams() {
     const pages = await res.json();
     console.log(`[generateStaticParams] Found ${pages.length} pages`);
 
-    // Transform to match [...slug] route format
-    return pages.map((page: any) => ({
-      slug: page.slug.split('/').filter(Boolean), // Support [...slug] catch-all
-    }));
+    // Filter out invalid slugs and transform to match [...slug] route format
+    return pages
+      .filter((page: any) => {
+        // Exclude WordPress core files and suspicious paths
+        return !INVALID_SLUGS_FILTER.some(invalid => page.slug.includes(invalid));
+      })
+      .map((page: any) => ({
+        slug: page.slug.split('/').filter(Boolean), // Support [...slug] catch-all
+      }));
   } catch (error) {
     console.error('[generateStaticParams] Error:', error);
     return [];

@@ -97,13 +97,23 @@ api_data_rules:
     - "Fetch minimaal 100 pages: /wp-json/wp/v2/pages?per_page=100&_fields=slug"
     - "Transform slugs naar array: page.slug.split('/').filter(Boolean)"
     - "Voeg ALTIJD dynamicParams=true toe voor fallback van nieuwe pages"
+    - "FILTER WordPress core paths: wp-login.php, wp-admin, xmlrpc.php, etc."
     - "Voorbeeld implementatie:"
+    - "  const INVALID_SLUGS = ['wp-login', 'wp-admin', 'xmlrpc', 'wp-content'];"
     - "  export async function generateStaticParams() {"
     - "    const res = await fetch('https://api.wasgeurtje.nl/wp-json/wp/v2/pages?per_page=100');"
     - "    const pages = await res.json();"
-    - "    return pages.map(p => ({ slug: p.slug.split('/').filter(Boolean) }));"
+    - "    return pages"
+    - "      .filter(p => !INVALID_SLUGS.some(inv => p.slug.includes(inv)))"
+    - "      .map(p => ({ slug: p.slug.split('/').filter(Boolean) }));"
     - "  }"
     - "  export const dynamicParams = true; // VERPLICHT voor [...slug] routes"
+    
+  security:
+    - "VERPLICHT: middleware.ts moet WordPress core paths blokkeren"
+    - "Blokeer minimaal: /wp-login.php, /wp-admin, /xmlrpc.php, /wp-config.php"
+    - "Dit voorkomt ISR errors van bot attacks en scanners"
+    - "Return direct 404 voor geblokkeerde paths, geen page generation"
     
   common_pitfalls:
     - "FOUT: fetch('https://wasgeurtje.nl/wp-json/...') → 404"
