@@ -24,8 +24,7 @@ export async function generateMetadata({
     const response = await fetch(
       `${WP_API_URL}/pages?slug=${slugPath}&_fields=id,title,yoast_head_json,date,modified`,
       {
-        next: { revalidate: 3600 },
-        cache: 'no-store', // Disable cache to prevent stuck metadata
+        next: { revalidate: 60 }, // Short revalidation for fresh metadata
       }
     );
     if (!response.ok) {
@@ -154,8 +153,7 @@ export default async function DynamicPage({ params }: PageProps) {
     const response = await fetch(
       `${WP_API_URL}/pages?slug=${slugPath}&acf_format=standard&_fields=id,title,content,excerpt,slug,date,modified,status,featured_media,acf,yoast_head_json`,
       {
-        next: { revalidate: 3600 },
-        cache: 'no-store', // Disable cache to prevent stuck pages
+        next: { revalidate: 60 }, // Short revalidation for fresh content
       }
     );
 
