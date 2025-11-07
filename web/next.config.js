@@ -24,10 +24,10 @@ const nextConfig = {
   // Output modern JavaScript (ES2020+) to reduce bundle size
   // Removes unnecessary polyfills for modern browsers
   compiler: {
-    // Remove console.log in production
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    // TEMPORARILY DISABLED: Keep console.log for debugging
+    // removeConsole: process.env.NODE_ENV === 'production' ? {
+    //   exclude: ['error', 'warn'],
+    // } : false,
   },
   // swcMinify is now default in Next.js 15 - removed deprecated option
   
