@@ -386,11 +386,35 @@ export default async function DynamicPage({ params }: PageProps) {
 // Generate static params for known pages
 export async function generateStaticParams() {
   try {
-    // For now, return empty array to use ISR
-    // In production, you might want to fetch all pages here
-    return [];
+    const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
+    
+    console.log('[generateStaticParams] Fetching all WordPress pages...');
+    
+    const res = await fetch(
+      `${WP_API_URL}/pages?per_page=100&_fields=slug`,
+      { 
+        next: { revalidate: 3600 }, // Revalidate every hour
+        cache: 'default'
+      }
+    );
+
+    if (!res.ok) {
+      console.error('[generateStaticParams] Failed to fetch pages:', res.status);
+      return [];
+    }
+
+    const pages = await res.json();
+    console.log(`[generateStaticParams] Found ${pages.length} pages`);
+
+    // Transform to match [...slug] route format
+    return pages.map((page: any) => ({
+      slug: page.slug.split('/').filter(Boolean), // Support [...slug] catch-all
+    }));
   } catch (error) {
-    console.error("Error generating static params:", error);
+    console.error('[generateStaticParams] Error:', error);
     return [];
   }
 }
+
+// Allow dynamic params for pages not generated at build time
+export const dynamicParams = true;
