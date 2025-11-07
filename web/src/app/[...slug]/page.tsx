@@ -19,11 +19,10 @@ export async function generateMetadata({
     const { slug } = await params;
     const slugPath = slug.join("/");
 
-    // Fetch page for metadata
+    // Fetch page for metadata from WordPress API directly
+    const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
-      }/api/wordpress/pages?slug=${slugPath}`
+      `${WP_API_URL}/pages?slug=${slugPath}&_fields=id,title,yoast_head_json,date,modified`
     );
     if (!response.ok) {
       return {
@@ -32,7 +31,25 @@ export async function generateMetadata({
       };
     }
 
-    const page = await response.json();
+    const pages = await response.json();
+    const pageData = Array.isArray(pages) ? pages[0] : pages;
+    
+    if (!pageData) {
+      return {
+        title: "Page Not Found",
+        description: "The requested page could not be found.",
+      };
+    }
+
+    // Transform WordPress response to match our format
+    const page = {
+      id: pageData.id,
+      title: pageData.title?.rendered || '',
+      yoast_head_json: pageData.yoast_head_json || {},
+      date: pageData.date,
+      modified: pageData.modified,
+    };
+    
     const seo = extractSEOData(page);
 
     return {
@@ -120,12 +137,12 @@ export default async function DynamicPage({ params }: PageProps) {
     const { slug } = await params;
     const slugPath = slug.join("/");
 
-    // Fetch page directly from API
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-                    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+    // Fetch page directly from WordPress API instead of through internal API route
+    // This avoids dependency on NEXT_PUBLIC_SITE_URL being set correctly
+    const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
     
     const response = await fetch(
-      `${baseUrl}/api/wordpress/pages?slug=${slugPath}`,
+      `${WP_API_URL}/pages?slug=${slugPath}&acf_format=standard&_fields=id,title,content,excerpt,slug,date,modified,status,featured_media,acf,yoast_head_json`,
       {
         next: { revalidate: 3600 },
         cache: 'force-cache', // Fix for Next.js 15 streaming error
@@ -140,11 +157,27 @@ export default async function DynamicPage({ params }: PageProps) {
       notFound();
     }
 
-    const page = await response.json();
+    const pages = await response.json();
+    
+    // WordPress API returns an array when querying by slug
+    const pageData = Array.isArray(pages) ? pages[0] : pages;
 
-    if (!page) {
+    if (!pageData) {
       notFound();
     }
+
+    // Transform WordPress response to match our format
+    const page = {
+      id: pageData.id,
+      title: pageData.title?.rendered || '',
+      content: pageData.content?.rendered || '',
+      excerpt: pageData.excerpt?.rendered || '',
+      og_image: pageData.yoast_head_json?.og_image?.[0]?.url || '',
+      acf: pageData.acf || {},
+      yoast_head_json: pageData.yoast_head_json || {},
+      date: pageData.date,
+      modified: pageData.modified,
+    };
 
     // Transform ACF flexible content to components
     // The field name is 'page_builder' as seen in WordPress ACF setup
