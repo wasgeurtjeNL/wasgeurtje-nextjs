@@ -42,11 +42,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function WasparfumKruidvatPage() {
+  console.log(`[WasparfumKruidvatPage] 🚀 Loading wasparfum-kruidvat page...`);
+  
   try {
     // Fetch page data from WordPress
+    console.log(`[WasparfumKruidvatPage] 📡 Calling fetchPage...`);
     const page = await fetchPage("wasparfum-kruidvat");
+    console.log(`[WasparfumKruidvatPage] ✅ Page fetched successfully`);
 
     if (!page) {
+      console.error(`[WasparfumKruidvatPage] ❌ Page is null/undefined`);
       return (
         <main className="min-h-screen bg-[#F8F6F0]">
           <div className="container mx-auto px-4 py-16">
@@ -58,12 +63,24 @@ export default async function WasparfumKruidvatPage() {
       );
     }
 
+    console.log(`[WasparfumKruidvatPage] 📄 Page data:`, {
+      id: page.id,
+      title: page.title?.rendered,
+      hasACF: !!page.acf,
+      acfKeys: page.acf ? Object.keys(page.acf) : [],
+      hasPageBuilder: !!page.acf?.page_builder
+    });
+
     // Extract ACF page_builder sections
     const sections = page.acf?.page_builder || [];
 
-    console.log('Wasparfum Kruidvat Sections:', sections.length);
+    console.log(`[WasparfumKruidvatPage] 🎨 Sections found: ${sections.length}`);
     sections.forEach((section: any, index: number) => {
-      console.log(`Section ${index}:`, section.acf_fc_layout, section.products ? `Products: ${section.products.length}` : 'No products');
+      console.log(`[WasparfumKruidvatPage] 🧩 Section ${index + 1}:`, {
+        layout: section.acf_fc_layout,
+        title: section.title || section.section_title,
+        productsCount: section.products?.length || 0
+      });
     });
 
     // Transform product sections - products are already included as full objects
@@ -140,7 +157,12 @@ export default async function WasparfumKruidvatPage() {
       </main>
     );
   } catch (error) {
-    console.error("Error loading wasparfum-kruidvat page:", error);
+    console.error("❌❌❌ [WasparfumKruidvatPage] CRITICAL ERROR loading page");
+    console.error("❌ Error details:", {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
     return (
       <main className="min-h-screen bg-[#F8F6F0]">
         <div className="container mx-auto px-4 py-16">

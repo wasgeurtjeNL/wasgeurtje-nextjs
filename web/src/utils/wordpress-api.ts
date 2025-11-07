@@ -22,29 +22,52 @@ export async function fetchPage(slugOrId: string | number) {
     ? `${WP_API_URL}/pages/${slugOrId}?acf_format=standard&_embed`
     : `${WP_API_URL}/pages?slug=${slugOrId}&acf_format=standard&_embed`;
 
-  console.log(`[fetchPage] Fetching: ${endpoint}`);
+  console.log(`[fetchPage] 📡 Fetching: ${endpoint}`);
+  console.log(`[fetchPage] 🔑 Slug/ID: ${slugOrId} (${isId ? 'ID' : 'slug'})`);
 
-  // WordPress pages are publicly accessible, no auth needed for GET requests
-  // NOTE: Do NOT send Content-Type header on GET requests - causes 415 errors
-  const response = await fetch(endpoint, {
-    next: { revalidate: 3600 }, // 1 hour cache
-  });
+  try {
+    // WordPress pages are publicly accessible, no auth needed for GET requests
+    // NOTE: Do NOT send Content-Type header on GET requests - causes 415 errors
+    const response = await fetch(endpoint, {
+      next: { revalidate: 3600 }, // 1 hour cache
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch page: ${response.status}`);
-  }
+    console.log(`[fetchPage] 📥 Response: ${response.status} ${response.statusText}`);
 
-  const data = await response.json();
-
-  // If fetched by slug, data is an array
-  if (!isId && Array.isArray(data)) {
-    if (data.length === 0) {
-      throw new Error("Page not found");
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[fetchPage] ❌ API Error:`, { status: response.status, body: errorText });
+      throw new Error(`Failed to fetch page: ${response.status}`);
     }
-    return data[0];
-  }
 
-  return data;
+    const data = await response.json();
+    console.log(`[fetchPage] 📦 Data received:`, { 
+      isArray: Array.isArray(data),
+      length: Array.isArray(data) ? data.length : 'N/A',
+      hasACF: data?.acf || (Array.isArray(data) && data[0]?.acf),
+      acfKeys: data?.acf ? Object.keys(data.acf) : (Array.isArray(data) && data[0]?.acf ? Object.keys(data[0].acf) : [])
+    });
+
+    // If fetched by slug, data is an array
+    if (!isId && Array.isArray(data)) {
+      if (data.length === 0) {
+        console.error(`[fetchPage] ❌ No pages found for slug: ${slugOrId}`);
+        throw new Error("Page not found");
+      }
+      console.log(`[fetchPage] ✅ Returning first page from array:`, data[0]?.id, data[0]?.title?.rendered);
+      return data[0];
+    }
+
+    console.log(`[fetchPage] ✅ Returning page:`, data?.id, data?.title?.rendered);
+    return data;
+  } catch (error) {
+    console.error(`[fetchPage] ❌❌❌ CRITICAL ERROR:`, {
+      slugOrId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack'
+    });
+    throw error;
+  }
 }
 
 // Fetch all pages
