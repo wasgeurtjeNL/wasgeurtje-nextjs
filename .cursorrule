@@ -50,25 +50,62 @@ assistant_guidance:
   - "Maak kleine, gerichte edits en houd ongerelateerde code ongewijzigd"
 
 api_data_rules:
+  api_architecture:
+    - "KRITIEK: WordPress/WooCommerce API staat op https://api.wasgeurtje.nl"
+    - "NOOIT https://wasgeurtje.nl gebruiken voor API calls - dit is de frontend!"
+    - "Frontend domein: https://wasgeurtje.nl"
+    - "API domein: https://api.wasgeurtje.nl"
+    
+  url_rules:
+    - "Server-side fetches: Gebruik volledige URLs: https://api.wasgeurtje.nl/wp-json/..."
+    - "Client-side fetches: Gebruik relative URLs: /wp-json/... (worden geproxied)"
+    - "next.config.js bevat rewrites die /wp-json/* proxyen naar api.wasgeurtje.nl"
+    - "NOOIT base URL combineren zonder te checken op dubbele paths"
+    
   wordpress_api:
-    - "Gebruik ALTIJD WordPress REST API endpoints voor content (pages, posts, media)"
-    - "ACF data ophalen via: /wp/v2/pages?acf_format=standard"
-    - "Media ophalen via: /wp/v2/media/{id}"
+    - "WordPress REST API: https://api.wasgeurtje.nl/wp-json/wp/v2/"
+    - "Pages endpoint: /wp-json/wp/v2/pages?slug=X&acf_format=standard"
+    - "Posts endpoint: /wp-json/wp/v2/posts"
+    - "Media endpoint: /wp-json/wp/v2/media/{id}"
+    - "ACF data ophalen via: ?acf_format=standard parameter"
+    - "Relative URLs in browser: /wp-json/wp/v2/pages (wordt geproxied naar api.wasgeurtje.nl)"
+    
   woocommerce_api:
-    - "Gebruik WooCommerce REST API v3 voor alle product data"
-    - "Endpoint: /wp-json/wc/v3/products/{id}"
+    - "WooCommerce REST API: https://api.wasgeurtje.nl/wp-json/wc/v3/"
+    - "Products endpoint: /wp-json/wc/v3/products?include=X"
+    - "Orders endpoint: /wp-json/wc/v3/orders"
     - "Authenticatie vereist: gebruik consumer key/secret in Authorization header"
     - "NOOIT hardcoded prijzen, afbeeldingen of product details"
+    - "PAS OP: Check of WC_API_URL al /wp-json/wc/v3 bevat voordat je path toevoegt!"
+    
+  proxy_rewrites:
+    - "next.config.js MOET rewrites bevatten voor /wp-json/wp/*, /wp-json/wc/*, /wp-json/acf/*"
+    - "Zonder rewrites krijg je 404s: wasgeurtje.nl/wp-json/* bestaat niet!"
+    - "Rewrites sturen door naar api.wasgeurtje.nl"
+    - "Verwijder NOOIT de /wp-json/wp/* rewrite - dit breekt alle pagina's!"
+    
   data_fetching:
     - "Implementeer proper error handling met fallback data"
     - "Cache responses met Next.js revalidate voor performance"
+    - "Gebruik revalidate: 60 voor snelle builds, niet cache: 'no-store'"
     - "Transform API data naar TypeScript interfaces"
     - "Bij ACF product refs: eerst ACF data, dan WooCommerce data ophalen"
+    
+  common_pitfalls:
+    - "FOUT: fetch('https://wasgeurtje.nl/wp-json/...') → 404"
+    - "GOED: fetch('https://api.wasgeurtje.nl/wp-json/...')"
+    - "FOUT: ${WC_API_URL}/wp-json/wc/v3/products → dubbele path!"
+    - "GOED: Check eerst of WC_API_URL al '/wp-json' bevat"
+    - "FOUT: cache: 'no-store' in pages → build timeout"
+    - "GOED: next: { revalidate: 60 } voor snelle builds"
+    
   forbidden:
     - "GEEN hardcoded product prijzen in code"
     - "GEEN hardcoded product afbeelding URLs"
     - "GEEN lokale mock data voor production features"
-    - "GEEN assumptions over data - altijd van API ophalen" 
+    - "GEEN assumptions over data - altijd van API ophalen"
+    - "GEEN wasgeurtje.nl gebruiken voor API calls - alleen api.wasgeurtje.nl!"
+    - "GEEN dubbele /wp-json paths in URLs" 
 
 html_css_best_practices:
   You are an expert developer in HTML and CSS, focusing on best practices, accessibility, and responsive design.
