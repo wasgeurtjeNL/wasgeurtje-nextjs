@@ -55,13 +55,17 @@ const nextConfig = {
         source: '/wp-json/wc/:path*',
         destination: `${apiBaseUrl}/wp-json/wc/:path*`,
       },
+      // WordPress REST API - RE-ADDED to fix 404s on Vercel
+      // Browser makes relative /wp-json/wp/v2/* requests that need proxying
+      {
+        source: '/wp-json/wp/:path*',
+        destination: `${apiBaseUrl}/wp-json/wp/:path*`,
+      },
       // WordPress uploads - KEEP PROXY (for image handling)
       {
         source: '/wp-content/:path*',
         destination: `${apiBaseUrl}/wp-content/:path*`,
       },
-      // NOTE: WordPress REST API (/wp-json/wp/*) REMOVED from proxy
-      // Direct calls are 400ms+ faster, components should use direct URLs
     ];
   },
   
