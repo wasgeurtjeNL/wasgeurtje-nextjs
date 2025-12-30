@@ -17,7 +17,7 @@ import { useWordPressOptions, getCheckoutVersion } from "@/contexts/WordPressOpt
  * The version is determined by WordPress ACF options (checkout_version field) or falls back to FeatureFlags.
  */
 export default function CheckoutWrapper() {
-  const [version, setVersion] = useState<'A' | 'B'>('A');
+  const [version, setVersion] = useState<'A' | 'B' | null>(null);
   const { options, loading } = useWordPressOptions();
 
   useEffect(() => {
@@ -55,10 +55,16 @@ export default function CheckoutWrapper() {
     }
   }, [options, loading]);
 
-  // Show loading state or render the appropriate version
-  if (loading) {
-    // Fallback to version A while loading
-    return <CheckoutPage />;
+  // Show consistent loading state to prevent hydration errors
+  if (loading || version === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#814E1E] mb-4"></div>
+          <p className="text-gray-600">Checkout laden...</p>
+        </div>
+      </div>
+    );
   }
 
   // Render the appropriate version

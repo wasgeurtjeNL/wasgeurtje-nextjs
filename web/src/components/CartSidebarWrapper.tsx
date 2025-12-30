@@ -17,7 +17,7 @@ import { useWordPressOptions, getCartSidebarVersion } from "@/contexts/WordPress
  * The version is determined by WordPress ACF options (cart_sidebar_version field) or falls back to FeatureFlags.
  */
 export default function CartSidebarWrapper() {
-  const [version, setVersion] = useState<'A' | 'B'>('A');
+  const [version, setVersion] = useState<'A' | 'B' | null>(null);
   const { options, loading } = useWordPressOptions();
 
   useEffect(() => {
@@ -55,7 +55,13 @@ export default function CartSidebarWrapper() {
     }
   }, [options, loading]);
 
-  // Render the appropriate version (fallback to version A while loading)
+  // Return null while loading to prevent hydration errors
+  // Cart sidebar is not critical for initial page load
+  if (loading || version === null) {
+    return null;
+  }
+
+  // Render the appropriate version
   return version === 'A' ? <CartSidebar /> : <CartSidebarV2 />;
 }
 
