@@ -135,6 +135,18 @@ export async function generateMetadata({
 
 const cleanHTMLContent = (html: any) => {
   if (!html) return "";
+  
+  // Ensure we have a string - handle WordPress object format
+  if (typeof html !== 'string') {
+    if (typeof html === 'object' && typeof html.rendered === 'string') {
+      html = html.rendered;
+    } else {
+      return "";
+    }
+  }
+  
+  if (!html) return "";
+  
   return (
     html
       // Remove style tags and their content
