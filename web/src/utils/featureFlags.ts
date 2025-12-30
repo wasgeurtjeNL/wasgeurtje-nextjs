@@ -12,5 +12,25 @@ export const FeatureFlags = {
    * @default false (disabled)
    */
   ENABLE_VOLUME_DISCOUNT: false,
+  
+  /**
+   * Cart Sidebar Version
+   * Options: 'A' | 'B' | 'RANDOM'
+   * - 'A': Always use version A (current implementation)
+   * - 'B': Always use version B (new implementation based on wasgeurtje.nl)
+   * - 'RANDOM': 50/50 split for A/B testing (uses cookie to maintain consistency per user)
+   * @default 'A'
+   */
+  CART_SIDEBAR_VERSION: 'A' as 'A' | 'B' | 'RANDOM',
+  
+  /**
+   * Checkout Page Version
+   * Options: 'A' | 'B' | 'RANDOM'
+   * - 'A': Always use version A (current implementation)
+   * - 'B': Always use version B (new implementation based on wasgeurtje.nl)
+   * - 'RANDOM': 50/50 split for A/B testing (uses cookie to maintain consistency per user)
+   * @default 'A'
+   */
+  CHECKOUT_VERSION: 'A' as 'A' | 'B' | 'RANDOM',
 } as const;
 

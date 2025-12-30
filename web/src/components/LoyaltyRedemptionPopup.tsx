@@ -6,7 +6,7 @@ import { useLoyality } from "@/context/LoyalityContext";
 import LoyaltyRedemption from "./LoyaltyRedemption";
 
 interface LoyaltyRedemptionPopupProps {
-  onCouponSelect?: (code: string) => void;
+  onCouponSelect?: (code: string, discountAmount?: number, skipValidation?: boolean) => void;
 }
 
 export default function LoyaltyRedemptionPopup({
@@ -27,9 +27,18 @@ export default function LoyaltyRedemptionPopup({
     return null;
   }
 
-  const handleCouponSelect = (code: string, discountAmount: number) => {
+  const handleCouponSelect = (code: string, discountAmount: number, isNewlyRedeemed: boolean = false) => {
+    console.log("🎯 LoyaltyRedemptionPopup: handleCouponSelect CALLED", {
+      code,
+      discountAmount,
+      isNewlyRedeemed,
+      hasCallback: !!onCouponSelect
+    });
+    
     if (onCouponSelect) {
-      onCouponSelect(code);
+      console.log("🎯 Calling onCouponSelect callback...");
+      // Pass skipValidation=true for newly redeemed coupons (we know they're valid)
+      onCouponSelect(code, discountAmount, isNewlyRedeemed);
 
       setTimeout(() => {
         closeRedemptionPopup();
@@ -39,11 +48,16 @@ export default function LoyaltyRedemptionPopup({
           "fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50";
         successMessage.style.animation = "fadeIn 0.3s ease-out";
         successMessage.innerHTML = `
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span>✨ Kortingscode ${code} is toegepast! Je bespaart €${discountAmount}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span class="font-semibold">🎉 Korting automatisch toegepast!</span>
+            </div>
+            <div class="text-sm pl-7">
+              ${code} • €${discountAmount} korting is toegevoegd aan je winkelwagen
+            </div>
           </div>
         `;
         document.body.appendChild(successMessage);
@@ -103,7 +117,8 @@ export default function LoyaltyRedemptionPopup({
         <div className="p-4 sm:p-6">
           <LoyaltyRedemption
             onSuccess={(couponCode, discountAmount) => {
-              handleCouponSelect(couponCode, discountAmount);
+              // Pass true for isNewlyRedeemed since this is a freshly created coupon
+              handleCouponSelect(couponCode, discountAmount, true);
             }}
           />
 
@@ -129,9 +144,11 @@ export default function LoyaltyRedemptionPopup({
                       </div>
                       <button
                         onClick={() => {
+                          // Pass false for existing coupons (not newly redeemed, but still pre-validated)
                           handleCouponSelect(
                             coupon.code,
-                            coupon.discount_amount
+                            coupon.discount_amount,
+                            true
                           );
                         }}
                         className="px-3 py-1 bg-[#814E1E] text-white text-sm rounded hover:bg-[#D6AD61] transition-colors">

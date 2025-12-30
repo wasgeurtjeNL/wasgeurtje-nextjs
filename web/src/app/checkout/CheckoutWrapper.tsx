@@ -17,7 +17,7 @@ import { useWordPressOptions, getCheckoutVersion } from "@/contexts/WordPressOpt
  * The version is determined by WordPress ACF options (checkout_version field) or falls back to FeatureFlags.
  */
 export default function CheckoutWrapper() {
-  const [version, setVersion] = useState<'A' | 'B' | null>(null);
+  const [version, setVersion] = useState<'A' | 'B'>('A');
   const { options, loading } = useWordPressOptions();
 
   useEffect(() => {
@@ -29,18 +29,14 @@ export default function CheckoutWrapper() {
     // Get version from WordPress options or fallback to FeatureFlags
     const wpVersion = getCheckoutVersion(options, FeatureFlags.CHECKOUT_VERSION);
     const flagValue = wpVersion;
-    const cookieName = 'wg-checkout-version';
 
     if (flagValue === 'A') {
-      // Explicitly set to A: clear cookie and force version A
-      deleteCookie(cookieName);
       setVersion('A');
     } else if (flagValue === 'B') {
-      // Explicitly set to B: clear cookie and force version B
-      deleteCookie(cookieName);
       setVersion('B');
     } else if (flagValue === 'RANDOM') {
       // Check if user already has a version assigned
+      const cookieName = 'wg-checkout-version';
       const existingVersion = getCookie(cookieName);
 
       if (existingVersion === 'A' || existingVersion === 'B') {
@@ -55,16 +51,10 @@ export default function CheckoutWrapper() {
     }
   }, [options, loading]);
 
-  // Show consistent loading state to prevent hydration errors
-  if (loading || version === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#814E1E] mb-4"></div>
-          <p className="text-gray-600">Checkout laden...</p>
-        </div>
-      </div>
-    );
+  // Show loading state or render the appropriate version
+  if (loading) {
+    // Fallback to version A while loading
+    return <CheckoutPage />;
   }
 
   // Render the appropriate version
@@ -95,14 +85,5 @@ function setCookie(name: string, value: string, days: number): void {
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
   const expires = `expires=${date.toUTCString()}`;
   document.cookie = `${name}=${value};${expires};path=/`;
-}
-
-/**
- * Helper function to delete cookie
- */
-function deleteCookie(name: string): void {
-  if (typeof document === 'undefined') return;
-  
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 

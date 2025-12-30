@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { WordPressService } from "@/services/wordpress-service";
 import PageBuilder from "@/components/page-builder/PageBuilder";
 import Footer from "@/components/sections/Footer";
-import { BASE_URL } from "@/config/site";
+import { BASE_URL } from "@/config/site"; 
 
 // SEO Metadata (exacte match met WordPress Yoast) - Met absolute URLs voor SEO
 export const metadata: Metadata = {

@@ -17,7 +17,7 @@ import { useWordPressOptions, getCartSidebarVersion } from "@/contexts/WordPress
  * The version is determined by WordPress ACF options (cart_sidebar_version field) or falls back to FeatureFlags.
  */
 export default function CartSidebarWrapper() {
-  const [version, setVersion] = useState<'A' | 'B' | null>(null);
+  const [version, setVersion] = useState<'A' | 'B'>('A');
   const { options, loading } = useWordPressOptions();
 
   useEffect(() => {
@@ -29,18 +29,14 @@ export default function CartSidebarWrapper() {
     // Get version from WordPress options or fallback to FeatureFlags
     const wpVersion = getCartSidebarVersion(options, FeatureFlags.CART_SIDEBAR_VERSION);
     const flagValue = wpVersion;
-    const cookieName = 'wg-cart-sidebar-version';
 
     if (flagValue === 'A') {
-      // Explicitly set to A: clear cookie and force version A
-      deleteCookie(cookieName);
       setVersion('A');
     } else if (flagValue === 'B') {
-      // Explicitly set to B: clear cookie and force version B
-      deleteCookie(cookieName);
       setVersion('B');
     } else if (flagValue === 'RANDOM') {
       // Check if user already has a version assigned
+      const cookieName = 'wg-cart-sidebar-version';
       const existingVersion = getCookie(cookieName);
 
       if (existingVersion === 'A' || existingVersion === 'B') {
@@ -55,13 +51,7 @@ export default function CartSidebarWrapper() {
     }
   }, [options, loading]);
 
-  // Return null while loading to prevent hydration errors
-  // Cart sidebar is not critical for initial page load
-  if (loading || version === null) {
-    return null;
-  }
-
-  // Render the appropriate version
+  // Render the appropriate version (fallback to version A while loading)
   return version === 'A' ? <CartSidebar /> : <CartSidebarV2 />;
 }
 
@@ -89,14 +79,5 @@ function setCookie(name: string, value: string, days: number): void {
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
   const expires = `expires=${date.toUTCString()}`;
   document.cookie = `${name}=${value};${expires};path=/`;
-}
-
-/**
- * Helper function to delete cookie
- */
-function deleteCookie(name: string): void {
-  if (typeof document === 'undefined') return;
-  
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 

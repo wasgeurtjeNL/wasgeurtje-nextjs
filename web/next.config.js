@@ -66,6 +66,11 @@ const nextConfig = {
         source: '/wp-content/:path*',
         destination: `${apiBaseUrl}/wp-content/:path*`,
       },
+      // Custom Wasgeurtje API endpoints (for A/B testing options)
+      {
+        source: '/wp-json/wasgeurtje/:path*',
+        destination: `https://wasgeurtje.nl/wp-json/wasgeurtje/:path*`,
+      },
     ];
   },
   

@@ -156,15 +156,26 @@ export function LoyaltyCouponValidationProvider({ children }: { children: ReactN
 
   // Voeg loyaliteitscoupon toe
   const addLoyaltyCoupon = useCallback((coupon: LoyaltyCoupon) => {
+    console.log("🔷 addLoyaltyCoupon CALLED:", coupon);
+    console.log("🔷 Current state:", {
+      activeLoyaltyCouponsCount: activeLoyaltyCoupons.length,
+      activeLoyaltyCoupons: activeLoyaltyCoupons
+    });
+    
     // Check if it's actually a loyalty coupon
     if (!isLoyaltyCoupon(coupon.code)) {
-      console.warn('Trying to add non-loyalty coupon to loyalty system:', coupon.code);
+      console.warn('❌ Trying to add non-loyalty coupon to loyalty system:', coupon.code);
       return false;
     }
+    
+    console.log("✅ Code is recognized as loyalty coupon");
 
     const maxAllowed = getMaxAllowedLoyaltyCoupons();
+    console.log("🔷 Max allowed coupons:", maxAllowed, "Current:", activeLoyaltyCoupons.length);
+    
     if (activeLoyaltyCoupons.length >= maxAllowed) {
       const productsNeeded = 2;
+      console.warn('❌ Max loyalty coupons reached');
       setLoyaltyValidationMessage(
         `💡 Voeg nog ${productsNeeded} product${productsNeeded > 1 ? 'en' : ''} toe om uw volgende loyaliteitspunt te gebruiken.`
       );
@@ -172,12 +183,19 @@ export function LoyaltyCouponValidationProvider({ children }: { children: ReactN
     }
     
     if (activeLoyaltyCoupons.some(c => c.code === coupon.code)) {
+      console.warn('❌ Coupon already applied:', coupon.code);
       setLoyaltyValidationMessage("Deze loyaliteitskorting is al toegepast! Je kunt elke code maar één keer gebruiken.");
       return false;
     }
     
-    setActiveLoyaltyCoupons(prev => [...prev, coupon]);
+    console.log("✅ Adding coupon to state...");
+    setActiveLoyaltyCoupons(prev => {
+      const newState = [...prev, coupon];
+      console.log("✅ New activeLoyaltyCoupons state:", newState);
+      return newState;
+    });
     setLoyaltyValidationMessage(null);
+    console.log("✅ addLoyaltyCoupon SUCCESS");
     return true;
   }, [activeLoyaltyCoupons, isLoyaltyCoupon, getMaxAllowedLoyaltyCoupons]);
 

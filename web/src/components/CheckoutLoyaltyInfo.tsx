@@ -601,7 +601,7 @@ import Link from "next/link";
 interface CheckoutLoyaltyInfoProps {
   orderTotal: number;
   className?: string;
-  onCouponSelect?: (couponCode: string) => void;
+  onCouponSelect?: (couponCode: string, discountAmount?: number, skipValidation?: boolean) => void;
 }
 
 export default function CheckoutLoyaltyInfo({
@@ -664,7 +664,8 @@ export default function CheckoutLoyaltyInfo({
     discountAmount: number = 13
   ) => {
     if (onCouponSelect) {
-      onCouponSelect(couponCode);
+      // Pass true for skipValidation since coupons from this component are pre-validated
+      onCouponSelect(couponCode, discountAmount, true);
 
       // Success toast
       const notification = document.createElement("div");
@@ -798,21 +799,28 @@ export default function CheckoutLoyaltyInfo({
                 onSuccess={(couponCode, discountAmount) => {
                   // Apply the new coupon automatically
                   if (onCouponSelect) {
-                    onCouponSelect(couponCode);
+                    // Pass true for skipValidation since this is a freshly created coupon
+                    onCouponSelect(couponCode, discountAmount, true);
 
                     setTimeout(() => {
                       closeRedemptionPopup();
 
                       const successMessage = document.createElement("div");
                       successMessage.className =
-                        "fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50";
+                        "fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-xl shadow-2xl z-[60] max-w-md";
                       successMessage.style.animation = "fadeIn 0.3s ease-out";
                       successMessage.innerHTML = `
-                        <div class="flex items-center space-x-2">
-                          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span>✨ Kortingscode ${couponCode} is toegepast! Je bespaart €${discountAmount}</span>
+                        <div class="flex items-start gap-3">
+                          <div class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p class="font-bold text-lg">🎉 Korting automatisch toegepast!</p>
+                            <p class="text-sm mt-1"><strong>${couponCode}</strong> • €${discountAmount} korting</p>
+                            <p class="text-xs mt-2 opacity-90">✅ Je korting is nu actief in je winkelwagen</p>
+                          </div>
                         </div>
                       `;
                       document.body.appendChild(successMessage);

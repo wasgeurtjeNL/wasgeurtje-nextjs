@@ -10,6 +10,7 @@ import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { LoyalityProvider } from "@/context/LoyalityContext";
 import { LoyaltyCouponValidationProvider } from "@/context/LoyaltyCouponValidationContext";
+import { WordPressOptionsProvider } from "@/contexts/WordPressOptionsContext";
 import FigmaHeader from "@/components/sections/FigmaHeader";
 import FooterLayer from "@/components/sections/FooterLayer";
 
@@ -18,7 +19,7 @@ import FooterLayer from "@/components/sections/FooterLayer";
 const ResponsiveInit = dynamic(() => import("@/components/ResponsiveInit"), {
   loading: () => null,
 });
-const CartSidebar = dynamic(() => import("@/components/CartSidebar"), {
+const CartSidebarWrapper = dynamic(() => import("@/components/CartSidebarWrapper"), {
   loading: () => null,
 });
 const CustomerIntelligenceTracker = dynamic(
@@ -128,26 +129,28 @@ export default function RootLayout({
         <GoogleAnalytics />
         <HyrosScript />
         
-        <AuthProvider>
-          <CartProvider>
-            {/* Cart Tracker - Must be inside CartProvider to access cart context */}
-            <CartTracker />
-            
-            <LoyaltyCouponValidationProvider>
-              <LoyalityProvider>
-                <ResponsiveInit />
-                <CustomerIntelligenceTracker />
-                <EngagementTracker />
-                <GlobalBundleOfferManager />
-                <WebsiteRenewalBanner />
-                <FigmaHeader />
-                {children}
-                <FooterLayer />
-                <CartSidebar />
-              </LoyalityProvider>
-            </LoyaltyCouponValidationProvider>
-          </CartProvider>
-        </AuthProvider>
+        <WordPressOptionsProvider>
+          <AuthProvider>
+            <CartProvider>
+              {/* Cart Tracker - Must be inside CartProvider to access cart context */}
+              <CartTracker />
+              
+              <LoyaltyCouponValidationProvider>
+                <LoyalityProvider>
+                  <ResponsiveInit />
+                  <CustomerIntelligenceTracker />
+                  <EngagementTracker />
+                  <GlobalBundleOfferManager />
+                  <WebsiteRenewalBanner />
+                  <FigmaHeader />
+                  {children}
+                  <FooterLayer />
+                  <CartSidebarWrapper />
+                </LoyalityProvider>
+              </LoyaltyCouponValidationProvider>
+            </CartProvider>
+          </AuthProvider>
+        </WordPressOptionsProvider>
         {/* Vercel Speed Insights - Real User Monitoring for Core Web Vitals */}
         <SpeedInsights />
       </body>

@@ -222,7 +222,7 @@ export default function LoyaltyPage() {
                     2. Verzamel Punten
                   </h4>
                   <p className="text-sm text-gray-600">
-                    60 punten = €1 korting op je volgende bestelling
+                    60 punten = €13 korting op je volgende bestelling
                   </p>
                 </div>
               </div>
@@ -248,9 +248,42 @@ export default function LoyaltyPage() {
             <div className="loyalty-redemption-section">
               <LoyaltyRedemption
                 onSuccess={(couponCode, discountAmount) => {
-                  alert(
-                    `🎉 Succesvol ingewisseld!\n\nJouw kortingscode: ${couponCode}\nKorting: €${discountAmount}\n\nGebruik deze code bij checkout!`
-                  );
+                  // Show success notification
+                  const notification = document.createElement("div");
+                  notification.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-xl shadow-2xl z-50 max-w-md";
+                  notification.style.animation = "slideDown 0.3s ease-out";
+                  notification.innerHTML = `
+                    <div class="flex items-start gap-3">
+                      <div class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="font-bold text-lg">🎉 Kortingscode aangemaakt!</p>
+                        <p class="text-sm mt-1">Code: <strong>${couponCode}</strong></p>
+                        <p class="text-sm mt-1">€${discountAmount} korting</p>
+                        <p class="text-xs mt-2 opacity-90">⚡ Bij je volgende bestelling wordt deze automatisch toegepast in je winkelwagen!</p>
+                      </div>
+                    </div>
+                  `;
+                  document.body.appendChild(notification);
+                  
+                  // Add animation
+                  if (!document.querySelector("#slideDownAnimation")) {
+                    const style = document.createElement("style");
+                    style.id = "slideDownAnimation";
+                    style.textContent = `
+                      @keyframes slideDown {
+                        from { opacity: 0; transform: translate(-50%, -20px); }
+                        to { opacity: 1; transform: translate(-50%, 0); }
+                      }
+                    `;
+                    document.head.appendChild(style);
+                  }
+                  
+                  setTimeout(() => notification.remove(), 6000);
+                  
                   // Refresh loyalty points
                   fetchLoyaltyPoints();
                 }}

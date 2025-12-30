@@ -53,7 +53,12 @@ export default function LoyaltyRedemption({
   }, [user?.loyalty?.points, coupons.length]); // Re-run when points OR coupons change
 
   const handleRedeem = async () => {
-    if (!eligibility.eligible || isRedeeming) return;
+    console.log("🎯 LoyaltyRedemption: handleRedeem CALLED");
+    
+    if (!eligibility.eligible || isRedeeming) {
+      console.log("❌ Cannot redeem:", { eligible: eligibility.eligible, isRedeeming });
+      return;
+    }
 
     // ✅ Removed preventive coupon check - user can see existing coupons in the popup list
     // This eliminates an unnecessary API call
@@ -62,11 +67,64 @@ export default function LoyaltyRedemption({
     setRedeemResult(null);
 
     try {
+      console.log("🔄 Calling redeemPoints()...");
       const result = await redeemPoints();
+      console.log("✅ redeemPoints result:", result);
       setRedeemResult(result);
 
-      if (result.success && result.coupon_code && onSuccess) {
-        onSuccess(result.coupon_code, result.discount_amount || 13);
+      if (result.success && result.coupon_code) {
+        console.log("✅ Redemption successful! Coupon code:", result.coupon_code);
+        
+        // ✅ AUTO-APPLY: Call onSuccess callback to automatically apply the coupon
+        if (onSuccess) {
+          console.log("🎯 Calling onSuccess callback with:", {
+            coupon_code: result.coupon_code,
+            discount_amount: result.discount_amount || 13
+          });
+          onSuccess(result.coupon_code, result.discount_amount || 13);
+          
+          // 🎉 Show auto-apply success notification ONLY when used with callback (in checkout context)
+          // Parent component (LoyaltyRedemptionPopup/CheckoutLoyaltyInfo) will show its own notification
+        } else {
+          // Show standalone notification when used without callback (e.g., on loyalty page)
+          setTimeout(() => {
+            const notification = document.createElement("div");
+            notification.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-xl shadow-2xl z-[60] max-w-md";
+            notification.style.animation = "slideDownBounce 0.5s ease-out";
+            notification.innerHTML = `
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center animate-pulse">
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-bold text-lg">🎉 Kortingscode aangemaakt!</p>
+                  <p class="text-sm mt-1"><strong>${result.coupon_code}</strong> • €${result.discount_amount || 13} korting</p>
+                  <p class="text-xs mt-2 opacity-90">✅ Gebruik deze code bij checkout</p>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(notification);
+            
+            // Add animation
+            if (!document.querySelector("#slideDownBounceAnimation")) {
+              const style = document.createElement("style");
+              style.id = "slideDownBounceAnimation";
+              style.textContent = `
+                @keyframes slideDownBounce {
+                  0% { opacity: 0; transform: translate(-50%, -30px); }
+                  60% { opacity: 1; transform: translate(-50%, 5px); }
+                  80% { transform: translate(-50%, -2px); }
+                  100% { transform: translate(-50%, 0); }
+                }
+              `;
+              document.head.appendChild(style);
+            }
+            
+            setTimeout(() => notification.remove(), 5000);
+          }, 500);
+        }
       }
 
       // ✅ Refresh eligibility locally (no API call needed)
@@ -162,8 +220,8 @@ export default function LoyaltyRedemption({
           {redeemResult.success ? (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-green-800 font-medium">
-                  ✅ Succesvol ingewisseld!
+                <span className="text-green-800 font-medium text-base">
+                  🎉 Korting automatisch toegepast!
                 </span>
                 <button
                   onClick={clearResult}
@@ -171,6 +229,9 @@ export default function LoyaltyRedemption({
                 >
                   ✕
                 </button>
+              </div>
+              <div className="text-sm text-green-700 mb-3">
+                Je kortingscode is automatisch toegevoegd aan je winkelwagen. Je hoeft niets meer te doen! 
               </div>
               {redeemResult.coupon_code && (
                 <div className="bg-white p-3 rounded border-2 border-dashed border-green-400">
@@ -181,7 +242,7 @@ export default function LoyaltyRedemption({
                     {redeemResult.coupon_code}
                   </div>
                   <div className="text-xs text-green-600 mt-1">
-                    Geldig voor €{redeemResult.discount_amount} korting
+                    ✅ €{redeemResult.discount_amount} korting automatisch toegepast
                   </div>
                 </div>
               )}
@@ -263,7 +324,7 @@ export default function LoyaltyRedemption({
       <div className="mt-3 text-xs text-center">
         {eligibility.eligible ? (
           <span className="text-amber-600">
-            Krijg direct een kortingscode voor je volgende bestelling
+            ⚡ De korting wordt direct toegepast in je winkelwagen - geen handmatige invoer nodig!
           </span>
         ) : coupons.length > 0 ? (
           <span className="text-orange-600">

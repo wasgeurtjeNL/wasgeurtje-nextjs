@@ -2,7 +2,7 @@
     /**
      * Plugin Name: WooCommerce Phone Lookup API
      * Description: Adds a REST API endpoint to search orders by phone number efficiently using direct SQL
-     * Version: 1.0
+     * Version: 1.1
      * Author: Wasgeurtje
      */
 
@@ -17,11 +17,42 @@
         }
 
         public function register_routes() {
+            // Phone lookup endpoint
             register_rest_route('custom/v1', '/orders-by-phone', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'get_orders_by_phone'),
                 'permission_callback' => '__return_true', // Public endpoint
             ));
+
+            // Theme options endpoint for A/B testing
+            register_rest_route('wasgeurtje/v1', '/options', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_theme_options'),
+                'permission_callback' => '__return_true', // Public endpoint
+            ));
+        }
+
+        /**
+         * Get theme options from ACF Options Page
+         * Used for A/B testing checkout and cart sidebar versions
+         */
+        public function get_theme_options(WP_REST_Request $request) {
+            // Check if ACF is active
+            if (function_exists('get_field')) {
+                // Get ACF option fields - adjust field names to match your ACF setup
+                $checkout_version = get_field('checkout_version', 'option');
+                $cart_sidebar_version = get_field('cart_sidebar_version', 'option');
+            } else {
+                // Fallback to WordPress options if ACF is not active
+                $checkout_version = get_option('checkout_version');
+                $cart_sidebar_version = get_option('cart_sidebar_version');
+            }
+
+            // Return with defaults if not set
+            return new WP_REST_Response(array(
+                'checkout_version' => $checkout_version ?: 'A',
+                'cart_sidebar_version' => $cart_sidebar_version ?: 'A',
+            ), 200);
         }
 
         public function get_orders_by_phone(WP_REST_Request $request) {

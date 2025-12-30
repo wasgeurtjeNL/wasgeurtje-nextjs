@@ -207,3 +207,5 @@ IDEAL_SETUP_*.md
 STRIPE_CLI_*.md
 UPDATE_ENV_*.md
 WOOCOMMERCE_*.md
+
+.vercel
