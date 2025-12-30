@@ -1,9 +1,16 @@
 /** @type {import('next').NextConfig} */
 
-// Bundle Analyzer Configuration
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-})
+// Bundle Analyzer Configuration - Make it optional
+let withBundleAnalyzer;
+try {
+  withBundleAnalyzer = require('@next/bundle-analyzer')({
+    enabled: process.env.ANALYZE === 'true',
+  });
+} catch (e) {
+  // If @next/bundle-analyzer is not installed, use a passthrough function
+  console.log('⚠️  @next/bundle-analyzer not installed, skipping bundle analysis');
+  withBundleAnalyzer = (config) => config;
+}
 
 const nextConfig = {
   typescript: {
