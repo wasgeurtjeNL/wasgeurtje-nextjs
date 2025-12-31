@@ -2,11 +2,11 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import CheckoutTracker from "@/components/analytics/CheckoutTracker";
-import CheckoutAuthPopup from "@/components/CheckoutAuthPopup";
 import PaymentPage from "./payment/page";
 import OrderSummary from "@/components/sections/OrderSummary";
 
@@ -44,8 +44,6 @@ export default function CheckoutPageV2() {
   const [billingAddress, setBillingAddress] = useState("same");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [wasstripsAdded, setWasstripsAdded] = useState(false);
-  const [showAuthPopup, setShowAuthPopup] = useState(false);
-  const [authPopupMessage, setAuthPopupMessage] = useState<string | undefined>(undefined);
 
   // Filter visible items (exclude hidden products like caps)
   const visibleItems = items.filter((item) => !item.isHiddenProduct);
@@ -499,12 +497,9 @@ export default function CheckoutPageV2() {
                       {!isLoggedIn && (
                         <div className="mb-4 text-sm text-gray-600">
                           Heb je al een account?{" "}
-                          <button
-                            onClick={() => setShowAuthPopup(true)}
-                            className="text-blue-600 hover:underline cursor-pointer"
-                          >
-                            Log in of registreer je
-                          </button>
+                          <Link href="/login" className="text-blue-600 hover:underline">
+                            Inloggen.
+                          </Link>
                         </div>
                       )}
 
@@ -1036,24 +1031,6 @@ export default function CheckoutPageV2() {
           </div>
         </div>
       </div>
-
-      {/* Auth Popup */}
-      <CheckoutAuthPopup
-        isOpen={showAuthPopup}
-        onClose={() => {
-          setShowAuthPopup(false);
-          setAuthPopupMessage(undefined);
-        }}
-        onSuccess={() => {
-          setShowAuthPopup(false);
-          setAuthPopupMessage(undefined);
-        }}
-        message={authPopupMessage}
-        initialEmail={email}
-        initialFirstName={firstName}
-        initialLastName={lastName}
-        initialPhone={phone}
-      />
     </Suspense>
   );
 }

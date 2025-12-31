@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useMediaQuery, deviceBreakpoints } from '@/hooks/useMediaQuery';
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -14,6 +15,8 @@ export default function FigmaHeader() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { openCart, cartCount } = useCart();
   const { user, isLoggedIn, logout } = useAuth();
+
+  const isMobile = useMediaQuery(deviceBreakpoints.mobile);
 
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -127,10 +130,12 @@ export default function FigmaHeader() {
               <Image
                 src="/figma/header/logo.png"
                 alt="Wasgeurtje Logo"
-                width={200}
-                height={56}
+                width={isMobile ? 180 : 200}
+                height={isMobile ? 50 : 56}
                 priority
-                className="w-[180px] h-[50px] sm:w-[200px] sm:h-14"
+                className={`w-auto ${
+                  isMobile ? "!w-[180px] md:h-[50px]" : "h-14"
+                }`}
               />
             </Link>
 
@@ -174,9 +179,11 @@ export default function FigmaHeader() {
                       <Image
                         src={user.avatar}
                         alt="Profile"
-                        width={29}
-                        height={29}
-                        className="w-[29px] h-[29px] sm:w-6 sm:h-6 rounded-full object-cover border-2 border-[#D6AD61]"
+                        width={isMobile ? 29 : 24}
+                        height={isMobile ? 29 : 24}
+                        className={`${
+                          isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"
+                        } rounded-full object-cover border-2 border-[#D6AD61]`}
                       />
                       <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#22C55E] rounded-full border-2 border-black" />
                     </div>
@@ -184,13 +191,13 @@ export default function FigmaHeader() {
                     <Image
                       src="/figma/header/user-icon.svg"
                       alt="Account"
-                      width={29}
-                      height={29}
-                      className="w-[29px] h-[29px] sm:w-6 sm:h-6"
+                      width={isMobile ? 26 : 26}
+                      height={isMobile ? 26 : 26}
+                      className={isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"}
                     />
                   )}
-                  {isLoggedIn && (
-                    <span className="text-sm font-medium hidden sm:hidden lg:block text-white">
+                  {isLoggedIn && !isMobile && (
+                    <span className="text-sm font-medium hidden lg:block text-white">
                       {user?.firstName || "Account"}
                     </span>
                   )}
@@ -336,13 +343,17 @@ export default function FigmaHeader() {
                 <Image
                   src="/figma/header/cart-icon.svg"
                   alt="Cart"
-                  width={29}
-                  height={29}
-                  className="w-[29px] h-[29px] sm:w-6 sm:h-6"
+                  width={isMobile ? 26 : 22}
+                  height={isMobile ? 26 : 22}
+                  className={isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"}
                 />
                 {cartCount > 0 && (
                   <span
-                    className="absolute -top-2.5 -right-2.5 sm:-top-2 sm:-right-2 bg-[#FCCE4E] text-black text-xs font-bold rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center">
+                    className={`absolute ${
+                      isMobile ? "-top-2.5 -right-2.5" : "-top-2 -right-2"
+                    } bg-[#FCCE4E] text-black text-xs font-bold rounded-full ${
+                      isMobile ? "w-6 h-6" : "w-5 h-5"
+                    } flex items-center justify-center`}>
                     {cartCount}
                   </span>
                 )}

@@ -288,9 +288,9 @@ export default function CheckoutAuthPopup({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-[calc(100vw-2rem)] sm:max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-[#D6AD61] rounded-full flex items-center justify-center">
               <svg
@@ -330,7 +330,7 @@ export default function CheckoutAuthPopup({
 
         {/* Custom Message */}
         {message && (
-          <div className="mx-4 sm:mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start space-x-3">
               <svg
                 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
@@ -348,7 +348,7 @@ export default function CheckoutAuthPopup({
         )}
 
         {/* Content */}
-        <div className="p-4 sm:p-6">
+        <div className="p-6">
           {/* Password Reset View */}
           {showPasswordReset ? (
             <div className="space-y-4">
@@ -488,7 +488,7 @@ export default function CheckoutAuthPopup({
                   name="email"
                   value={loginData.email}
                   onChange={handleInputChange(loginData, setLoginData)}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                     validationErrors.email
                       ? "border-red-300"
                       : "border-gray-300"
@@ -515,7 +515,7 @@ export default function CheckoutAuthPopup({
                     name="password"
                     value={loginData.password}
                     onChange={handleInputChange(loginData, setLoginData)}
-                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.password
                         ? "border-red-300"
                         : "border-gray-300"
@@ -591,7 +591,7 @@ export default function CheckoutAuthPopup({
           ) : (
             /* Register Form */
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="register-firstName"
@@ -604,7 +604,7 @@ export default function CheckoutAuthPopup({
                     name="firstName"
                     value={registerData.firstName}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.firstName
                         ? "border-red-300"
                         : "border-gray-300"
@@ -630,7 +630,7 @@ export default function CheckoutAuthPopup({
                     name="lastName"
                     value={registerData.lastName}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.lastName
                         ? "border-red-300"
                         : "border-gray-300"
@@ -657,7 +657,7 @@ export default function CheckoutAuthPopup({
                   name="email"
                   value={registerData.email}
                   onChange={handleInputChange(registerData, setRegisterData)}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                     validationErrors.email
                       ? "border-red-300"
                       : "border-gray-300"
@@ -701,7 +701,7 @@ export default function CheckoutAuthPopup({
                     name="password"
                     value={registerData.password}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.password
                         ? "border-red-300"
                         : "border-gray-300"
@@ -774,7 +774,7 @@ export default function CheckoutAuthPopup({
                     name="confirmPassword"
                     value={registerData.confirmPassword}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.confirmPassword
                         ? "border-red-300"
                         : "border-gray-300"
