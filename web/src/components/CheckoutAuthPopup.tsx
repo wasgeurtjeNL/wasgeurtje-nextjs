@@ -488,7 +488,7 @@ export default function CheckoutAuthPopup({
                   name="email"
                   value={loginData.email}
                   onChange={handleInputChange(loginData, setLoginData)}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                     validationErrors.email
                       ? "border-red-300"
                       : "border-gray-300"
@@ -515,7 +515,7 @@ export default function CheckoutAuthPopup({
                     name="password"
                     value={loginData.password}
                     onChange={handleInputChange(loginData, setLoginData)}
-                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.password
                         ? "border-red-300"
                         : "border-gray-300"
@@ -604,7 +604,7 @@ export default function CheckoutAuthPopup({
                     name="firstName"
                     value={registerData.firstName}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.firstName
                         ? "border-red-300"
                         : "border-gray-300"
@@ -630,7 +630,7 @@ export default function CheckoutAuthPopup({
                     name="lastName"
                     value={registerData.lastName}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.lastName
                         ? "border-red-300"
                         : "border-gray-300"
@@ -657,7 +657,7 @@ export default function CheckoutAuthPopup({
                   name="email"
                   value={registerData.email}
                   onChange={handleInputChange(registerData, setRegisterData)}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                     validationErrors.email
                       ? "border-red-300"
                       : "border-gray-300"
@@ -701,7 +701,7 @@ export default function CheckoutAuthPopup({
                     name="password"
                     value={registerData.password}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.password
                         ? "border-red-300"
                         : "border-gray-300"
@@ -774,7 +774,7 @@ export default function CheckoutAuthPopup({
                     name="confirmPassword"
                     value={registerData.confirmPassword}
                     onChange={handleInputChange(registerData, setRegisterData)}
-                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
+                    className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm text-gray-900 bg-white focus:outline-none focus:ring-[#D6AD61] focus:border-[#D6AD61] ${
                       validationErrors.confirmPassword
                         ? "border-red-300"
                         : "border-gray-300"
