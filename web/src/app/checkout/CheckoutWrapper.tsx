@@ -21,13 +21,6 @@ export default function CheckoutWrapper() {
   const { options, loading } = useWordPressOptions();
 
   useEffect(() => {
-    console.log('[CheckoutWrapper] 🔄 Wrapper mounted');
-    console.log('[CheckoutWrapper] 🔍 Loading:', loading);
-    console.log('[CheckoutWrapper] 🔍 Options:', options);
-    console.log('[CheckoutWrapper] 🔍 Current version:', version);
-  }, [loading, options, version]);
-
-  useEffect(() => {
     // Don't run if still loading
     if (loading) {
       return;
