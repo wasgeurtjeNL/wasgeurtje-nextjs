@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMediaQuery, deviceBreakpoints } from '@/hooks/useMediaQuery';
+// useMediaQuery removed - using CSS-only responsive sizing to prevent hydration layout shift
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
@@ -15,8 +15,6 @@ export default function FigmaHeader() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { openCart, cartCount } = useCart();
   const { user, isLoggedIn, logout } = useAuth();
-
-  const isMobile = useMediaQuery(deviceBreakpoints.mobile);
 
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -122,7 +120,7 @@ export default function FigmaHeader() {
               </button>
             </div>
 
-            {/* Logo */}
+            {/* Logo - Using CSS-only responsive sizing to prevent hydration layout shift */}
             <Link
               href="/"
               className="flex flex-col items-center"
@@ -130,12 +128,10 @@ export default function FigmaHeader() {
               <Image
                 src="/figma/header/logo.png"
                 alt="Wasgeurtje Logo"
-                width={isMobile ? 180 : 200}
-                height={isMobile ? 50 : 56}
+                width={200}
+                height={56}
                 priority
-                className={`w-auto ${
-                  isMobile ? "!w-[180px] md:h-[50px]" : "h-14"
-                }`}
+                className="w-auto h-[50px] lg:h-14"
               />
             </Link>
 
@@ -179,11 +175,9 @@ export default function FigmaHeader() {
                       <Image
                         src={user.avatar}
                         alt="Profile"
-                        width={isMobile ? 29 : 24}
-                        height={isMobile ? 29 : 24}
-                        className={`${
-                          isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"
-                        } rounded-full object-cover border-2 border-[#D6AD61]`}
+                        width={29}
+                        height={29}
+                        className="w-[29px] h-[29px] lg:w-6 lg:h-6 rounded-full object-cover border-2 border-[#D6AD61]"
                       />
                       <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#22C55E] rounded-full border-2 border-black" />
                     </div>
@@ -191,12 +185,12 @@ export default function FigmaHeader() {
                     <Image
                       src="/figma/header/user-icon.svg"
                       alt="Account"
-                      width={isMobile ? 26 : 26}
-                      height={isMobile ? 26 : 26}
-                      className={isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"}
+                      width={29}
+                      height={29}
+                      className="w-[29px] h-[29px] lg:w-6 lg:h-6"
                     />
                   )}
-                  {isLoggedIn && !isMobile && (
+                  {isLoggedIn && (
                     <span className="text-sm font-medium hidden lg:block text-white">
                       {user?.firstName || "Account"}
                     </span>
@@ -338,22 +332,17 @@ export default function FigmaHeader() {
                 )}
               </div>
 
-              {/* Cart */}
+              {/* Cart - Using CSS-only responsive sizing to prevent hydration layout shift */}
               <button onClick={openCart} className="relative text-white">
                 <Image
                   src="/figma/header/cart-icon.svg"
                   alt="Cart"
-                  width={isMobile ? 26 : 22}
-                  height={isMobile ? 26 : 22}
-                  className={isMobile ? "w-[29px] h-[29px]" : "w-6 h-6"}
+                  width={29}
+                  height={29}
+                  className="w-[29px] h-[29px] lg:w-6 lg:h-6"
                 />
                 {cartCount > 0 && (
-                  <span
-                    className={`absolute ${
-                      isMobile ? "-top-2.5 -right-2.5" : "-top-2 -right-2"
-                    } bg-[#FCCE4E] text-black text-xs font-bold rounded-full ${
-                      isMobile ? "w-6 h-6" : "w-5 h-5"
-                    } flex items-center justify-center`}>
+                  <span className="absolute -top-2.5 -right-2.5 lg:-top-2 lg:-right-2 bg-[#FCCE4E] text-black text-xs font-bold rounded-full w-6 h-6 lg:w-5 lg:h-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
