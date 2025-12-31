@@ -481,7 +481,8 @@ export default async function DynamicPage({ params }: PageProps) {
 }
 
 // Invalid slugs that should not be generated at build time (exact matches or starts with)
-const INVALID_SLUGS_FILTER = ['wp-login', 'wp-admin', 'xmlrpc', 'wp-config', '.env', 'phpmyadmin'];
+// CRITICAL: Must exclude 'checkout' to prevent conflict with dedicated /checkout/page.tsx route
+const INVALID_SLUGS_FILTER = ['wp-login', 'wp-admin', 'xmlrpc', 'wp-config', '.env', 'phpmyadmin', 'checkout'];
 
 // Generate static params for known pages
 export async function generateStaticParams() {
