@@ -288,7 +288,7 @@ export default function CheckoutAuthPopup({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-[calc(100vw-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-[calc(100vw-2rem)] sm:max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b">
           <div className="flex items-center space-x-3">
@@ -330,7 +330,7 @@ export default function CheckoutAuthPopup({
 
         {/* Custom Message */}
         {message && (
-          <div className="mx-4 sm:mx-6 mt-4 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mx-4 sm:mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-start space-x-3">
               <svg
                 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
