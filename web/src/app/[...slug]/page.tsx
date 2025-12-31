@@ -20,6 +20,15 @@ export async function generateMetadata({
     const slugPath = slug.join("/");
 
     console.log(`[Metadata] 🏷️  Generating metadata for: ${slugPath}`);
+    
+    // CRITICAL: Skip metadata generation for checkout - let dedicated route handle it
+    if (slug.length === 1 && slug[0] === 'checkout') {
+      console.log(`[Metadata] ⚠️ SKIPPING metadata for 'checkout' - using dedicated route`);
+      return {
+        title: "Checkout",
+        description: "Checkout page",
+      };
+    }
 
     // Fetch page for metadata from WordPress API directly
     const WP_API_URL = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://api.wasgeurtje.nl/wp-json/wp/v2';
