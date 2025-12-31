@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/supabase';
+import { db, isSupabaseAvailable } from '@/lib/supabase';
 import { getProductsByIds } from '@/utils/product-helpers';
 
 // Helper to parse price strings like "€14,95" or "14.95" to number
@@ -35,6 +35,14 @@ function parsePriceToNumber(price: any): number {
 }
 
 export async function GET(request: NextRequest) {
+  // Check if Supabase is configured
+  if (!isSupabaseAvailable()) {
+    return NextResponse.json(
+      { success: false, message: 'Supabase not configured' },
+      { status: 503 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const customer_email = searchParams.get('customer_email');

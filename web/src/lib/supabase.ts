@@ -6,43 +6,62 @@
  * - Server (server-side, API routes)
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check .env.local');
+// Check if Supabase is configured
+const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
+
+// Log warning during build if not configured (but don't throw)
+if (!isSupabaseConfigured && typeof window === 'undefined') {
+  console.warn('[Supabase] Environment variables not configured. Supabase features will be disabled.');
 }
 
 /**
  * Browser-side Supabase client
  * Use this in React components and client-side code
+ * Returns null if Supabase is not configured
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false, // We handle auth via WordPress
-  }
-});
+export const supabase: SupabaseClient | null = isSupabaseConfigured 
+  ? createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: {
+        persistSession: false, // We handle auth via WordPress
+      }
+    })
+  : null;
 
 /**
  * Server-side Supabase client
  * Use this in API routes and server components
+ * Returns null if Supabase is not configured
  */
-export const supabaseServer = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false,
-  }
-});
+export const supabaseServer: SupabaseClient | null = isSupabaseConfigured 
+  ? createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: {
+        persistSession: false,
+      }
+    })
+  : null;
+
+/**
+ * Helper to check if Supabase is available
+ */
+export function isSupabaseAvailable(): boolean {
+  return isSupabaseConfigured;
+}
 
 /**
  * Database Helper Functions
  * Convenient wrappers for common database operations
+ * All methods return null/empty if Supabase is not configured
  */
 export const db = {
   // Customer Intelligence
   customer_intelligence: {
     async findByEmail(email: string) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('customer_intelligence')
         .select('*')
@@ -56,6 +75,7 @@ export const db = {
     },
 
     async findByFingerprint(fingerprint: string) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('customer_intelligence')
         .select('*')
@@ -69,6 +89,7 @@ export const db = {
     },
 
     async upsert(profile: any) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('customer_intelligence')
         .upsert(profile, { onConflict: 'customer_email' })
@@ -86,6 +107,7 @@ export const db = {
   // Device Tracking
   device_tracking: {
     async findByFingerprint(fingerprint: string) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('device_tracking')
         .select('*')
@@ -101,6 +123,7 @@ export const db = {
     },
 
     async findByIPHash(ipHash: string) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('device_tracking')
         .select('*')
@@ -116,6 +139,7 @@ export const db = {
     },
 
     async findByEmail(email: string) {
+      if (!supabase) return [];
       const { data, error } = await supabase
         .from('device_tracking')
         .select('*')
@@ -130,6 +154,7 @@ export const db = {
     },
 
     async upsert(device: any) {
+      if (!supabase) return null;
       // CRITICAL FIX: Match the UNIQUE constraint!
       // The constraint is on (customer_email, ip_hash, browser_fingerprint)
       const { data, error } = await supabase
@@ -155,6 +180,7 @@ export const db = {
   // Bundle Offers
   bundle_offers: {
     async findActiveByEmail(email: string) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('bundle_offers')
         .select('*')
@@ -171,6 +197,7 @@ export const db = {
     },
 
     async updateStatus(offerId: string, status: string) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('bundle_offers')
         .update({ 
@@ -189,6 +216,7 @@ export const db = {
     },
 
     async create(offer: any) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('bundle_offers')
         .insert(offer)
@@ -206,6 +234,7 @@ export const db = {
   // Behavioral Events
   behavioral_events: {
     async create(event: any) {
+      if (!supabase) return null;
       const { data, error } = await supabase
         .from('behavioral_events')
         .insert({

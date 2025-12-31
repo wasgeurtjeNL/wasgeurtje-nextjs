@@ -195,3 +195,25 @@ html_css_best_practices:
   - Document responsive breakpoints and design decisions.
 
   Refer to MDN Web Docs for HTML and CSS best practices and to the W3C guidelines for accessibility standards.
+
+deployment:
+  project:
+    - "Vercel project: wasgeurtje-nextjs (NIET 'web'!)"
+    - "GitHub repo: wasgeurtjeNL/wasgeurtje-nextjs"
+    - "Production URL: https://wasgeurtje-nextjs.vercel.app"
+    
+  how_to_deploy:
+    - "ALTIJD via git push naar main branch:"
+    - "  1. git add <gewijzigde bestanden>"
+    - "  2. git commit -m 'feat/fix: beschrijving'"
+    - "  3. git push origin main"
+    - "Vercel deployt automatisch na push naar main"
+    
+  forbidden:
+    - "NOOIT 'npx vercel --prod' vanuit /web folder!"
+    - "Dit maakt een NIEUW project 'web' aan i.p.v. wasgeurtje-nextjs"
+    - "Als .vercel folder corrupt is → verwijder en push via git"
+    
+  manual_redeploy:
+    - "Via Vercel Dashboard: wasgeurtje-nextjs → Deployments → Redeploy"
+    - "Of via GitHub: lege commit pushen om rebuild te triggeren"

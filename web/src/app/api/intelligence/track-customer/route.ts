@@ -20,7 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db, supabaseServer } from '@/lib/supabase';
+import { db, supabaseServer, isSupabaseAvailable } from '@/lib/supabase';
 import crypto from 'crypto';
 import { 
   trackIntelligencePageView, 
@@ -77,6 +77,14 @@ function calculateSessionScore(profile: any, eventType: string, body: any): numb
 }
 
 export async function POST(request: NextRequest) {
+  // Check if Supabase is configured
+  if (!isSupabaseAvailable()) {
+    return NextResponse.json(
+      { success: false, message: 'Supabase not configured' },
+      { status: 503 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { email, customer_id, event_type = 'session_track', fingerprint, fbp, fbc } = body;
@@ -176,7 +184,7 @@ export async function POST(request: NextRequest) {
     }
     
     // STEP 1.5: If still not recognized, try IP-only recognition (for multi-device scenarios)
-    if (!recognizedEmail && ipHash && ipHash !== 'unknown') {
+    if (!recognizedEmail && ipHash && ipHash !== 'unknown' && supabaseServer) {
       console.log(`[Tracking] 🔍 Fingerprint not found, trying IP-only recognition...`);
       
       // Find any device with this IP

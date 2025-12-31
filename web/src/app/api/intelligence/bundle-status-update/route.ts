@@ -6,10 +6,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/supabase';
+import { db, isSupabaseAvailable } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   console.log('[Bundle Status API] POST request received');
+  
+  // Check if Supabase is configured
+  if (!isSupabaseAvailable()) {
+    return NextResponse.json(
+      { success: false, message: 'Supabase not configured' },
+      { status: 503 }
+    );
+  }
   
   try {
     const body = await request.json();
