@@ -178,6 +178,14 @@ export default async function DynamicPage({ params }: PageProps) {
     const slugPath = slug.join("/");
     
     console.log(`[DynamicPage] 🚀 Loading page: ${slugPath}`);
+    console.log(`[DynamicPage] 🔍 DEBUG - Slug array:`, slug);
+    console.log(`[DynamicPage] 🔍 DEBUG - Is this 'checkout'?`, slug.length === 1 && slug[0] === 'checkout');
+    
+    // CRITICAL: Skip WordPress lookup for checkout - let dedicated route handle it
+    if (slug.length === 1 && slug[0] === 'checkout') {
+      console.log(`[DynamicPage] ⚠️ SKIPPING catch-all for 'checkout' - should use /checkout/page.tsx`);
+      notFound(); // This should trigger Next.js to use the dedicated route
+    }
     
     // Block WordPress core files and suspicious paths (exact match or starts with)
     if (slug.length > 0 && slug[0]) {
