@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic rendering - disable caching for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Get WordPress API base URL (without /wp-json)
 const getWordPressBaseUrl = () => {
   const envUrl = process.env.WORDPRESS_API_URL || process.env.NEXT_PUBLIC_WORDPRESS_API_URL;
@@ -36,18 +40,12 @@ export async function GET(request: NextRequest) {
     console.log('[API /wordpress/options] WordPress base URL:', WORDPRESS_BASE_URL);
     console.log('[API /wordpress/options] Fetching from:', url);
     
-    // Development: no cache, Production: cache for 5 minutes
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
+    // Always fetch fresh data - no caching for A/B test options
     const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
       },
-      // No cache in development, 5 minutes cache in production
-      ...(isDevelopment 
-        ? { cache: 'no-store' } 
-        : { next: { revalidate: 300 } }
-      ),
+      cache: 'no-store',
     });
 
     console.log('[API /wordpress/options] Response status:', response.status, response.statusText);
@@ -65,12 +63,12 @@ export async function GET(request: NextRequest) {
     const options = await response.json();
     console.log('[API /wordpress/options] Received options:', options);
     
+    // No caching - always return fresh A/B test options
     return NextResponse.json(options, {
       headers: {
-        // No cache in development, 5 minutes cache in production
-        "Cache-Control": isDevelopment
-          ? "no-store, must-revalidate"
-          : "public, s-maxage=300, stale-while-revalidate=600",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
       },
     });
   } catch (error) {
